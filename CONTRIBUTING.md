@@ -1,66 +1,61 @@
-[issue]: https://github.com/tebexio/BuycraftX/issues/new
+[issue]: https://github.com/tebexio/Tebex-Minecraft/issues/new
 
-[code of conduct]: https://github.com/tebexio/BuycraftX/blob/master/CODE_OF_CONDUCT.md
+[wiki]: https://docs.tebex.io/creators/
 
-[wiki]: https://docs.tebex.io/store
+[master]: https://github.com/tebexio/Tebex-Minecraft/tree/main
 
-[master]: https://github.com/tebexio/BuycraftX/tree/master
+[feedback form]: https://wkf.ms/45PQwfE
 
-[style]: https://github.com/tebexio/BuycraftX/tree/master/config/style
+[product suggestions]: https://suggestions.tebex.io/
 
 # Contributing Guidelines
 
 We welcome everyone to contribute towards the Tebex Project, but doing so will require you to follow specific rules to
 keep a consistent and welcoming way of contributing.
 
+## ⚠️ Do Not Submit Feature Requests as Issues
+
+Tebex has dedicated tracking of feature requests and user suggestions depending on the platform you're inquiring about. **If you have a suggestion, please use the appropriate link below to let us know.**
+
+Any suggestions created as issues will be closed and forwarded to our [Feedback Form].
+
+#### For Plugin Features
+- Relating to the Minecraft plugin, commands, its functionality, etc.
+- Please use the [feedback form] to tell us your feature request or suggestion.
+
+#### For Webstore Features
+- Relating to the webstore, packages, coupons, sales, etc on https://tebex.io/
+- Please use our [product suggestions] site to submit your feature request.
+
+#### For Customer Support
+- We do not provide customer support via GitHub issues.
+- Please contact our support team at [support@tebex.io](mailto:support@tebex.io)
+
 ## Issues
 
-Like any other project can you encounter bugs or a feature is missing for you in the plugin.  
-For that, you can open an [issue] to report a bug, or suggest a new feature to be added.
-
-When doing so, make sure you follow rules below:
+Issues are intended to document bugs or problems that occur within our project. To report a bug, please open an [issue] and follow the rules below.
 
 ### Follow the template
 
-We have issue templates to help us get the required information more easily. Please follow the provided template when
-either filing a bug report or feature request.  
-Your issue may be closed without warning for not following the template.
+We may have issue templates to help us get the required information more easily. Please follow the provided template when
+either filing a bug report or feature request.
 
 ### Use the latest version
 
-When it comes to bug reports should you always check first, that you're using the latest release of Tebex.  
-Often the bug you've encountered, is fixed in a newer version.
+When it comes to bug reports should you always check first that you're using the latest release of Tebex. It is likely that a bug you're experiencing may
+have already been fixed if a newer version of the plugin is available.
 
-The same rules apply when making a feature request.
+### No duplicate issues
 
-### No duplicate issue
+Make sure that there aren't any existing issues relating to the problem, which are still open, or are closed with a solution/explanation.
 
-Make sure that there aren't any existing issues relating to the problem, which are still open, or are closed with a
-solution/explanation.  
-Opening a separate issue for a bug report or feature request, that already exists on the issue tracker only slows down
-the process of fixing the bug or implementing the feature.
-
-If an issue with the bug or feature you want to report/suggest exists, comment on it with your info (bug reports) or
-give it a :thumbsup: (Feature Request) to show that this is important for you.
+We encourage you to leave a comment or reaction if an issue already exists. Comment with your bug report info or even leave just a 👍 if the issue is relevant for you. This helps our team prioritize which issues we approach.
 
 ## Pull requests
 
 As an open source project are we welcoming all contributions to improve Tebex, being it changes to its code, or
 contributions to its documentation such as the [Wiki] or the Javadocs.
 
-**When contributing, make sure to both base of and target the mentioned branch. Pull requests targeting the wrong branch
-may get closed without a warning.**
-
 ### Code contributions
-
-> **Source and Target Branch:** [`master`][master]
-
 When contributing towards the code of Tebex, be it new features or just bug fixes, your changes should follow the
-general code styling used in the project.  
-You can find the necessary files in the [`config/style`][style] directory of this repository.
-
-## Code of Conduct
-
-We have a [Code of Conduct] to maintain a welcoming atmosphere in this project.  
-If your contributions go against the Code of Conduct, linked above, we reserve the right to deny or revert your
-contributions.
+general code styling used in the project. Use complete comments and Javadoc where applicable.
