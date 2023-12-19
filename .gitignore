@@ -1,0 +1,11 @@
+.gradle/
+.idea/
+ignore/
+**/build
+**/*.iml
+**/*.jar
+!gradle/wrapper/
+**/*.zip
+.DS_Store
+**/.DS_Store
+docs
