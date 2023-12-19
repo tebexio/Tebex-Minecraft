@@ -71,6 +71,17 @@ Here are some additional resources to help you build your Tebex store.
 - 🖥️ [Developer Documentation](https://docs.tebex.io/developers/) - Develop custom integrations to suit your needs
 - 💬 [Feedback Form](https://wkf.ms/45PQwfE) - Help us build a better product by sharing your feedback
 
+## Developer Resources
+All of our plugins are open source and welcome contributions from the community. If you wish to make a contribution, please review **CONTRIBUTING.md** for guidelines
+and things to know before making your contribution.
+
+### Environment Requirements
+- JDK 17
+- Gradle 8.2
+
+### Building
+To build all plugins, simply run `./build.sh`. This will execute the Gradle wrapper, build all plugins, and place their `.jar` files in in `build/libs/`
+
 ## Our Mission
 Founded in 2011, our mission has always been the same: helping creators in the gaming industry create new revenue streams without having to invest the time and effort involved in processing and managing global payments.
 
