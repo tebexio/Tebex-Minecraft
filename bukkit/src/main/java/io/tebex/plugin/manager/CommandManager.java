@@ -31,7 +31,8 @@ public class CommandManager {
                 new InfoCommand(platform),
                 new LookupCommand(platform),
                 new ReportCommand(platform),
-                new SendLinkCommand(platform)
+                new SendLinkCommand(platform),
+                new GoalsCommand(platform)
         ).forEach(command -> {
             commands.put(command.getName(), command);
         });
