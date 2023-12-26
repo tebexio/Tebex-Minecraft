@@ -22,7 +22,7 @@ public class ReloadCommand extends SubCommand {
         try {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
-//            platform.reloadConfig();
+            platform.refreshListings();
 //            platform.setBuyGUI(new BuyGUI(platform));
 
             source.sendFeedback(new LiteralText("§8[Tebex] §7Successfully reloaded."), false);

@@ -3,6 +3,7 @@ package io.tebex.sdk.platform;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.QueuedCommand;
 import io.tebex.sdk.obj.QueuedPlayer;
 import io.tebex.sdk.placeholder.PlaceholderManager;
@@ -402,6 +403,15 @@ public interface Platform {
 
         return config;
     }
+
+    default void refreshListings() {
+        getSDK().getServerInformation().thenAccept(this::setStoreInfo);
+        getSDK().getListing().thenAccept(this::setStoreCategories);
+    }
+
+    void setStoreInfo(ServerInformation info);
+
+    void setStoreCategories(List<Category> categories);
 
     /**
      * Gets the current platform configuration.

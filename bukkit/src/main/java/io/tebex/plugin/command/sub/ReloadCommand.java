@@ -21,6 +21,7 @@ public class ReloadCommand extends SubCommand {
             platform.loadServerPlatformConfig(configYaml);
             platform.reloadConfig();
             platform.setBuyGUI(new BuyGUI(platform));
+            platform.refreshListings();
 
             sender.sendMessage("§8[Tebex] §7Successfully reloaded.");
         } catch (IOException e) {

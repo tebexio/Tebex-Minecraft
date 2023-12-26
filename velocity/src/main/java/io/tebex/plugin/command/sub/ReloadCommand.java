@@ -19,6 +19,7 @@ public class ReloadCommand extends SubCommand {
         try {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
+            platform.refreshListings();
             sender.sendMessage(Component.text("§8[Tebex] §7Successfully reloaded."));
         } catch (IOException e) {
             sender.sendMessage(Component.text("§8[Tebex] §cFailed to reload the plugin: Check Console."));

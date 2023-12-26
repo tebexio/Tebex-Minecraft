@@ -302,4 +302,14 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
                 server.isOnlineMode()
         );
     }
+
+    @Override
+    public void setStoreInfo(ServerInformation info) {
+        this.storeInformation = info;
+    }
+
+    @Override
+    public void setStoreCategories(List<Category> categories) {
+        this.storeCategories = categories;
+    }
 }

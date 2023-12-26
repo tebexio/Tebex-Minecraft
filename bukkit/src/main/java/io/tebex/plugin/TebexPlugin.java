@@ -97,14 +97,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
         registerEvents(new JoinListener(this));
 
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            getSDK().getServerInformation().thenAccept(information -> storeInformation = information);
-            getSDK().getListing().thenAccept(listing -> storeCategories = listing);
-        }, 0, 20 * 60 * 5);
+        getServer().getScheduler().runTaskTimerAsynchronously(this, this::refreshListings, 0, 20 * 60 * 5);
 
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
+            if (!this.isSetup()) return;
 
             sdk.sendEvents(runEvents)
                     .thenAccept(aVoid -> {
@@ -348,6 +346,16 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public void log(Level level, String message) {
         getLogger().log(level, message);
+    }
+
+    @Override
+    public void setStoreInfo(ServerInformation info) {
+        this.storeInformation = info;
+    }
+
+    @Override
+    public void setStoreCategories(List<Category> categories) {
+        this.storeCategories = categories;
     }
 
     @Override
