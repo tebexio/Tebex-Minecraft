@@ -4,7 +4,7 @@ ignore/
 **/build
 **/*.iml
 **/*.jar
-!gradle/wrapper/
+!gradle/wrapper/**
 **/*.zip
 .DS_Store
 **/.DS_Store
