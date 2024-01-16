@@ -721,7 +721,7 @@ public class SDK {
             return null;
         }
 
-        return request("/lookup/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
+        return request("/user/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
             if(response.code() != 200 && response.code() != 404) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
                 platform.sendTriageEvent(e);
