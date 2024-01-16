@@ -3,6 +3,7 @@ package io.tebex.plugin.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
+import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -41,8 +42,14 @@ public class SecretCommand extends SubCommand {
                 sender.sendMessage("§b[Tebex] §7Failed to save config: " + e.getMessage());
             }
 
-            sender.sendMessage("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7.");
+
+            platform.loadServerPlatformConfig(configFile);
+            platform.reloadConfig();
+            platform.setBuyGUI(new BuyGUI(platform));
+            platform.refreshListings();
             platform.configure();
+
+            sender.sendMessage("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7.");
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
