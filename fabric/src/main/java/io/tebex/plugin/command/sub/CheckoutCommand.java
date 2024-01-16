@@ -21,7 +21,7 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex.secret to set your store key."), false);
+            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
             return;
         }
 

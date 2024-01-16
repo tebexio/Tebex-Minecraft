@@ -21,7 +21,7 @@ public class BanCommand extends SubCommand {
         String ip = args[2];
 
         if (!platform.isSetup()) {
-            sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex.secret to set your store key."));
+            sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
