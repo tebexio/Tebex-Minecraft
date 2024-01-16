@@ -18,6 +18,11 @@ public class DebugCommand extends SubCommand {
         ServerPlatformConfig config = platform.getPlatformConfig();
         YamlDocument configFile = config.getYamlDocument();
 
+        if (args.length != 1) {
+            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            return;
+        }
+
         boolean enableDebug = Boolean.parseBoolean(args[0]);
         if (enableDebug) {
             sender.sendMessage("§b[Tebex] §7Debug mode enabled.");
