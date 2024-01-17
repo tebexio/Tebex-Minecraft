@@ -1,3 +1,13 @@
+2.0.1
+=====
+
+### Fixes
+- Command usage instructions are now shown if incorrect/not enough args are used
+- Store information was not properly reloaded after running `tebex secret`, causing errors until the server was restarted.
+- `/tebex lookup` now uses the appropriate endpoint
+- Some commands' usage instructions improperly included a `.` in the command name
+- `/tebex report` now properly sends all report information to Tebex
+
 2.0.0
 =====
 - Plugin has been rewritten from the ground up to include support for: **Bukkit**, **Spigot**, **PaperSpigot**, **Fabric**, **Velocity**, and **BungeeCord**.
