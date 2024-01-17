@@ -14,6 +14,8 @@ import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -296,6 +298,19 @@ public class TebexPlugin extends Plugin implements Platform {
                 System.getProperty("os.arch"),
                 getProxy().getConfig().isOnlineMode()
         );
+    }
+
+    @Override
+    public String getServerIp() {
+        Iterator<ListenerInfo> listeners = ProxyServer.getInstance().getConfig().getListeners().iterator();
+        String ipStr;
+
+        if (listeners.hasNext()) {
+            ListenerInfo listener = listeners.next();
+            return listener.getHost().getAddress().getHostAddress();
+        } else {
+            return "0.0.0.0";
+        }
     }
 
     @Override

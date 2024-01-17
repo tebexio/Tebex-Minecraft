@@ -27,6 +27,7 @@ public class ReportCommand extends SubCommand {
         } else {
             context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Sending your report to Tebex..."), false);
             platform.sendTriageEvent(new Error("User reported error in-game: " + message));
+            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Report sent successfully."), false);
         }
     }
 

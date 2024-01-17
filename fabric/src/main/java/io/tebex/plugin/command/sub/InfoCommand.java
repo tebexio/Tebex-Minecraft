@@ -28,7 +28,7 @@ public class InfoCommand extends SubCommand {
             source.sendFeedback(new LiteralText("§b[Tebex] §7Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217()), false);
             source.sendFeedback(new LiteralText("§b[Tebex] §7Webstore domain " +  platform.getStoreInformation().getStore().getDomain()), false);
         } else {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex.secret to set your store key."), false);
+            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
         }
     }
 

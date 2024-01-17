@@ -20,7 +20,7 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex.secret to set your store key."), false);
+            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
             return;
         }
 
