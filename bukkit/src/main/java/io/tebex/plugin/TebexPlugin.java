@@ -387,4 +387,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                 getServer().getOnlineMode()
         );
     }
+
+    @Override
+    public String getServerIp() {
+        return Bukkit.getIp();
+    }
 }

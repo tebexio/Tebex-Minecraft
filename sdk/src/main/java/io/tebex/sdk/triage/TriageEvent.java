@@ -1,6 +1,7 @@
 package io.tebex.sdk.triage;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.request.TebexRequest;
 import io.tebex.sdk.request.response.ServerInformation;
@@ -18,16 +19,23 @@ import java.util.concurrent.ExecutionException;
  *   of the error if applicable.
  */
 public class TriageEvent {
-    private final Platform _platform;
+    private transient final Platform _platform;
 
+    @SerializedName(value = "game_id")
     private String gameId;
+    @SerializedName(value = "framework_id")
     private String frameworkId;
+    @SerializedName(value = "plugin_version")
     private String pluginVersion;
+    @SerializedName(value = "server_ip")
     private String serverIp;
+    @SerializedName(value = "error_message")
     private String errorMessage;
     private String trace;
     private Map<String, String> metadata;
+    @SerializedName(value = "store_name")
     private String storeName;
+    @SerializedName(value = "store_url")
     private String storeUrl;
 
     private TriageEvent(Platform platform){
@@ -43,7 +51,10 @@ public class TriageEvent {
                 + " " + platform.getTelemetry().getJavaVersion();
         event.pluginVersion = platform.getTelemetry().getPluginVersion();
 
-        event.serverIp = ""; //TODO
+        event.serverIp = platform.getServerIp();
+        if (event.serverIp == null || event.serverIp.isEmpty()) {
+            event.serverIp = "0.0.0.0";
+        }
 
         // Assign store info if secret key is set
         if (platform.getSDK().getSecretKey() != null) {

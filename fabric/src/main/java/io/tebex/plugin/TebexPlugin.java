@@ -304,6 +304,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
+    public String getServerIp() {
+        return this.server.getServerIp();
+    }
+
+    @Override
     public void setStoreInfo(ServerInformation info) {
         this.storeInformation = info;
     }

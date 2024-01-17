@@ -9,6 +9,8 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
@@ -27,6 +29,7 @@ import io.tebex.sdk.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -310,6 +313,16 @@ public class TebexPlugin implements Platform {
                 System.getProperty("os.arch"),
                 proxy.getConfiguration().isOnlineMode()
         );
+    }
+
+    @Override
+    public String getServerIp() {
+        Optional<RegisteredServer> firstListener = this.proxy.getAllServers().stream().findFirst();
+        if (firstListener.isPresent()) {
+            return firstListener.get().getServerInfo().getAddress().getAddress().getHostAddress();
+        }
+
+        return "0.0.0.0";
     }
 
     @Override
