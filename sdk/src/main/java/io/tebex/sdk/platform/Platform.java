@@ -172,9 +172,11 @@ public interface Platform {
         StringWriter traceWriter = new StringWriter();
         exception.printStackTrace(new PrintWriter(traceWriter));
 
-        TriageEvent.fromPlatform(this)
+        TriageEvent event = TriageEvent.fromPlatform(this)
                 .withErrorMessage(exception.getMessage())
-                .withTrace(traceWriter.toString()).send();
+                .withTrace(traceWriter.toString());
+
+        event.send();
     }
 
     default void handleOnlineCommands(QueuedPlayer player) {
@@ -426,4 +428,11 @@ public interface Platform {
      * @return The PlatformTelemetry instance.
      */
     PlatformTelemetry getTelemetry();
+
+    /**
+     * Gets the current server's IP address.
+     *
+     * @return IP address of the server as a string
+     */
+    String getServerIp();
 }
