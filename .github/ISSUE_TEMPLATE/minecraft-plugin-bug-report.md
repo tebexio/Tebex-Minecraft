@@ -17,7 +17,7 @@ Delete this line and the notice below before submitting your issue.
 
 Tebex has dedicated tracking of feature requests and user suggestions depending on the platform you're inquiring about. **If you have a suggestion, please use the appropriate link below to let us know.**
 
-Any suggestions created as issues will be closed and forwarded to our [Feedback Form].
+Any suggestions created as issues will be closed and forwarded to our [Feedback Form](https://wkf.ms/45PQwfE).
 
 #### For Plugin Features
 - Relating to the Minecraft plugin, commands, its functionality, etc.
