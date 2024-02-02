@@ -1,6 +1,7 @@
 package io.tebex.sdk.request;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.tebex.sdk.Tebex;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -109,15 +110,45 @@ public class TebexRequest {
     public CompletableFuture<Response> sendAsync() {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
-        EXECUTOR.submit(() -> this.build().enqueue(new Callback() {
+        Call call = this.build();
+        Request request = call.request();
+
+        EXECUTOR.submit(() -> call.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Tebex.get().debug(call.request().toString());
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                future.complete(response);
+                ResponseBody responseBody = response.body();
+                Tebex.get().debug(String.format("%1$d <- %2$s %3$s ", response.code(), request.method(), request.url()));
+
+                if (responseBody != null) {
+                    try {
+                        // in debug mode we consume the response body and display it in the logs, then rebuild a new response.
+                        // this is inefficient so only do this when debug mode is enabled
+                        if (Tebex.get().getPlatformConfig().isVerbose()) {
+                            String responseBodyString = responseBody.string();
+                            Tebex.get().debug(String.format(" | %1$s", responseBodyString));
+                            ResponseBody clonedBody = ResponseBody.create(responseBodyString,
+                                    responseBody.contentType());
+                            Response clonedResponse = response.newBuilder().body(clonedBody).build();
+                            future.complete(clonedResponse);
+                            clonedResponse.close(); //close duplicated response
+                        } else { // outside of debug mode we can still use the original response
+                            future.complete(response);
+                        }
+                    } catch (IOException e) {
+                        Tebex.get().debug(" error reading response body: " + e.getMessage());
+                        future.completeExceptionally(e);
+                    }
+                } else { // no response body, complete normally
+                    future.complete(response);
+                }
+
+                // close original response
                 response.close();
             }
         }));

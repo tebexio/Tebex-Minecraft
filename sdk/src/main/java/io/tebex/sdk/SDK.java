@@ -8,6 +8,7 @@ import io.tebex.sdk.obj.*;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.request.TebexRequest;
 import io.tebex.sdk.request.builder.CreateCouponRequest;
+import io.tebex.sdk.request.interceptor.LoggingInterceptor;
 import io.tebex.sdk.request.response.DuePlayersResponse;
 import io.tebex.sdk.request.response.OfflineCommandsResponse;
 import io.tebex.sdk.request.response.PaginatedResponse;
@@ -33,7 +34,9 @@ public class SDK {
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
-    private final OkHttpClient HTTP_CLIENT = new OkHttpClient().newBuilder().retryOnConnectionFailure(true).build();
+    private final OkHttpClient HTTP_CLIENT = new OkHttpClient().newBuilder().retryOnConnectionFailure(true)
+            .addInterceptor(new LoggingInterceptor())
+            .build();
 
     private final Platform platform;
     private String secretKey;
