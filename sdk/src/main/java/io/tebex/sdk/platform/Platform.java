@@ -182,26 +182,24 @@ public interface Platform {
     default void handleOnlineCommands(QueuedPlayer player) {
         if(! isSetup()) return;
 
-        debug("Handling commands for player '" + player.getName() + "'..");
+        debug("Processing online commands for player '" + player.getName() + "'...");
+        Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
+        if(!isPlayerOnline(playerId)) {
+            debug("Player " + player.getName() + " has online commands but is not connected. Skipping.");
+            getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects
+            return;
+        }
 
         getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
             if(onlineCommands.isEmpty()) {
-                info("No commands found for " + player.getName() + ".");
+                debug("No commands found for " + player.getName() + ".");
                 return;
             }
 
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
-
-            Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
-            if(! isPlayerOnline(playerId)) {
-                debug("Skipping player " + player.getName() + " as they are offline.");
-                getQueuedPlayers().put(playerId, player.getId());
-                return;
-            }
-
             processOnlineCommands(player.getName(), playerId, onlineCommands);
         }).exceptionally(ex -> {
-            warning("Failed to get online commands: " + ex.getMessage());
+            warning("Failed to get online commands for " + player.getName() + ": " + ex.getMessage());
             ex.printStackTrace();
             sendTriageEvent(ex);
             return null;
