@@ -19,7 +19,7 @@ public class SendLinkCommand extends SubCommand {
     public void execute(CommandContext<ServerCommandSource> context) {
         TebexPlugin platform = getPlatform();
 
-        String username = context.getArgument("username", String.class);
+        String username = context.getArgument("username", String.class).trim();
         Integer packageId = context.getArgument("packageId", Integer.class);
 
         ServerPlayerEntity player = context.getSource().getMinecraftServer().getPlayerManager().getPlayer(username);
@@ -29,7 +29,7 @@ public class SendLinkCommand extends SubCommand {
         }
 
         try {
-            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, player.getUuidAsString()).get();
+            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, username).get();
             player.sendMessage(new LiteralText("§b[Tebex] §7A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl()), false);
         } catch (InterruptedException|ExecutionException e) {
             context.getSource().sendError(new LiteralText("§b[Tebex] §7Failed to get checkout link for package: " + e.getMessage()));
