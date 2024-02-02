@@ -15,6 +15,7 @@ import io.tebex.sdk.request.response.PaginatedResponse;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.Pagination;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -732,8 +733,20 @@ public class SDK {
             }
 
             try {
-                JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
-                return PlayerLookupInfo.fromJsonObject(jsonObject);
+                ResponseBody responseBody = response.body();
+
+                if (responseBody != null) {
+                    String responseStr = responseBody.string();
+                    if (responseStr.equals("[]")) { // can be an empty json array
+                        return null;
+                    }
+
+                    JsonObject jsonObject = GSON.fromJson(responseBody.string(), JsonObject.class);
+                    return PlayerLookupInfo.fromJsonObject(jsonObject);
+                } else { // no response body
+                    throw new CompletionException(new IOException("user not found"));
+                }
+
             } catch (IOException e) {
                 throw new CompletionException(e);
             }

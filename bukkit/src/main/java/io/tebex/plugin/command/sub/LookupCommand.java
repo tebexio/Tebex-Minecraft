@@ -5,6 +5,7 @@ import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.PlayerLookupInfo;
 import org.bukkit.command.CommandSender;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class LookupCommand extends SubCommand {
@@ -30,17 +31,23 @@ public class LookupCommand extends SubCommand {
 
         PlayerLookupInfo lookupInfo = null;
         try {
-            lookupInfo = platform.getSDK().getPlayerLookupInfo(username).get();
+            CompletableFuture<PlayerLookupInfo> future = platform.getSDK().getPlayerLookupInfo(username);
+            lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
             sender.sendMessage("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage());
             return;
         }
 
-        sender.sendMessage("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername());
-        sender.sendMessage("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId());
-        sender.sendMessage("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate);
-        sender.sendMessage("§b[Tebex] §7Bans Total: " + lookupInfo.banCount);
-        sender.sendMessage("§b[Tebex] §7Payments: " + lookupInfo.payments.size());
+        if (lookupInfo != null) {
+            sender.sendMessage("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername());
+            sender.sendMessage("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId());
+            sender.sendMessage("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate);
+            sender.sendMessage("§b[Tebex] §7Bans Total: " + lookupInfo.banCount);
+            sender.sendMessage("§b[Tebex] §7Payments: " + lookupInfo.payments.size());
+        } else {
+            sender.sendMessage("§b[Tebex] §7No information found for that player.");
+        }
+
     }
 
     @Override
