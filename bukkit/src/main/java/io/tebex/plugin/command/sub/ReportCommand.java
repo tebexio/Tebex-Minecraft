@@ -23,8 +23,7 @@ public class ReportCommand extends SubCommand {
             return;
         }
 
-        String message = args[0];
-
+        String message = String.join(" ", args);
         if (message.isEmpty()) {
             sender.sendMessage("§b[Tebex] §7A message is required for your report.");
         } else {

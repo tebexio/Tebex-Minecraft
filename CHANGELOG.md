@@ -1,3 +1,21 @@
+2.0.2
+=====
+
+### Features
+- Improvements to debug mode showing relevant HTTP request and response data
+- `/tebex lookup` provides more in-depth feedback when users are not found
+
+### Changes
+- `/tebex ban` no longer requires an ip or reason
+
+### Fixes
+- Servers running offline mode are now able to process commands
+- Online commands are handled more efficiently on large servers to avoid rate limits (code 429)
+- Fix for `Failed to get online commands: java.lang.UnsupportedOperationException: JsonNull` caused by online commands with no package reference
+- `/tebex sendlink` incorrectly used player id instead of username
+- Fix `/tebex report` now sends the entire report
+- Arguments such as `{id}` and `{username}` are now properly parsed for all command types
+
 2.0.1
 =====
 

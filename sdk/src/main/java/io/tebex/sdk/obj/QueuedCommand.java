@@ -3,10 +3,10 @@ package io.tebex.sdk.obj;
 public class QueuedCommand {
     private final int id;
     private final String command;
-    private final int payment;
-    private final int packageId;
-    private final int delay;
-    private final int requiredSlots;
+    private final Integer payment;
+    private final Integer packageId; // may be null
+    private final Integer delay;
+    private final Integer requiredSlots;
     private final QueuedPlayer player;
     private final boolean online;
 
@@ -40,16 +40,26 @@ public class QueuedCommand {
         return command;
     }
 
+    public String getParsedCommand() {
+        String parsedCommand = command;
+        if (player != null) {
+            parsedCommand = parsedCommand.replace("{id}", player.getUuid());
+            parsedCommand = parsedCommand.replace("{username}", player.getName());
+            parsedCommand = parsedCommand.replace("{name}", player.getName());
+        }
+        return parsedCommand;
+    }
+
     public int getPayment() {
-        return payment;
+        return payment == null ? 0 : payment;
     }
 
     /**
      * The package id relating to this command.
-     * @return the package id
+     * @return the package id. 0 if not provided
      */
     public int getPackageId() {
-        return packageId;
+        return packageId == null ? 0 : packageId;
     }
 
     /**
@@ -57,7 +67,7 @@ public class QueuedCommand {
      * @return the delay in seconds
      */
     public int getDelay() {
-        return delay;
+        return delay == null ? 0 : delay;
     }
 
     /**
@@ -65,7 +75,7 @@ public class QueuedCommand {
      * @return the required slots
      */
     public int getRequiredSlots() {
-        return requiredSlots;
+        return requiredSlots == null ? 0 : delay;
     }
 
     public QueuedPlayer getPlayer() {

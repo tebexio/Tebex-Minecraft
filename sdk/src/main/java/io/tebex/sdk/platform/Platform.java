@@ -182,26 +182,24 @@ public interface Platform {
     default void handleOnlineCommands(QueuedPlayer player) {
         if(! isSetup()) return;
 
-        debug("Handling commands for player '" + player.getName() + "'..");
+        debug("Processing online commands for player '" + player.getName() + "'...");
+        Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
+        if(!isPlayerOnline(playerId)) {
+            debug("Player " + player.getName() + " has online commands but is not connected. Skipping.");
+            getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects
+            return;
+        }
 
         getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
             if(onlineCommands.isEmpty()) {
-                info("No commands found for " + player.getName() + ".");
+                debug("No commands found for " + player.getName() + ".");
                 return;
             }
 
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
-
-            Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
-            if(! isPlayerOnline(playerId)) {
-                debug("Skipping player " + player.getName() + " as they are offline.");
-                getQueuedPlayers().put(playerId, player.getId());
-                return;
-            }
-
             processOnlineCommands(player.getName(), playerId, onlineCommands);
         }).exceptionally(ex -> {
-            warning("Failed to get online commands: " + ex.getMessage());
+            warning("Failed to get online commands for " + player.getName() + ": " + ex.getMessage());
             ex.printStackTrace();
             sendTriageEvent(ex);
             return null;
@@ -232,14 +230,14 @@ public interface Platform {
         boolean hasInventorySpace = true;
         for (QueuedCommand command : commands) {
             if(getFreeSlots(playerId) < command.getRequiredSlots()) {
-                debug(String.format("Skipping command '%s' for player '%s' due to no inventory space.", command.getCommand(), playerName));
+                debug(String.format("Skipping command '%s' for player '%s' due to no inventory space.", command.getParsedCommand(), playerName));
                 hasInventorySpace = false;
                 continue;
             }
 
             executeBlocking(() -> {
-                info(String.format("Dispatching command '%s' for player '%s'.", command.getCommand(), playerName));
-                dispatchCommand(command.getCommand());
+                info(String.format("Dispatching command '%s' for player '%s'.", command.getParsedCommand(), playerName));
+                dispatchCommand(command.getParsedCommand());
             });
             completedCommands.add(command.getId());
 
@@ -269,8 +267,8 @@ public interface Platform {
             List<Integer> completedCommands = new ArrayList<>();
             for (QueuedCommand command : offlineData.getCommands()) {
                 executeBlockingLater(() -> {
-                    info(String.format("Dispatching offline command '%s' for player '%s'.", command.getCommand(), command.getPlayer().getName()));
-                    dispatchCommand(command.getCommand());
+                    info(String.format("Dispatching offline command '%s' for player '%s'.", command.getParsedCommand(), command.getPlayer().getName()));
+                    dispatchCommand(command.getParsedCommand());
                 }, command.getDelay(), TimeUnit.SECONDS);
                 completedCommands.add(command.getId());
 

@@ -22,7 +22,7 @@ public class SendLinkCommand extends SubCommand {
             return;
         }
 
-        String username = args[0];
+        String username = args[0].trim();
         try {
             Player player = sender.getServer().getPlayer(username);
             if (player == null) {
@@ -31,7 +31,7 @@ public class SendLinkCommand extends SubCommand {
             }
 
             int packageId = Integer.parseInt(args[1]);
-            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, player.getUniqueId().toString()).get();
+            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, username).get();
             sender.sendMessage("§b[Tebex] §7A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl());
         } catch (InterruptedException|ExecutionException e) {
             sender.sendMessage("§b[Tebex] §7Failed to get checkout link for package: " + e.getMessage());

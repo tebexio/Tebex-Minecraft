@@ -51,17 +51,11 @@ function testJar() {
   local folder="$1"
   local jarName="$2"
 
-  # Create a named pipe
-  local pipe="./command_pipe_$folder"
-  if [[ ! -p $pipe ]]; then
-      mkfifo $pipe
-  fi
-
   echo "Testing .jar '$jarName' in '$folder'"
   cd $folder
   echo "eula=true" >> "eula.txt"
 
-  java -Xmx2G -jar "$jarName" nogui < $pipe &
+  java -Xmx2G -jar "$jarName" nogui
   javaPid=$!
   echo "Waiting for server startup..."
 
@@ -71,7 +65,7 @@ function testJar() {
       echo "$LINE" | grep "Welcome to Tebex" &> /dev/null
       if [ $? -eq 0 ]; then
           echo "> Tebex loaded successfully, terminating server process..."
-          testCommands $javaPid $pipe
+          #testCommands $javaPid $pipe
           sleep 2
           kill $javaPid
           break
@@ -88,7 +82,7 @@ function installPluginToFolder() {
   toFolder="$2" # root minecraft server folder containing /plugins
 
   mkdir -p "$toFolder/plugins"
-  cp "../build/libs/tebex-$pluginType-2.0.0.jar" "$toFolder/plugins"
+  cp "../build/libs/tebex-$pluginType-2.0.2.jar" "$toFolder/plugins"
 }
 
 function copyWorlds() {

@@ -9,7 +9,7 @@ plugins {
 defaultTasks("shadowJar")
 
 group = "io.tebex"
-version = "2.0.1"
+version = "2.0.2"
 
 subprojects {
     plugins.apply("java")

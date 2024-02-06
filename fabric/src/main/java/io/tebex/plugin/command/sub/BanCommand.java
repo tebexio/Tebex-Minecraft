@@ -19,8 +19,13 @@ public class BanCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         String playerName = context.getArgument("playerName", String.class);
-        String reason = context.getArgument("reason", String.class);
-        String ip = context.getArgument("ip", String.class);
+        String reason = "";
+        String ip = "";
+
+        try {
+            reason = context.getArgument("reason", String.class);
+            ip = context.getArgument("ip", String.class);
+        } catch (IllegalArgumentException ignored) {}
 
         if (!platform.isSetup()) {
             source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
@@ -46,6 +51,6 @@ public class BanCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<playerName> <ip> <reason>";
+        return "<playerName> <opt:reason> <opt:ip>";
     }
 }

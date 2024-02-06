@@ -8,12 +8,14 @@ import io.tebex.sdk.obj.*;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.request.TebexRequest;
 import io.tebex.sdk.request.builder.CreateCouponRequest;
+import io.tebex.sdk.request.interceptor.LoggingInterceptor;
 import io.tebex.sdk.request.response.DuePlayersResponse;
 import io.tebex.sdk.request.response.OfflineCommandsResponse;
 import io.tebex.sdk.request.response.PaginatedResponse;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.Pagination;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +35,9 @@ public class SDK {
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
-    private final OkHttpClient HTTP_CLIENT = new OkHttpClient().newBuilder().retryOnConnectionFailure(true).build();
+    private final OkHttpClient HTTP_CLIENT = new OkHttpClient().newBuilder().retryOnConnectionFailure(true)
+            .addInterceptor(new LoggingInterceptor())
+            .build();
 
     private final Platform platform;
     private String secretKey;
@@ -729,8 +733,20 @@ public class SDK {
             }
 
             try {
-                JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
-                return PlayerLookupInfo.fromJsonObject(jsonObject);
+                ResponseBody responseBody = response.body();
+
+                if (responseBody != null) {
+                    String responseStr = responseBody.string();
+                    if (responseStr.equals("[]")) { // can be an empty json array
+                        return null;
+                    }
+
+                    JsonObject jsonObject = GSON.fromJson(responseBody.string(), JsonObject.class);
+                    return PlayerLookupInfo.fromJsonObject(jsonObject);
+                } else { // no response body
+                    throw new CompletionException(new IOException("user not found"));
+                }
+
             } catch (IOException e) {
                 throw new CompletionException(e);
             }

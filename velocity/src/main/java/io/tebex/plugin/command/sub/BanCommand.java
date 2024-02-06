@@ -16,9 +16,21 @@ public class BanCommand extends SubCommand {
     public void execute(CommandSource sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
+        if (args.length < 1) { // require username at minimum
+            sender.sendMessage(Component.text("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
+            return;
+        }
+
         String playerName = args[0];
-        String reason = args[1];
-        String ip = args[2];
+        String reason = "";
+        String ip = "";
+
+        if (args.length > 1) { // second param provided
+            reason = args[1];
+        }
+        if (args.length > 2) { // third param provided
+            ip = args[2];
+        }
 
         if (!platform.isSetup()) {
             sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
@@ -44,6 +56,6 @@ public class BanCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<playerName> <ip> <reason>";
+        return "<playerName> <opt:reason> <opt:ip>";
     }
 }
