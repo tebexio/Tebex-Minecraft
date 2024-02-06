@@ -14,6 +14,7 @@
 - Fix for `Failed to get online commands: java.lang.UnsupportedOperationException: JsonNull` caused by online commands with no package reference
 - `/tebex sendlink` incorrectly used player id instead of username
 - Fix `/tebex report` now sends the entire report
+- Arguments such as `{id}` and `{username}` are now properly parsed for all command types
 
 2.0.1
 =====
