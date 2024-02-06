@@ -40,6 +40,16 @@ public class QueuedCommand {
         return command;
     }
 
+    public String getParsedCommand() {
+        String parsedCommand = command;
+        if (player != null) {
+            parsedCommand = parsedCommand.replace("{id}", player.getUuid());
+            parsedCommand = parsedCommand.replace("{username}", player.getName());
+            parsedCommand = parsedCommand.replace("{name}", player.getName());
+        }
+        return parsedCommand;
+    }
+
     public int getPayment() {
         return payment == null ? 0 : payment;
     }
