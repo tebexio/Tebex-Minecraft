@@ -164,11 +164,14 @@ public class SDK {
                     JsonObject conditions = commandJson.get("conditions").getAsJsonObject();
 
                     QueuedPlayer queuedPlayer = QueuedPlayer.fromJson(commandJson.get("player").getAsJsonObject());
+                    int packageId = commandJson.get("package").isJsonNull() ? 0 : commandJson.get("package").getAsInt();
+                    int paymentId = commandJson.get("payment").isJsonNull() ? 0 : commandJson.get("payment").getAsInt();
+
                     offlineCommands.add(new QueuedCommand(
                             commandJson.get("id").getAsInt(),
                             platform.getPlaceholderManager().handlePlaceholders(queuedPlayer, commandJson.get("command").getAsString()),
-                            commandJson.get("payment").getAsInt(),
-                            commandJson.get("package").getAsInt(),
+                            paymentId,
+                            packageId,
                             conditions.get("delay").getAsInt(),
                             queuedPlayer
                     ));
@@ -211,11 +214,13 @@ public class SDK {
                     JsonObject commandJson = element.getAsJsonObject();
                     JsonObject conditions = commandJson.getAsJsonObject("conditions");
 
+                    int packageId = commandJson.get("package").isJsonNull() ? 0 : commandJson.get("package").getAsInt();
+                    int paymentId = commandJson.get("payment").isJsonNull() ? 0 : commandJson.get("payment").getAsInt();
                     queuedCommands.add(new QueuedCommand(
                             commandJson.get("id").getAsInt(),
                             platform.getPlaceholderManager().handlePlaceholders(player, commandJson.get("command").getAsString()),
-                            commandJson.get("payment").getAsInt(),
-                            commandJson.get("package").getAsInt(),
+                            paymentId,
+                            packageId,
                             conditions.get("delay").getAsInt(),
                             conditions.get("slots").getAsInt()
 
