@@ -1,3 +1,15 @@
+2.0.3
+=====
+
+### Features
+- **SDK:** `{uuid}` command parameter is now filled by the plugin if a uuid is available and not filled by Tebex API
+
+### Fixes
+- **Minecraft Offline/Geyser:** Offline actions (such as removing groups) with no payment or package attached will now be processed properly.
+- **Minecraft Offline/Geyser:** Certain types of offline commands still could not be parsed and executed, causing console errors.
+- **Bukkit:** `/sendlink` now sends the checkout link to the target player
+- **SDK:** mojangIdToJavaId() no longer returns a null ID if any provided parameters are null
+
 2.0.2
 =====
 
