@@ -1,5 +1,6 @@
 package io.tebex.sdk.platform;
 
+import com.google.common.base.Strings;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
@@ -14,6 +15,7 @@ import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.triage.TriageEvent;
 import io.tebex.sdk.util.StringUtil;
 import io.tebex.sdk.util.UUIDUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -207,13 +209,19 @@ public interface Platform {
     }
 
     /**
-     * Gets the player ID for a player.
+     * Selects the appropriate player ID for a player based on platform configuration.
      * @param name The name of the player.
      * @param uuid The UUID of the player.
      * @return The player ID to use.
      */
-    default Object getPlayerId(String name, UUID uuid) {
-        return isOnlineMode() ? uuid : name;
+    @NotNull default Object getPlayerId(String name, UUID uuid) {
+        // online mode uses uuids while offline mode uses usernames. default to the name if we ever fail to have a uuid
+        Object identifier = isOnlineMode() ? uuid : name;
+        if (identifier == null) {
+            identifier = (name == null) ? "" : name;
+        }
+
+        return identifier;
     }
 
     /**
