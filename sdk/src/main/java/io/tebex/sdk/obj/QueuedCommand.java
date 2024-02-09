@@ -47,6 +47,7 @@ public class QueuedCommand {
             parsedCommand = parsedCommand.replace("{name}", player.getName());
             if (player.getUuid() != null) { // offline servers will return null uuid here
                 parsedCommand = parsedCommand.replace("{id}", player.getUuid());
+                parsedCommand = parsedCommand.replace("{uuid}", player.getUuid());
             }
         }
         return parsedCommand;
