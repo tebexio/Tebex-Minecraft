@@ -8,6 +8,7 @@ import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.io.IOException;
 
@@ -19,7 +20,7 @@ public class SecretCommand extends SubCommand {
     @Override
     public void execute(CommandSource sender, String[] args) {
         if(args.length == 0) {
-            sender.sendMessage(Component.text("§b[Tebex] §7Usage: §f/tebex secret <key>"));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Usage: ").color(NamedTextColor.GRAY)).append(Component.text("/tebex secret <key>").color(NamedTextColor.WHITE)));
             return;
         }
 
@@ -39,19 +40,22 @@ public class SecretCommand extends SubCommand {
             try {
                 configFile.save();
             } catch (IOException e) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Failed to save config: " + e.getMessage()));
+                sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Failed to save config: " + e.getMessage()).color(NamedTextColor.GRAY)));
             }
 
-            sender.sendMessage(Component.text("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA)
+                    .append(Component.text("Connected to ").color(NamedTextColor.GRAY))
+                    .append(Component.text(serverInformation.getServer().getName()).color(NamedTextColor.AQUA))
+                    .append(Component.text(".").color(NamedTextColor.GRAY)));
             platform.configure();
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof ServerNotFoundException) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Server not found. Please check your secret key."));
+                sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Server not found. Please check your secret key.").color(NamedTextColor.GRAY)));
                 platform.halt();
             } else {
-                sender.sendMessage(Component.text("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
+                sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("An error occurred: " + cause.getMessage()).color(NamedTextColor.RED)));
                 cause.printStackTrace();
             }
 

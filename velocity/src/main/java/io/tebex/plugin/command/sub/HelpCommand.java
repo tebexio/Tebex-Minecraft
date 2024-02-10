@@ -5,6 +5,8 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.manager.CommandManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.Comparator;
 
@@ -18,14 +20,17 @@ public class HelpCommand extends SubCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
-        sender.sendMessage(Component.text("§b[Tebex] §7Plugin Commands:"));
+        sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Plugin Commands:").color(NamedTextColor.GRAY)));
 
         commandManager
                 .getCommands()
                 .values()
                 .stream()
                 .sorted(Comparator.comparing(SubCommand::getName))
-                .forEach(subCommand -> sender.sendMessage(Component.text(" §8- §f/tebex " + subCommand.getName() + "§f" + (!subCommand.getUsage().isEmpty() ? " §3" + subCommand.getUsage() + " " : " ") + "§7§o(" + subCommand.getDescription() + ")")));
+                .forEach(subCommand -> sender.sendMessage(Component.text(" - ").color(NamedTextColor.DARK_GRAY)
+                        .append(Component.text("/tebex " + subCommand.getName()).color(NamedTextColor.WHITE))
+                        .append(Component.text(subCommand.getUsage().isEmpty() ? " " : " " + subCommand.getUsage() + " ").color(NamedTextColor.DARK_AQUA))
+                        .append(Component.text("(" + subCommand.getDescription() + ")").color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC))));
     }
 
     @Override

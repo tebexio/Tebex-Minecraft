@@ -5,6 +5,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.io.IOException;
 
@@ -20,9 +21,9 @@ public class ReloadCommand extends SubCommand {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
             platform.refreshListings();
-            sender.sendMessage(Component.text("§8[Tebex] §7Successfully reloaded."));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.DARK_GRAY).append(Component.text("Successfully reloaded.").color(NamedTextColor.GRAY)));
         } catch (IOException e) {
-            sender.sendMessage(Component.text("§8[Tebex] §cFailed to reload the plugin: Check Console."));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.DARK_GRAY).append(Component.text("Failed to reload the plugin: Check Console.").color(NamedTextColor.RED)));
             throw new RuntimeException(e);
         }
     }

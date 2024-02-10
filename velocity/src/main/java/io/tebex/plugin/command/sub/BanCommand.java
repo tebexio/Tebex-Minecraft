@@ -4,6 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.concurrent.ExecutionException;
 
@@ -17,7 +18,7 @@ public class BanCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (args.length < 1) { // require username at minimum
-            sender.sendMessage(Component.text("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()).color(NamedTextColor.GRAY)));
             return;
         }
 
@@ -33,19 +34,19 @@ public class BanCommand extends SubCommand {
         }
 
         if (!platform.isSetup()) {
-            sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("This server is not connected to a webstore. Use /tebex secret to set your store key.").color(NamedTextColor.GRAY)));
             return;
         }
 
         try {
             boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
             if (success) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Player banned successfully."));
+                sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Player banned successfully.").color(NamedTextColor.GRAY)));
             } else {
-                sender.sendMessage(Component.text("§b[Tebex] §7Failed to ban player."));
+                sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Failed to ban player.").color(NamedTextColor.GRAY)));
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.sendMessage(Component.text("§b[Tebex] §7Error while banning player: " + e.getMessage()));
+            sender.sendMessage(Component.text("[Tebex] ").color(NamedTextColor.AQUA).append(Component.text("Error while banning player: " + e.getMessage()).color(NamedTextColor.GRAY)));
         }
     }
 
