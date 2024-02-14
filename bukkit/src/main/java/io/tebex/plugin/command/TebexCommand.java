@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TebexCommand implements TabExecutor {
-    private CommandManager commandManager;
+    private final CommandManager commandManager;
 
     public TebexCommand(CommandManager commandManager) {
         this.commandManager = commandManager;
