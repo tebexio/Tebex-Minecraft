@@ -21,12 +21,12 @@ public class GoalsCommand extends SubCommand {
             List<CommunityGoal> goals = platform.getSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
-                    sender.sendMessage("§b[Tebex] §7Community Goals: ");
-                    sender.sendMessage(String.format("§b[Tebex] §7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus()));
+                    platform.sendMessage(sender, "&fCommunity Goals: ");
+                    platform.sendMessage(sender, String.format("&7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus()));
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.sendMessage("§b[Tebex] §7Unexpected response: " + e.getMessage());
+            platform.sendMessage(sender, "&cUnexpected response: " + e.getMessage());
         }
     }
 

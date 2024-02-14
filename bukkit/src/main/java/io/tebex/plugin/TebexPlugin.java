@@ -21,8 +21,10 @@ import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -391,5 +393,16 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public String getServerIp() {
         return Bukkit.getIp();
+    }
+
+    public void sendMessage(CommandSender sender, String message) {
+        String str = ChatColor.translateAlternateColorCodes('&', "&b[Tebex] &7" + message);
+
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.stripColor(str));
+            return;
+        }
+
+        sender.sendMessage(str);
     }
 }

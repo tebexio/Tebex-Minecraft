@@ -14,12 +14,12 @@ public class InfoCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (platform.isSetup()) {
-            sender.sendMessage("§b[Tebex] §7Information for this server:");
-            sender.sendMessage("§b[Tebex] §7" + platform.getStoreInformation().getServer().getName() + " for webstore " + platform.getStoreInformation().getStore().getName());
-            sender.sendMessage("§b[Tebex] §7Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217());
-            sender.sendMessage("§b[Tebex] §7Webstore domain " +  platform.getStoreInformation().getStore().getDomain());
+            platform.sendMessage(sender, "Information for this server:");
+            platform.sendMessage(sender, platform.getStoreInformation().getServer().getName() + " for webstore " + platform.getStoreInformation().getStore().getName());
+            platform.sendMessage(sender, "Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217());
+            platform.sendMessage(sender, "Webstore domain " +  platform.getStoreInformation().getStore().getDomain());
         } else {
-            sender.sendMessage("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key.");
+            platform.sendMessage(sender, "&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
         }
     }
 

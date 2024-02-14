@@ -23,26 +23,26 @@ public class DebugCommand extends SubCommand {
         YamlDocument configFile = config.getYamlDocument();
 
         if (args.length != 1) {
-            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
             return;
         }
 
         if (StringUtil.isTruthy(args[0])) {
-            sender.sendMessage("§b[Tebex] §7Debug mode enabled.");
+            sender.sendMessage("Debug mode enabled.");
             config.setVerbose(true);
             configFile.set("verbose", true);
         } else if (StringUtil.isFalsy(args[0])) {
-            sender.sendMessage("§b[Tebex] §7Debug mode disabled.");
+            sender.sendMessage("Debug mode disabled.");
             config.setVerbose(false);
             configFile.set("verbose", false);
         } else {
-            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
         }
 
         try {
             configFile.save();
         } catch (IOException e) {
-            sender.sendMessage("§b[Tebex] §7Failed to save configuration file.");
+            sender.sendMessage("&cFailed to save configuration file.");
         }
     }
 

@@ -17,21 +17,21 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            sender.sendMessage("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key.");
+            sender.sendMessage("&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
             return;
         }
 
         if (args.length == 0) {
-            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
             return;
         }
 
         try {
             int packageId = Integer.parseInt(args[0]);
             CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, sender.getName()).get();
-            sender.sendMessage("§b[Tebex] §7Checkout started! Click here to complete payment: " + checkoutUrl.getUrl());
+            sender.sendMessage("Checkout started! Click here to complete payment: " + checkoutUrl.getUrl());
         } catch (InterruptedException|ExecutionException e) {
-            sender.sendMessage("§b[Tebex] §7Failed to get checkout link for package, check package ID: " + e.getMessage());
+            sender.sendMessage("&cFailed to get checkout link for package, check package ID: " + e.getMessage());
         }
     }
 

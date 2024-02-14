@@ -18,13 +18,14 @@ public class SecretCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        TebexPlugin platform = getPlatform();
+
         if(args.length == 0) {
-            sender.sendMessage("§b[Tebex] §7Usage: §f/tebex secret <key>");
+            platform.sendMessage(sender, "Usage: &f/tebex secret <key>");
             return;
         }
 
         String serverToken = args[0];
-        TebexPlugin platform = getPlatform();
 
         StoreSDK analyse = platform.getSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
@@ -39,9 +40,8 @@ public class SecretCommand extends SubCommand {
             try {
                 configFile.save();
             } catch (IOException e) {
-                sender.sendMessage("§b[Tebex] §7Failed to save config: " + e.getMessage());
+                platform.sendMessage(sender, "&cFailed to save config: " + e.getMessage());
             }
-
 
             platform.loadServerPlatformConfig(configFile);
             platform.reloadConfig();
@@ -49,15 +49,15 @@ public class SecretCommand extends SubCommand {
             platform.refreshListings();
             platform.configure();
 
-            sender.sendMessage("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7.");
+            platform.sendMessage(sender, "Connected to &b" + serverInformation.getServer().getName() + "&7.");
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof ServerNotFoundException) {
-                sender.sendMessage("§b[Tebex] §7Server not found. Please check your secret key.");
+                platform.sendMessage(sender, "Server not found. Please check your secret key.");
                 platform.halt();
             } else {
-                sender.sendMessage("§b[Tebex] §cAn error occurred: " + cause.getMessage());
+                platform.sendMessage(sender, "&b[Tebex] &cAn error occurred: " + cause.getMessage());
                 cause.printStackTrace();
             }
 

@@ -18,7 +18,7 @@ public class SendLinkCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (args.length != 2) {
-            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            platform.sendMessage(sender, "&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
             return;
         }
 
@@ -26,17 +26,17 @@ public class SendLinkCommand extends SubCommand {
         try {
             Player player = sender.getServer().getPlayer(username);
             if (player == null) {
-                sender.sendMessage("§b[Tebex] §7Could not find a player with that name on the server.");
+                sender.sendMessage("&cCould not find a player with that name on the server.");
                 return;
             }
 
             int packageId = Integer.parseInt(args[1]);
             CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, username).get();
-            player.sendMessage("§b[Tebex] §7A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl());
+            player.sendMessage("A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl());
         } catch (InterruptedException|ExecutionException e) {
-            sender.sendMessage("§b[Tebex] §7Failed to get checkout link for package: " + e.getMessage());
+            platform.sendMessage(sender, "&cFailed to get checkout link for package: " + e.getMessage());
         } catch (NumberFormatException e) {
-            sender.sendMessage("§b[Tebex] §7Package ID must be a number.");
+            platform.sendMessage(sender, "&cPackage ID must be a number.");
         }
     }
 

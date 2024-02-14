@@ -18,36 +18,36 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            sender.sendMessage("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key.");
+            platform.sendMessage(sender, "&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
             return;
         }
 
         if (args.length != 1) {
-            sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            platform.sendMessage(sender, "&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
             return;
         }
 
         String username = args[0];
 
-        PlayerLookupInfo lookupInfo = null;
+        PlayerLookupInfo lookupInfo;
         try {
             CompletableFuture<PlayerLookupInfo> future = platform.getSDK().getPlayerLookupInfo(username);
             lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
-            sender.sendMessage("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage());
+            platform.sendMessage(sender, "Failed to complete player lookup. " + e.getMessage());
             return;
         }
 
-        if (lookupInfo != null) {
-            sender.sendMessage("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername());
-            sender.sendMessage("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId());
-            sender.sendMessage("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate);
-            sender.sendMessage("§b[Tebex] §7Bans Total: " + lookupInfo.banCount);
-            sender.sendMessage("§b[Tebex] §7Payments: " + lookupInfo.payments.size());
-        } else {
-            sender.sendMessage("§b[Tebex] §7No information found for that player.");
+        if(lookupInfo == null) {
+            platform.sendMessage(sender, "No information found for that player.");
+            return;
         }
 
+        platform.sendMessage(sender, "Username: " + lookupInfo.getLookupPlayer().getUsername());
+        platform.sendMessage(sender, "Id: " + lookupInfo.getLookupPlayer().getId());
+        platform.sendMessage(sender, "Chargeback Rate: " + lookupInfo.chargebackRate);
+        platform.sendMessage(sender, "Bans Total: " + lookupInfo.banCount);
+        platform.sendMessage(sender, "Payments: " + lookupInfo.payments.size());
     }
 
     @Override

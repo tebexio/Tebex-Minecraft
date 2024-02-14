@@ -19,7 +19,7 @@ public class ForceCheckCommand extends SubCommand {
             return;
         }
 
-        sender.sendMessage("§b[Tebex] §7Performing force check...");
+        sender.sendMessage("Performing force check...");
         getPlatform().performCheck(false);
     }
 

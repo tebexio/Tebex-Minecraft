@@ -21,20 +21,20 @@ public class TebexCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(args.length == 0) {
-            sender.sendMessage("§8[Tebex] §7Welcome to Tebex!");
-            sender.sendMessage("§8[Tebex] §7This server is running version §fv" + commandManager.getPlatform().getDescription().getVersion() + "§7.");
+            commandManager.getPlatform().sendMessage(sender, "Welcome to Tebex!");
+            commandManager.getPlatform().sendMessage(sender, "This server is running version &fv" + commandManager.getPlatform().getDescription().getVersion() + "&7.");
             return true;
         }
 
         Map<String, SubCommand> commands = commandManager.getCommands();
         if(! commands.containsKey(args[0].toLowerCase())) {
-            sender.sendMessage("§8[Tebex] §7Unknown command.");
+            commandManager.getPlatform().sendMessage(sender, "&cUnknown command.");
             return true;
         }
 
         final SubCommand subCommand = commands.get(args[0].toLowerCase());
         if (! sender.hasPermission(subCommand.getPermission())) {
-            sender.sendMessage("§b[Tebex] §7You do not have access to that command.");
+            commandManager.getPlatform().sendMessage(sender, "&cYou do not have access to that command.");
             return true;
         }
 

@@ -16,6 +16,7 @@ public class ReloadCommand extends SubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
+
         try {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
@@ -23,9 +24,9 @@ public class ReloadCommand extends SubCommand {
             platform.setBuyGUI(new BuyGUI(platform));
             platform.refreshListings();
 
-            sender.sendMessage("§8[Tebex] §7Successfully reloaded.");
+            platform.sendMessage(sender, "Successfully reloaded.");
         } catch (IOException e) {
-            sender.sendMessage("§8[Tebex] §cFailed to reload the plugin: Check Console.");
+            platform.sendMessage(sender, "&cFailed to reload the plugin: Check Console.");
             throw new RuntimeException(e);
         }
     }

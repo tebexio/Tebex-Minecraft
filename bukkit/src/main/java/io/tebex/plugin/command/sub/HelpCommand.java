@@ -1,15 +1,10 @@
 package io.tebex.plugin.command.sub;
 
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.plugin.manager.CommandManager;
 import org.bukkit.command.CommandSender;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class HelpCommand extends SubCommand {
@@ -21,14 +16,14 @@ public class HelpCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage("§b[Tebex] §7Plugin Commands:");
+        sender.sendMessage("Plugin Commands:");
 
         commandManager
                 .getCommands()
                 .values()
                 .stream()
                 .sorted(Comparator.comparing(SubCommand::getName))
-                .forEach(subCommand -> sender.sendMessage(" §8- §f/tebex " + subCommand.getName() + "§f" + (!subCommand.getUsage().isEmpty() ? " §3" + subCommand.getUsage() + " " : " ") + "§7§o(" + subCommand.getDescription() + ")"));
+                .forEach(subCommand -> getPlatform().sendMessage(sender, " &8- &f/tebex " + subCommand.getName() + "&f" + (!subCommand.getUsage().isEmpty() ? " &3" + subCommand.getUsage() + " " : " ") + "&7&o(" + subCommand.getDescription() + ")"));
     }
 
     @Override
