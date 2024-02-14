@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import net.md_5.bungee.api.CommandSender;
@@ -25,7 +25,7 @@ public class SecretCommand extends SubCommand {
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        SDK analyse = platform.getSDK();
+        StoreSDK analyse = platform.getSDK();
         ProxyPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 

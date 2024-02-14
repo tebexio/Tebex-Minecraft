@@ -1,8 +1,7 @@
 package io.tebex.sdk.platform;
 
-import com.google.common.base.Strings;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.QueuedCommand;
@@ -45,11 +44,11 @@ public interface Platform {
     PlatformType getType();
 
     /**
-     * Gets the SDK instance associated with this platform.
+     * Gets the StoreSDK instance associated with this platform.
      *
-     * @return The SDK instance.
+     * @return The StoreSDK instance.
      */
-    SDK getSDK();
+    StoreSDK getSDK();
 
     /**
      * Gets the directory where the plugin is running from.
@@ -186,6 +185,7 @@ public interface Platform {
 
         debug("Processing online commands for player '" + player.getName() + "'...");
         Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
+
         if(!isPlayerOnline(playerId)) {
             debug("Player " + player.getName() + " has online commands but is not connected. Skipping.");
             getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects

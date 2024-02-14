@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.placeholder.PlaceholderManager;
@@ -22,7 +22,6 @@ import net.md_5.bungee.api.plugin.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.*;
@@ -32,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TebexPlugin extends Plugin implements Platform {
-    private SDK sdk;
+    private StoreSDK storeSdk;
     private ProxyPlatformConfig config;
     private boolean setup;
     private PlaceholderManager placeholderManager;
@@ -44,7 +43,7 @@ public class TebexPlugin extends Plugin implements Platform {
 
     @Override
     public void onEnable() {
-        // Bind SDK.
+        // Bind StoreSDK.
         Tebex.init(this);
 
         try {
@@ -60,8 +59,8 @@ public class TebexPlugin extends Plugin implements Platform {
         // Initialise Managers.
         new CommandManager(this).register();
 
-        // Initialise SDK.
-        sdk = new SDK(this, config.getSecretKey());
+        // Initialise StoreSDK.
+        storeSdk = new StoreSDK(this, config.getSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -119,7 +118,7 @@ public class TebexPlugin extends Plugin implements Platform {
 
                 config = loadProxyPlatformConfig(configYaml);
 
-                sdk = new SDK(this, config.getSecretKey());
+                storeSdk = new StoreSDK(this, config.getSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -170,8 +169,8 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public SDK getSDK() {
-        return sdk;
+    public StoreSDK getSDK() {
+        return storeSdk;
     }
 
     @Override
@@ -198,7 +197,7 @@ public class TebexPlugin extends Plugin implements Platform {
     public void configure() {
         setup = true;
         performCheck();
-        sdk.sendTelemetry();
+        storeSdk.sendTelemetry();
     }
 
     @Override

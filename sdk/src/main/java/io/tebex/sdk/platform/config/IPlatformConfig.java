@@ -3,7 +3,7 @@ package io.tebex.sdk.platform.config;
 import dev.dejvokep.boostedyaml.YamlDocument;
 
 /**
- * The base PlatformConfig class holds the configuration for the Tebex SDK.
+ * The base PlatformConfig class holds the configuration for the Tebex StoreSDK.
  */
 public interface IPlatformConfig {
     int getConfigVersion();

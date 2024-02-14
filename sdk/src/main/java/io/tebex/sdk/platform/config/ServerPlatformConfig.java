@@ -3,7 +3,7 @@ package io.tebex.sdk.platform.config;
 import dev.dejvokep.boostedyaml.YamlDocument;
 
 /**
- * The PlatformConfig class holds the configuration for the Tebex SDK.
+ * The PlatformConfig class holds the configuration for the Tebex StoreSDK.
  * It contains settings related to excluded players, minimum playtime, and various other options.
  */
 public class ServerPlatformConfig implements IPlatformConfig {

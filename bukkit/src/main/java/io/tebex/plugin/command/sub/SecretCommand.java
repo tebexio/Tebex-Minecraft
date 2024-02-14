@@ -4,7 +4,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.gui.BuyGUI;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
@@ -26,7 +26,7 @@ public class SecretCommand extends SubCommand {
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        SDK analyse = platform.getSDK();
+        StoreSDK analyse = platform.getSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 

@@ -26,7 +26,9 @@ subprojects {
     }
 
     repositories {
-        mavenCentral()
+        maven("https://s01.oss.sonatype.org/content/groups/staging/") {
+            name = "sonatype-staging-repo"
+        }
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "spigotmc-repo"
         }
@@ -48,6 +50,7 @@ subprojects {
         maven("https://maven.nucleoid.xyz/") {
             name = "nucleoid"
         }
+        mavenCentral()
     }
 
     tasks.named("processResources", Copy::class.java) {

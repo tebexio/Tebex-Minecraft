@@ -8,7 +8,7 @@ import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.ServerEvent;
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
  * The Bukkit platform.
  */
 public final class TebexPlugin extends JavaPlugin implements Platform {
-    private SDK sdk;
+    private StoreSDK storeSdk;
     private ServerPlatformConfig config;
     private boolean setup;
     private PlaceholderManager placeholderManager;
@@ -61,7 +61,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
      */
     @Override
     public void onEnable() {
-        // Bind SDK.
+        // Bind StoreSDK.
         Tebex.init(this);
 
         try {
@@ -77,8 +77,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         // Initialise Managers.
         new CommandManager(this).register();
 
-        // Initialise SDK.
-        sdk = new SDK(this, config.getSecretKey());
+        // Initialise StoreSDK.
+        storeSdk = new StoreSDK(this, config.getSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -104,7 +104,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             if (runEvents.isEmpty()) return;
             if (!this.isSetup()) return;
 
-            sdk.sendEvents(runEvents)
+            storeSdk.sendEvents(runEvents)
                     .thenAccept(aVoid -> {
                         serverEvents.removeAll(runEvents);
                         debug("Successfully sent analytics.");
@@ -173,7 +173,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
                 config = loadServerPlatformConfig(configYaml);
 
-                sdk = new SDK(this, config.getSecretKey());
+                storeSdk = new StoreSDK(this, config.getSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -252,8 +252,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public SDK getSDK() {
-        return sdk;
+    public StoreSDK getSDK() {
+        return storeSdk;
     }
 
     @Override
@@ -280,7 +280,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public void configure() {
         setup = true;
         performCheck();
-        sdk.sendTelemetry();
+        storeSdk.sendTelemetry();
     }
 
     @Override

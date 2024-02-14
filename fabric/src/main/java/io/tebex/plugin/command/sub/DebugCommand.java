@@ -4,8 +4,6 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.util.StringUtil;
 import net.minecraft.server.command.ServerCommandSource;

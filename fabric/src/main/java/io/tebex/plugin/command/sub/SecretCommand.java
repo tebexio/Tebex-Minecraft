@@ -4,7 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
@@ -29,7 +29,7 @@ public class SecretCommand extends SubCommand {
             return;
         }
 
-        SDK analyse = platform.getSDK();
+        StoreSDK analyse = platform.getSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 

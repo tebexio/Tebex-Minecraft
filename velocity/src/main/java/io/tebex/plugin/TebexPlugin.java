@@ -5,17 +5,15 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.placeholder.PlaceholderManager;
@@ -28,8 +26,6 @@ import io.tebex.sdk.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -48,7 +44,7 @@ import java.util.regex.Pattern;
         authors = {"Tebex"}
 )
 public class TebexPlugin implements Platform {
-    private SDK sdk;
+    private StoreSDK storeSdk;
     private ProxyPlatformConfig config;
     private boolean setup;
     private PlaceholderManager placeholderManager;
@@ -75,7 +71,7 @@ public class TebexPlugin implements Platform {
 
     @Subscribe
     public void onEnable(ProxyInitializeEvent event) {
-        // Bind SDK.
+        // Bind StoreSDK.
         Tebex.init(this);
 
         try {
@@ -91,8 +87,8 @@ public class TebexPlugin implements Platform {
         // Initialise Managers.
         new CommandManager(this).register();
 
-        // Initialise SDK.
-        sdk = new SDK(this, config.getSecretKey());
+        // Initialise StoreSDK.
+        storeSdk = new StoreSDK(this, config.getSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -154,7 +150,7 @@ public class TebexPlugin implements Platform {
 
                 config = loadProxyPlatformConfig(configYaml);
 
-                sdk = new SDK(this, config.getSecretKey());
+                storeSdk = new StoreSDK(this, config.getSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -178,8 +174,8 @@ public class TebexPlugin implements Platform {
     }
 
     @Override
-    public SDK getSDK() {
-        return sdk;
+    public StoreSDK getSDK() {
+        return storeSdk;
     }
 
     @Override
@@ -206,7 +202,7 @@ public class TebexPlugin implements Platform {
     public void configure() {
         setup = true;
         performCheck();
-        sdk.sendTelemetry();
+        storeSdk.sendTelemetry();
     }
 
     @Override

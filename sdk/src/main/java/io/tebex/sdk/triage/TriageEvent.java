@@ -3,12 +3,8 @@ package io.tebex.sdk.triage;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import io.tebex.sdk.platform.Platform;
-import io.tebex.sdk.request.TebexRequest;
 import io.tebex.sdk.request.response.ServerInformation;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -127,34 +123,34 @@ public class TriageEvent {
     }
 
     public void send() {
-        TebexRequest triageEventRequest = _platform.getSDK().request("https://plugin-logs.tebex.io/", false)
-                 .withBody(this.toJsonString(), "POST");
-
-        // Store name is set automatically by fromPlatform
-        if (this.storeName.equals("")) {
-            _platform.debug("No store info while sending triage event, ignoring event");
-            return;
-        }
-
-        // Send the event to plugin logs
-        try {
-            Response triageResponse = triageEventRequest.send();
-
-            if (!triageResponse.isSuccessful()) {
-                _platform.debug("Failed to send triage event!");
-                ResponseBody responseBody = triageResponse.body();
-
-                if (responseBody != null) {
-                    _platform.debug(responseBody.string());
-                } else {
-                    _platform.debug("Empty response from plugin logs when sending triage event");
-                }
-            }
-
-            triageResponse.close();
-        } catch (IOException e) {
-            _platform.debug("Unexpected error sending triage event!");
-            _platform.debug(e.getMessage());
-        }
+//        TebexRequest triageEventRequest = _platform.getSDK().request("https://plugin-logs.tebex.io/", false)
+//                 .withBody(this.toJsonString(), "POST");
+//
+//        // Store name is set automatically by fromPlatform
+//        if (this.storeName.equals("")) {
+//            _platform.debug("No store info while sending triage event, ignoring event");
+//            return;
+//        }
+//
+//        // Send the event to plugin logs
+//        try {
+//            Response triageResponse = triageEventRequest.send();
+//
+//            if (!triageResponse.isSuccessful()) {
+//                _platform.debug("Failed to send triage event!");
+//                ResponseBody responseBody = triageResponse.body();
+//
+//                if (responseBody != null) {
+//                    _platform.debug(responseBody.string());
+//                } else {
+//                    _platform.debug("Empty response from plugin logs when sending triage event");
+//                }
+//            }
+//
+//            triageResponse.close();
+//        } catch (IOException e) {
+//            _platform.debug("Unexpected error sending triage event!");
+//            _platform.debug(e.getMessage());
+//        }
     }
 }

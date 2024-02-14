@@ -6,7 +6,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.util.Multithreading;
-import io.tebex.sdk.SDK;
+import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.ServerEvent;
@@ -43,7 +43,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     private final File MOD_PATH = new File("./mods/" + MOD_ID);
     private MinecraftServer server;
 
-    private SDK sdk;
+    private StoreSDK storeSdk;
     private ServerPlatformConfig config;
     private boolean setup;
     private PlaceholderManager placeholderManager;
@@ -80,11 +80,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     private void onEnable() {
-        // Bind SDK.
+        // Bind StoreSDK.
         Tebex.init(this);
 
-        // Initialise SDK.
-        sdk = new SDK(this, config.getSecretKey());
+        // Initialise StoreSDK.
+        storeSdk = new StoreSDK(this, config.getSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -125,7 +125,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
 
-            sdk.sendEvents(runEvents)
+            storeSdk.sendEvents(runEvents)
                     .thenAccept(aVoid -> {
                         serverEvents.removeAll(runEvents);
                         debug("Successfully sent analytics.");
@@ -143,8 +143,8 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public SDK getSDK() {
-        return sdk;
+    public StoreSDK getSDK() {
+        return storeSdk;
     }
 
     @Override
@@ -183,7 +183,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     public void configure() {
         setup = true;
         performCheck();
-        sdk.sendTelemetry();
+        storeSdk.sendTelemetry();
     }
 
     @Override

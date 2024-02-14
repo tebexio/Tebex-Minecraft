@@ -3,7 +3,7 @@ package io.tebex.sdk.platform.config;
 import dev.dejvokep.boostedyaml.YamlDocument;
 
 /**
- * The ProxyPlatformConfig class holds the configuration for the Tebex SDK.
+ * The ProxyPlatformConfig class holds the configuration for the Tebex StoreSDK.
  */
 public class ProxyPlatformConfig implements IPlatformConfig {
     private final int configVersion;
