@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -15,8 +16,8 @@ public class BanCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (args.length < 1) { // require username at minimum
-            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+        if (!platform.isSetup()) {
+            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
             return;
         }
 
@@ -31,20 +32,15 @@ public class BanCommand extends SubCommand {
             ip = args[2];
         }
 
-        if (!platform.isSetup()) {
-            sender.sendMessage("&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
-            return;
-        }
-
         try {
             boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
             if (success) {
-                sender.sendMessage("&7Player banned successfully.");
+                platform.sendMessage(sender, "&7Player banned successfully.");
             } else {
-                sender.sendMessage("&cFailed to ban player.");
+                platform.sendMessage(sender, "&cFailed to ban player.");
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.sendMessage("&cError while banning player: &f" + e.getMessage());
+            platform.sendMessage(sender, "&cError while banning player: &f" + e.getMessage());
         }
     }
 
@@ -55,6 +51,11 @@ public class BanCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<playerName> <reason> <ip>";
+        return "<username> [reason] [ip]";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
     }
 }

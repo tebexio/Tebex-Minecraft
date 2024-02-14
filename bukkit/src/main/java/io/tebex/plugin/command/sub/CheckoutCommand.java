@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CheckoutUrl;
@@ -17,12 +18,7 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            sender.sendMessage("&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
-            return;
-        }
-
-        if (args.length == 0) {
-            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            sender.sendMessage("&c" + CommonMessages.NOT_CONNECTED.getMessage());
             return;
         }
 
@@ -43,5 +39,10 @@ public class CheckoutCommand extends SubCommand {
     @Override
     public String getUsage() {
         return "<packageId>";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
     }
 }

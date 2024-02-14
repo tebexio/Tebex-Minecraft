@@ -1,11 +1,11 @@
 package io.tebex.plugin.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.util.StringUtil;
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
@@ -22,27 +22,27 @@ public class DebugCommand extends SubCommand {
         ServerPlatformConfig config = platform.getPlatformConfig();
         YamlDocument configFile = config.getYamlDocument();
 
-        if (args.length != 1) {
-            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+        if(args.length == 0) {
+            config.setVerbose(! config.isVerbose());
+        } else if(StringUtil.isTruthy(args[0]) || StringUtil.isFalsy(args[0])) {
+            config.setVerbose(StringUtil.isTruthy(args[0]));
+        } else {
+            platform.sendMessage(sender, CommonMessages.INVALID_USAGE.getMessage("tebex", getName() + " " + getUsage()));
             return;
         }
 
-        if (StringUtil.isTruthy(args[0])) {
-            sender.sendMessage("Debug mode enabled.");
-            config.setVerbose(true);
-            configFile.set("verbose", true);
-        } else if (StringUtil.isFalsy(args[0])) {
-            sender.sendMessage("Debug mode disabled.");
-            config.setVerbose(false);
-            configFile.set("verbose", false);
+        configFile.set("verbose", config.isVerbose());
+
+        if(config.isVerbose()) {
+            platform.sendMessage(sender, "Debug mode enabled.");
         } else {
-            sender.sendMessage("&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            platform.sendMessage(sender, "Debug mode disabled.");
         }
 
         try {
             configFile.save();
         } catch (IOException e) {
-            sender.sendMessage("&cFailed to save configuration file.");
+            platform.sendMessage(sender, "&cFailed to save configuration file.");
         }
     }
 
@@ -53,6 +53,6 @@ public class DebugCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<true/false/on/off>";
+        return "[true/false/on/off]";
     }
 }

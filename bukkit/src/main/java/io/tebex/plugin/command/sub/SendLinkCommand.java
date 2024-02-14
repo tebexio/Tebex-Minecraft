@@ -17,11 +17,6 @@ public class SendLinkCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (args.length != 2) {
-            platform.sendMessage(sender, "&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
-            return;
-        }
-
         String username = args[0].trim();
         try {
             Player player = sender.getServer().getPlayer(username);
@@ -48,5 +43,10 @@ public class SendLinkCommand extends SubCommand {
     @Override
     public String getUsage() {
         return "<username> <packageId>";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 2;
     }
 }

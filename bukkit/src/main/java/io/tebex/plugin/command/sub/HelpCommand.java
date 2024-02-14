@@ -16,7 +16,7 @@ public class HelpCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage("Plugin Commands:");
+        getPlatform().sendMessage(sender, "Plugin Commands:");
 
         commandManager
                 .getCommands()

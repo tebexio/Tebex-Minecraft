@@ -20,11 +20,6 @@ public class SecretCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if(args.length == 0) {
-            platform.sendMessage(sender, "Usage: &f/tebex secret <key>");
-            return;
-        }
-
         String serverToken = args[0];
 
         StoreSDK analyse = platform.getSDK();
@@ -73,5 +68,10 @@ public class SecretCommand extends SubCommand {
     @Override
     public String getUsage() {
         return "<key>";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
     }
 }

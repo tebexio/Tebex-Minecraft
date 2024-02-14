@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CommunityGoal;
@@ -16,6 +17,11 @@ public class GoalsCommand extends SubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
+
+        if(! platform.isSetup()) {
+            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
+            return;
+        }
 
         try {
             List<CommunityGoal> goals = platform.getSDK().getCommunityGoals().get();

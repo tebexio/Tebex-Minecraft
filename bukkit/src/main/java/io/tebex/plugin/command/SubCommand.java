@@ -33,4 +33,8 @@ public abstract class SubCommand {
     public String getUsage() {
         return "";
     }
+
+    public int getMinArgs() {
+        return 0;
+    }
 }

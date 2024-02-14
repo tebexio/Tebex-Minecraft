@@ -15,16 +15,12 @@ public class ReportCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (args.length != 1) {
-            platform.sendMessage(sender, "&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+        if (args.length == 0) {
+            platform.sendMessage(sender, "&cA message is required for your report.");
             return;
         }
 
         String message = String.join(" ", args);
-        if (message.isEmpty()) {
-            platform.sendMessage(sender, "&cA message is required for your report.");
-            return;
-        }
 
         platform.sendMessage(sender, "Sending your report to Tebex...");
         platform.sendTriageEvent(new Error("User reported error in-game: " + message));

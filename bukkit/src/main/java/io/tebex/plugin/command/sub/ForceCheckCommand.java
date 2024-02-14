@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -15,11 +16,11 @@ public class ForceCheckCommand extends SubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if(! platform.isSetup()) {
-            sender.sendMessage("§cTebex is not setup yet!");
+            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
             return;
         }
 
-        sender.sendMessage("Performing force check...");
+        platform.sendMessage(sender, "Performing force check...");
         getPlatform().performCheck(false);
     }
 

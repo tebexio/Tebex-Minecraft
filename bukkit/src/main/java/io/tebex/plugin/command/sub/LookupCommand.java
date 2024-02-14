@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.PlayerLookupInfo;
@@ -18,12 +19,7 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            platform.sendMessage(sender, "&cThis server is not connected to a webstore. Use /tebex secret to set your store key.");
-            return;
-        }
-
-        if (args.length != 1) {
-            platform.sendMessage(sender, "&cInvalid command usage. Use /tebex " + this.getName() + " " + getUsage());
+            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
             return;
         }
 
@@ -34,12 +30,12 @@ public class LookupCommand extends SubCommand {
             CompletableFuture<PlayerLookupInfo> future = platform.getSDK().getPlayerLookupInfo(username);
             lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
-            platform.sendMessage(sender, "Failed to complete player lookup. " + e.getMessage());
+            platform.sendMessage(sender, "&cFailed to complete player lookup. " + e.getMessage());
             return;
         }
 
         if(lookupInfo == null) {
-            platform.sendMessage(sender, "No information found for that player.");
+            platform.sendMessage(sender, "&cNo information found for that player.");
             return;
         }
 
@@ -58,5 +54,10 @@ public class LookupCommand extends SubCommand {
     @Override
     public String getUsage() {
         return "<username>";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
     }
 }
