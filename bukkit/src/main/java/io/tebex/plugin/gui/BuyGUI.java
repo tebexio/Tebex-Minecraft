@@ -2,6 +2,7 @@ package io.tebex.plugin.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import io.tebex.plugin.CommonMessages;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.MaterialUtil;
 import io.tebex.sdk.obj.Category;
@@ -35,7 +36,7 @@ public class BuyGUI {
     public void open(Player player) {
         List<Category> categories = platform.getStoreCategories();
         if (categories == null) {
-            player.sendMessage(ChatColor.RED + "Failed to get listing. Please contact an administrator.");
+            platform.sendMessage(player, "Failed to get listing. Please contact an administrator.");
             return;
         }
 
@@ -98,9 +99,9 @@ public class BuyGUI {
 
             // Create Checkout Url
             platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName()).thenAccept(checkout -> {
-                player.sendMessage(ChatColor.GREEN + "You can checkout here: " + checkout.getUrl());
+                platform.sendMessage(player, CommonMessages.CHECKOUT_URL.getMessage(checkout.getUrl()));
             }).exceptionally(ex -> {
-                player.sendMessage(ChatColor.RED + "Failed to create checkout URL. Please contact an administrator.");
+                platform.sendMessage(player, "&cFailed to create checkout URL. Please contact an administrator.");
                 ex.printStackTrace();
                 platform.sendTriageEvent(ex);
                 return null;

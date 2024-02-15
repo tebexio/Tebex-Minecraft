@@ -17,6 +17,7 @@ import io.tebex.sdk.request.response.OfflineCommandsResponse;
 import io.tebex.sdk.request.response.PaginatedResponse;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.Pagination;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +55,9 @@ public class StoreSDK {
 
         final EntityMapper mapper = EntityMapper.newInstance()
                 .registerSerializer(JsonObject.class, GsonMapper.serializer(JsonObject.class, GSON))
-                .registerDeserializer(JsonObject.class, GsonMapper.deserializer(JsonObject.class, GSON));
+                .registerDeserializer(JsonObject.class, GsonMapper.deserializer(JsonObject.class, GSON))
+                .registerSerializer(JsonArray.class, GsonMapper.serializer(JsonArray.class, GSON))
+                .registerDeserializer(JsonArray.class, GsonMapper.deserializer(JsonArray.class, GSON));
 
         this.HTTP_CLIENT = HttpClient.newBuilder()
                 .withBaseURL(API_URL)
@@ -133,7 +136,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if(req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if(req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if(req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -348,7 +351,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -363,9 +366,12 @@ public class StoreSDK {
                 throw new CompletionException(new IOException("Failed to get community goals"));
             }
 
-            JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
-            JsonArray jsonArray = jsonObject.getAsJsonArray();
-            return jsonArray.asList().stream().map(item -> CommunityGoal.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList());
+            JsonArray jsonArray = response.getResponseEntity(JsonArray.class);
+
+            return jsonArray.asList()
+                    .stream()
+                    .map(item -> CommunityGoal.fromJsonObject(item.getAsJsonObject()))
+                    .collect(Collectors.toList());
         });
     }
 
@@ -389,7 +395,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -405,6 +411,7 @@ public class StoreSDK {
             }
 
             JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
+
             return CommunityGoal.fromJsonObject(jsonObject);
         });
     }
@@ -439,7 +446,7 @@ public class StoreSDK {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else if (req.getStatusCode() != 201) {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -473,7 +480,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -492,7 +499,10 @@ public class StoreSDK {
 
             return new PaginatedResponse<>(
                     Pagination.fromJsonObject(jsonObject.getAsJsonObject("pagination")),
-                    jsonObject.getAsJsonArray("data").asList().stream().map(item -> Coupon.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList())
+                    jsonObject.getAsJsonArray("data").asList()
+                            .stream()
+                            .map(item -> Coupon.fromJsonObject(item.getAsJsonObject()))
+                            .collect(Collectors.toList())
             );
         });
     }
@@ -517,7 +527,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -604,7 +614,12 @@ public class StoreSDK {
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
                         } else if (req.getStatusCode() != 200) {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
+                            JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
+
+                            if(jsonObject.has("error_message")) {
+                                throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
+                            }
+
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
                     })
@@ -639,7 +654,7 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
@@ -689,11 +704,11 @@ public class StoreSDK {
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else if (req.getStatusCode() != 204) {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -716,18 +731,18 @@ public class StoreSDK {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.delete("/events")
+            final HttpResponse response = this.HTTP_CLIENT.post("/events")
                     .withHeader("X-TEBEX-SECRET", getSecretKey())
                     .withHeader("User-Agent", "Tebex-StoreSDK")
                     .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else if (req.getStatusCode() != 204) {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -832,6 +847,14 @@ public class StoreSDK {
                     .withHeader("X-TEBEX-SECRET", getSecretKey())
                     .withHeader("User-Agent", "Tebex-StoreSDK")
                     .withHeader("Content-Type", "application/json")
+                    .onStatus(200, req -> {})
+                    .onRemaining(req -> {
+                        if(req.getStatusCode() == 404) {
+                            throw new CompletionException(new ServerNotFoundException());
+                        } else if(req.getStatusCode() != 200) {
+                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+                        }
+                    })
                     .execute();
 
             if(response == null) {
@@ -839,6 +862,7 @@ public class StoreSDK {
             }
 
             JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
+
             return jsonObject.get("success").getAsBoolean();
         });
     }
@@ -866,6 +890,10 @@ public class StoreSDK {
                     .withHeader("User-Agent", "Tebex-StoreSDK")
                     .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(payload))
+                    .onStatus(200, req -> {})
+                    .onRemaining(req -> {
+                        throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+                    })
                     .execute();
 
             if(response == null) {
@@ -894,6 +922,12 @@ public class StoreSDK {
                     .withHeader("X-TEBEX-SECRET", getSecretKey())
                     .withHeader("User-Agent", "Tebex-StoreSDK")
                     .withHeader("Content-Type", "application/json")
+                    .onStatus(200, req -> {})
+                    .onRemaining(req -> {
+                        if(req.getStatusCode() != 404) {
+                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+                        }
+                    })
                     .execute();
 
             if(response == null) {
