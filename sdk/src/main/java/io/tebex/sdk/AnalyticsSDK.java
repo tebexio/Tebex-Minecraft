@@ -3,16 +3,24 @@ package io.tebex.sdk;
 import com.google.gson.JsonObject;
 import com.intellectualsites.http.HttpClient;
 import com.intellectualsites.http.HttpResponse;
-import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.exception.RateLimitException;
+import io.tebex.sdk.analytics.exception.ServerNotFoundException;
+import io.tebex.sdk.analytics.exception.ServerNotSetupException;
+import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.response.AnalyseLeaderboard;
+import io.tebex.sdk.analytics.response.PlayerProfile;
 import io.tebex.sdk.analytics.response.PluginInformation;
 import io.tebex.sdk.analytics.response.ServerInformation;
-import io.tebex.sdk.analytics.response.PlayerProfile;
-import io.tebex.sdk.analytics.response.AnalyseLeaderboard;
+import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.exception.RateLimitException;
+import io.tebex.sdk.platform.Platform;
+import io.tebex.sdk.platform.PlatformType;
+import io.tebex.sdk.util.StringUtil;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+
+import static io.tebex.sdk.HttpSdkBuilder.GSON;
 
 /**
  * The main AnalyticsSDK class for interacting with the Analytics API.
@@ -40,6 +48,16 @@ public class AnalyticsSDK {
         this.HTTP_CLIENT = httpSdkBuilder.build();
     }
 
+    private void handleRequestErrors(HttpResponse req) {
+        if (req.getStatusCode() == 404) {
+            throw new CompletionException(new ServerNotFoundException());
+        } else if (req.getStatusCode() == 429) {
+            throw new CompletionException(new RateLimitException("You are being rate limited."));
+        } else if (req.getStatusCode() != 200) {
+            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+        }
+    }
+
     /**
      * Retrieves the latest plugin information.
      *
@@ -53,15 +71,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -98,15 +108,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -169,7 +171,7 @@ public class AnalyticsSDK {
         platform.debug(" - Joined at: " + player.getJoinedAt());
         platform.debug(" - First joined at: " + player.getFirstJoinedAt());
 
-        if(player.getStatistics().size() > 0) {
+        if(! player.getStatistics().isEmpty()) {
             platform.debug(" - Statistics:");
             player.getStatistics().forEach((key, value) -> platform.debug("   - %" + key + "%: " + value));
         } else {
@@ -183,15 +185,7 @@ public class AnalyticsSDK {
                     .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(player))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -199,6 +193,7 @@ public class AnalyticsSDK {
             }
 
             JsonObject body = response.getResponseEntity(JsonObject.class);
+
             return body.get("success").getAsBoolean();
         });
     }
@@ -221,15 +216,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -264,15 +251,7 @@ public class AnalyticsSDK {
                     .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -280,6 +259,7 @@ public class AnalyticsSDK {
             }
 
             JsonObject responseBody = response.getResponseEntity(JsonObject.class);
+
             return responseBody.get("success").getAsBoolean();
         });
     }
@@ -303,15 +283,7 @@ public class AnalyticsSDK {
                     .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(platform.getTelemetry()))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -353,15 +325,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -392,15 +356,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -433,15 +389,7 @@ public class AnalyticsSDK {
                     .withHeader("User-Agent", "Tebex-AnalyticsSDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleRequestErrors)
                     .execute();
 
             if(response == null) {
@@ -449,8 +397,8 @@ public class AnalyticsSDK {
             }
 
             JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
-            if(! jsonObject.get("success").getAsBoolean()) return null;
-            return jsonObject.get("country_code").getAsString();
+
+            return jsonObject.get("success").getAsBoolean() ? jsonObject.get("country_code").getAsString() : null;
         });
     }
 

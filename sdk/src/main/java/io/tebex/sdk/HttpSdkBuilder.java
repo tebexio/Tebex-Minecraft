@@ -14,6 +14,7 @@ public class HttpSdkBuilder {
 
     private final String apiUrl;
     private final EntityMapper entityMapper;
+    private String userAgent = "Tebex-StoreSDK";
 
     public HttpSdkBuilder(String baseUrl) {
         this.apiUrl = baseUrl;
@@ -24,6 +25,10 @@ public class HttpSdkBuilder {
                 .registerDeserializer(JsonArray.class, GsonMapper.deserializer(JsonArray.class, GSON));
     }
 
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
     public EntityMapper getEntityMapper() {
         return entityMapper;
     }
@@ -31,12 +36,8 @@ public class HttpSdkBuilder {
     public HttpClient build() {
         return HttpClient.newBuilder()
                 .withBaseURL(apiUrl)
-                .withEntityMapper(mapper)
-                .withDecorator(request -> request.withHeader("User-Agent", "Tebex-StoreSDK").withHeader("Content-Type", "application/json"))
+                .withEntityMapper(entityMapper)
+                .withDecorator(request -> request.withHeader("User-Agent", userAgent).withHeader("Content-Type", "application/json"))
                 .build();
-    }
-
-    public Gson getGson() {
-        return GSON;
     }
 }

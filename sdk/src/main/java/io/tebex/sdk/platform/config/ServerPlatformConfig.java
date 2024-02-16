@@ -10,7 +10,6 @@ public class ServerPlatformConfig implements IPlatformConfig {
     private final int configVersion;
     private YamlDocument yamlDocument;
 
-
     private String buyCommandName;
     private boolean buyCommandEnabled;
     private boolean checkForUpdates;

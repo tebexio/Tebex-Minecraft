@@ -7,16 +7,15 @@ import com.intellectualsites.http.HttpClient;
 import com.intellectualsites.http.HttpResponse;
 import com.intellectualsites.http.external.GsonMapper;
 import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.store.obj.*;
-import io.tebex.sdk.obj.*;
+import io.tebex.sdk.exception.RateLimitException;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.store.builder.CreateCouponRequest;
-import io.tebex.sdk.exception.RateLimitException;
+import io.tebex.sdk.store.obj.Package;
+import io.tebex.sdk.store.obj.*;
 import io.tebex.sdk.store.response.DuePlayersResponse;
 import io.tebex.sdk.store.response.OfflineCommandsResponse;
 import io.tebex.sdk.store.response.PaginatedResponse;
 import io.tebex.sdk.store.response.ServerInformation;
-import io.tebex.sdk.store.obj.Package;
 import io.tebex.sdk.util.Pagination;
 
 import java.io.IOException;
@@ -25,6 +24,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
+
+import static io.tebex.sdk.HttpSdkBuilder.GSON;
 
 /**
  * The main StoreSDK class for interacting with the Tebex API.
@@ -48,7 +49,7 @@ public class StoreSDK {
         this.secretKey = secretKey;
 
         HttpSdkBuilder httpSdkBuilder = new HttpSdkBuilder("https://plugin.tebex.io");
-        httpSdkBuilder.getEntityMapper().registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, httpSdkBuilder.getGson()));
+        httpSdkBuilder.getEntityMapper().registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, GSON));
 
         this.HTTP_CLIENT = httpSdkBuilder.build();
         this.LEGACY_HTTP_CLIENT = new HttpSdkBuilder("https://plugin.buycraft.net").build();
