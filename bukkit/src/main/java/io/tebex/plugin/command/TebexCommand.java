@@ -1,7 +1,7 @@
 package io.tebex.plugin.command;
 
 import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.manager.CommandManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -41,7 +41,7 @@ public class TebexCommand implements TabExecutor {
 
         String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
         if(commandArgs.length < subCommand.getMinArgs()) {
-            commandManager.getPlatform().sendMessage(sender, CommonMessages.INVALID_USAGE.getMessage("tebex", subCommand.getName() + " " + subCommand.getUsage()));
+            commandManager.getPlatform().sendMessage(sender, Lang.INVALID_USAGE.getMessage("tebex", subCommand.getName() + " " + subCommand.getUsage()));
             return true;
         }
 

@@ -1,7 +1,7 @@
 package io.tebex.plugin.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -27,7 +27,7 @@ public class DebugCommand extends SubCommand {
         } else if(StringUtil.isTruthy(args[0]) || StringUtil.isFalsy(args[0])) {
             config.setVerbose(StringUtil.isTruthy(args[0]));
         } else {
-            platform.sendMessage(sender, CommonMessages.INVALID_USAGE.getMessage("tebex", getName() + " " + getUsage()));
+            platform.sendMessage(sender, Lang.INVALID_USAGE.getMessage("tebex", getName() + " " + getUsage()));
             return;
         }
 

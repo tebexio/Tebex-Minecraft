@@ -1,6 +1,6 @@
 package io.tebex.plugin.command.sub;
 
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.PlayerLookupInfo;
@@ -19,7 +19,7 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
 

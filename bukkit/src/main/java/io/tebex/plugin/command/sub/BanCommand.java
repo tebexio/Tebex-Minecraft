@@ -1,6 +1,6 @@
 package io.tebex.plugin.command.sub;
 
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -17,7 +17,7 @@ public class BanCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            platform.sendMessage(sender, CommonMessages.NOT_CONNECTED.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
 
@@ -34,11 +34,13 @@ public class BanCommand extends SubCommand {
 
         try {
             boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
-            if (success) {
-                platform.sendMessage(sender, "&7Player banned successfully.");
-            } else {
-                platform.sendMessage(sender, "&cFailed to ban player.");
+
+            if (!success) {
+                platform.sendMessage(sender, "&cThat player is already banned.");
+                return;
             }
+
+            platform.sendMessage(sender, "&7Player banned successfully.");
         } catch (InterruptedException | ExecutionException e) {
             platform.sendMessage(sender, "&cError while banning player: &f" + e.getMessage());
         }

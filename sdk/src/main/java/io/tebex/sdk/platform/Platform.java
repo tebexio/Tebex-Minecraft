@@ -413,8 +413,19 @@ public interface Platform {
     }
 
     default void refreshListings() {
-        getSDK().getServerInformation().thenAccept(this::setStoreInfo);
-        getSDK().getListing().thenAccept(this::setStoreCategories);
+        getSDK().getServerInformation()
+                .thenAccept(this::setStoreInfo)
+                .exceptionally(ex -> {
+                    warning("Failed to get server information: " + ex.getMessage());
+                    sendTriageEvent(ex);
+                    return null;
+                });
+        getSDK().getListing()
+                .thenAccept(this::setStoreCategories).exceptionally(ex -> {
+            warning("Failed to get store categories: " + ex.getMessage());
+            sendTriageEvent(ex);
+            return null;
+        });
     }
 
     void setStoreInfo(ServerInformation info);

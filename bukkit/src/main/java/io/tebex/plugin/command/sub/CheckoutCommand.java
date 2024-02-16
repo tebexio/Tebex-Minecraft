@@ -1,6 +1,6 @@
 package io.tebex.plugin.command.sub;
 
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CheckoutUrl;
@@ -18,16 +18,16 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            sender.sendMessage("&c" + CommonMessages.NOT_CONNECTED.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
 
         try {
             int packageId = Integer.parseInt(args[0]);
             CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, sender.getName()).get();
-            sender.sendMessage("Checkout started! Click here to complete payment: " + checkoutUrl.getUrl());
+            platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));
         } catch (InterruptedException|ExecutionException e) {
-            sender.sendMessage("&cFailed to get checkout link for package, check package ID: " + e.getMessage());
+            platform.sendMessage(sender, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());
         }
     }
 

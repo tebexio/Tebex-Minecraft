@@ -1,5 +1,6 @@
 package io.tebex.plugin.command.sub;
 
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CheckoutUrl;
@@ -21,13 +22,14 @@ public class SendLinkCommand extends SubCommand {
         try {
             Player player = sender.getServer().getPlayer(username);
             if (player == null) {
-                sender.sendMessage("&cCould not find a player with that name on the server.");
+                platform.sendMessage(sender, "&cCould not find a player with that name on the server.");
                 return;
             }
 
             int packageId = Integer.parseInt(args[1]);
             CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, username).get();
-            player.sendMessage("A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl());
+
+            platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));
         } catch (InterruptedException|ExecutionException e) {
             platform.sendMessage(sender, "&cFailed to get checkout link for package: " + e.getMessage());
         } catch (NumberFormatException e) {

@@ -17,11 +17,9 @@ import io.tebex.sdk.request.response.OfflineCommandsResponse;
 import io.tebex.sdk.request.response.PaginatedResponse;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.Pagination;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -38,6 +36,7 @@ public class StoreSDK {
             .create();
 
     private final HttpClient HTTP_CLIENT;
+    private final HttpClient LEGACY_HTTP_CLIENT;
     private final String API_URL = "https://plugin.tebex.io";
 
     private final Platform platform;
@@ -57,10 +56,19 @@ public class StoreSDK {
                 .registerSerializer(JsonObject.class, GsonMapper.serializer(JsonObject.class, GSON))
                 .registerDeserializer(JsonObject.class, GsonMapper.deserializer(JsonObject.class, GSON))
                 .registerSerializer(JsonArray.class, GsonMapper.serializer(JsonArray.class, GSON))
-                .registerDeserializer(JsonArray.class, GsonMapper.deserializer(JsonArray.class, GSON));
+                .registerDeserializer(JsonArray.class, GsonMapper.deserializer(JsonArray.class, GSON))
+                .registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, GSON))
+                ;
 
         this.HTTP_CLIENT = HttpClient.newBuilder()
                 .withBaseURL(API_URL)
+                .withEntityMapper(mapper)
+                .withDecorator(request -> request.withHeader("User-Agent", "Tebex-StoreSDK").withHeader("Content-Type", "application/json"))
+                .build();
+
+        this.LEGACY_HTTP_CLIENT = HttpClient.newBuilder()
+                .withBaseURL("https://plugin.buycraft.net")
+                .withDecorator(request -> request.withHeader("User-Agent", "Tebex-StoreSDK").withHeader("Content-Type", "application/json"))
                 .withEntityMapper(mapper)
                 .build();
     }
@@ -79,9 +87,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/information")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() == 404 || req.getStatusCode() == 403) {
@@ -131,9 +137,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() == 404) {
@@ -179,16 +183,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue/offline-commands")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -241,16 +243,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue/online-commands/" + player.getId())
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -307,9 +307,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.delete("/queue")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
@@ -346,16 +344,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/community_goals")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -390,16 +386,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/community_goals/" + communityGoalId)
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -436,28 +430,26 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/checkout")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
-                    .withInput(() -> GSON.toJson(payload))
-                    .onStatus(200, req -> {})
+                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withInput(() -> payload)
+                    .onStatus(201, req -> {})
                     .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
+                        if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 201) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
                     })
                     .execute();
 
-            if (response == null) {
+            if(response == null) {
                 throw new CompletionException(new IOException("Failed to create checkout url"));
             }
 
-            return GSON.fromJson(Arrays.toString(response.getRawResponse()), CheckoutUrl.class);
+            return response.getResponseEntity(CheckoutUrl.class);
         });
     }
 
@@ -475,16 +467,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/coupons")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -522,16 +512,14 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/coupons/" + id)
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
                             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
                         }
@@ -603,9 +591,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/coupons")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .withInput(() -> GSON.toJson(payload))
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
@@ -613,7 +599,7 @@ public class StoreSDK {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
 
                             if(jsonObject.has("error_message")) {
@@ -648,17 +634,15 @@ public class StoreSDK {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.post("/listing")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+            final HttpResponse response = this.HTTP_CLIENT.get("/listing")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
                             throw new CompletionException(new ServerNotFoundException());
                         } else if (req.getStatusCode() == 429) {
                             throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 200) {
+                        } else {
                             JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
 
                             if(jsonObject.has("error_message")) {
@@ -699,9 +683,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.delete("/coupons/" + id)
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if (req.getStatusCode() == 404) {
@@ -732,9 +714,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/events")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
@@ -772,9 +752,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/package/" + id)
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() == 404) {
@@ -808,9 +786,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/packages")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() == 404) {
@@ -843,10 +819,8 @@ public class StoreSDK {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.post("https://plugin.buycraft.net/analytics/startup")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+            final HttpResponse response = this.LEGACY_HTTP_CLIENT.post("/analytics/startup")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() == 404) {
@@ -886,13 +860,15 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/bans")
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .withInput(() -> GSON.toJson(payload))
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
-                        throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+                        if(req.getStatusCode() == 404) {
+                            throw new CompletionException(new ServerNotFoundException());
+                        } else if(req.getStatusCode() != 422) {
+                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+                        }
                     })
                     .execute();
 
@@ -900,7 +876,7 @@ public class StoreSDK {
                 throw new CompletionException(new IOException("Failed to create ban"));
             }
 
-            return true;
+            return response.getStatusCode() == 200;
         });
     }
 
@@ -919,9 +895,7 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/user/" + username)
-                    .withHeader("X-TEBEX-SECRET", getSecretKey())
-                    .withHeader("User-Agent", "Tebex-StoreSDK")
-                    .withHeader("Content-Type", "application/json")
+                    .withHeader("X-Tebex-Secret", secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(req -> {
                         if(req.getStatusCode() != 404) {

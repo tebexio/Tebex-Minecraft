@@ -2,7 +2,7 @@ package io.tebex.plugin.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
-import io.tebex.plugin.CommonMessages;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.MaterialUtil;
 import io.tebex.sdk.obj.Category;
@@ -12,7 +12,6 @@ import io.tebex.sdk.obj.SubCategory;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -99,9 +98,9 @@ public class BuyGUI {
 
             // Create Checkout Url
             platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName()).thenAccept(checkout -> {
-                platform.sendMessage(player, CommonMessages.CHECKOUT_URL.getMessage(checkout.getUrl()));
+                platform.sendMessage(player, Lang.CHECKOUT_URL.getMessage(checkout.getUrl()));
             }).exceptionally(ex -> {
-                platform.sendMessage(player, "&cFailed to create checkout URL. Please contact an administrator.");
+                platform.sendMessage(player, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());
                 ex.printStackTrace();
                 platform.sendTriageEvent(ex);
                 return null;
