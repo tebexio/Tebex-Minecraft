@@ -1,6 +1,7 @@
 package io.tebex.plugin.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.gui.BuyGUI;
@@ -35,7 +36,7 @@ public class SecretCommand extends SubCommand {
             try {
                 configFile.save();
             } catch (IOException e) {
-                platform.sendMessage(sender, "&cFailed to save config: " + e.getMessage());
+                platform.sendMessage(sender, Lang.COMMAND_ERROR.getMessage(e.getLocalizedMessage()));
             }
 
             platform.loadServerPlatformConfig(configFile);
@@ -45,17 +46,17 @@ public class SecretCommand extends SubCommand {
             platform.configure();
 
             platform.sendMessage(sender, "Connected to &b" + serverInformation.getServer().getName() + "&7.");
-        }).exceptionally(ex -> {
+        })
+        .exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                platform.sendMessage(sender, "Server not found. Please check your secret key.");
+                platform.sendMessage(sender, "&cServer not found. Please check your secret key.");
                 platform.halt();
-            } else {
-                platform.sendMessage(sender, "&b[Tebex] &cAn error occurred: " + cause.getMessage());
-                cause.printStackTrace();
+                return null;
             }
 
+            platform.sendMessage(sender, Lang.COMMAND_ERROR.getMessage(cause.getLocalizedMessage()));
             return null;
         });
     }

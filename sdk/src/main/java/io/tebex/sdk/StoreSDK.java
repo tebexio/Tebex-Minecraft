@@ -73,21 +73,21 @@ public class StoreSDK {
                 .build();
     }
 
-    private void handleResponseErrors(HttpResponse req) {
-        if (req.getStatusCode() == 404) {
+    private void handleResponseErrors(HttpResponse response) {
+        if (response.getStatusCode() == 404) {
             throw new CompletionException(new NotFoundException());
-        } else if (req.getStatusCode() == 429) {
+        } else if (response.getStatusCode() == 429) {
             throw new CompletionException(new RateLimitException("You are being rate limited."));
         }
 
-        JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
+        JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
 
         if(jsonObject.has("error_message")) {
             throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
         }
 
-        platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-        throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+        platform.sendTriageEvent("Unexpected status code (" + response.getStatusCode() + ")");
+        throw new CompletionException(new IOException("Unexpected status code (" + response.getStatusCode() + ")"));
     }
 
     /**
