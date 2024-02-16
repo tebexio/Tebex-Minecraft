@@ -6,7 +6,6 @@ import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.manager.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
 
 import java.util.Comparator;
 

@@ -1,11 +1,9 @@
 package io.tebex.plugin.command.sub;
 
 import com.mojang.brigadier.context.CommandContext;
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CheckoutUrl;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 

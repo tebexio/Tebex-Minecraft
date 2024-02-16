@@ -1,8 +1,6 @@
 package io.tebex.plugin.command;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.gui.BuyGUI;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

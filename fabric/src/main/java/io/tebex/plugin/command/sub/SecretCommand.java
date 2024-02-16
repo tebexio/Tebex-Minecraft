@@ -5,7 +5,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.StoreSDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
@@ -50,7 +50,7 @@ public class SecretCommand extends SubCommand {
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
-            if(cause instanceof ServerNotFoundException) {
+            if(cause instanceof NotFoundException) {
                 source.sendFeedback(new LiteralText("§b[Tebex] §7Server not found. Please check your secret key."), false);
                 platform.halt();
             } else {

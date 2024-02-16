@@ -2,7 +2,7 @@ package io.tebex.sdk.platform;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.StoreSDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.QueuedCommand;
 import io.tebex.sdk.obj.QueuedPlayer;
@@ -100,7 +100,7 @@ public interface Platform {
                 Throwable cause = ex.getCause();
                 setSetup(false);
 
-                if (cause instanceof ServerNotFoundException) {
+                if (cause instanceof NotFoundException) {
                     warning("Failed to connect. Please double-check your server key or run the setup command again.");
                     this.halt();
                 } else {

@@ -1,9 +1,9 @@
 package io.tebex.sdk.exception;
 
 /**
- * Represents an exception thrown when a requested server is not found.
+ * Represents an exception thrown when a requested item is not found.
  */
-public class ServerNotFoundException extends Throwable {
+public class NotFoundException extends Throwable {
 
     /**
      * Returns the error message associated with the exception.
@@ -12,6 +12,6 @@ public class ServerNotFoundException extends Throwable {
      */
     @Override
     public String getMessage() {
-        return "That server doesn't exist!";
+        return "That does not exist!";
     }
 }

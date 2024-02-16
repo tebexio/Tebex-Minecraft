@@ -5,8 +5,7 @@ import com.intellectualsites.http.EntityMapper;
 import com.intellectualsites.http.HttpClient;
 import com.intellectualsites.http.HttpResponse;
 import com.intellectualsites.http.external.GsonMapper;
-import io.tebex.sdk.exception.ServerNotFoundException;
-import io.tebex.sdk.exception.ServerNotSetupException;
+import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.obj.Package;
 import io.tebex.sdk.obj.*;
 import io.tebex.sdk.platform.Platform;
@@ -38,6 +37,7 @@ public class StoreSDK {
     private final HttpClient HTTP_CLIENT;
     private final HttpClient LEGACY_HTTP_CLIENT;
     private final String API_URL = "https://plugin.tebex.io";
+    private final String SECRET_KEY_HEADER = "X-Tebex-Secret";
 
     private final Platform platform;
     private String secretKey;
@@ -73,6 +73,23 @@ public class StoreSDK {
                 .build();
     }
 
+    private void handleResponseErrors(HttpResponse req) {
+        if (req.getStatusCode() == 404) {
+            throw new CompletionException(new NotFoundException());
+        } else if (req.getStatusCode() == 429) {
+            throw new CompletionException(new RateLimitException("You are being rate limited."));
+        }
+
+        JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
+
+        if(jsonObject.has("error_message")) {
+            throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
+        }
+
+        platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
+        throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+    }
+
     /**
      * Retrieves information about the server.
      *
@@ -81,23 +98,15 @@ public class StoreSDK {
     public CompletableFuture<ServerInformation> getServerInformation() {
         if (getSecretKey() == null) {
             CompletableFuture<ServerInformation> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/information")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404 || req.getStatusCode() == 403) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -131,24 +140,15 @@ public class StoreSDK {
     public CompletableFuture<DuePlayersResponse> getDuePlayers() {
         if (getSecretKey() == null) {
             CompletableFuture<DuePlayersResponse> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if(req.getStatusCode() != 200) {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -177,24 +177,15 @@ public class StoreSDK {
     public CompletableFuture<OfflineCommandsResponse> getOfflineCommands() {
         if (getSecretKey() == null) {
             CompletableFuture<OfflineCommandsResponse> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue/offline-commands")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -237,24 +228,15 @@ public class StoreSDK {
     public CompletableFuture<List<QueuedCommand>> getOnlineCommands(QueuedPlayer player) {
         if (getSecretKey() == null) {
             CompletableFuture<List<QueuedCommand>> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/queue/online-commands/" + player.getId())
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -295,7 +277,7 @@ public class StoreSDK {
     public CompletableFuture<Boolean> deleteCommands(List<Integer> ids) {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
@@ -307,19 +289,10 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.delete("/queue")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(body))
-                    .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 204) {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onStatus(204, req -> {})
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -338,24 +311,15 @@ public class StoreSDK {
     public CompletableFuture<List<CommunityGoal>> getCommunityGoals() {
         if (getSecretKey() == null) {
             CompletableFuture<List<CommunityGoal>> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/community_goals")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -380,24 +344,15 @@ public class StoreSDK {
     public CompletableFuture<CommunityGoal> getCommunityGoal(int communityGoalId) {
         if (getSecretKey() == null) {
             CompletableFuture<CommunityGoal> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/community_goals/" + communityGoalId)
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -420,7 +375,7 @@ public class StoreSDK {
     public CompletableFuture<CheckoutUrl> createCheckoutUrl(int packageId, String username) {
         if (getSecretKey() == null) {
             CompletableFuture<CheckoutUrl> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
@@ -430,19 +385,10 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/checkout")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> payload)
                     .onStatus(201, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -461,24 +407,15 @@ public class StoreSDK {
     public CompletableFuture<PaginatedResponse<Coupon>> getCoupons() {
         if (getSecretKey() == null) {
             CompletableFuture<PaginatedResponse<Coupon>> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/coupons")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -506,24 +443,15 @@ public class StoreSDK {
     public CompletableFuture<Coupon> getCoupon(int id) {
         if (getSecretKey() == null) {
             CompletableFuture<Coupon> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/coupons/" + id)
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -544,7 +472,7 @@ public class StoreSDK {
     public CompletableFuture<Coupon> createCoupon(CreateCouponRequest createCouponRequest) {
         if (getSecretKey() == null) {
             CompletableFuture<Coupon> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
@@ -591,24 +519,10 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/coupons")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(payload))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404 || req.getStatusCode() == 403) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
-
-                            if(jsonObject.has("error_message")) {
-                                throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
-                            }
-
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -629,29 +543,15 @@ public class StoreSDK {
     public CompletableFuture<List<Category>> getListing() {
         if (getSecretKey() == null) {
             CompletableFuture<List<Category>> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/listing")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else {
-                            JsonObject jsonObject = req.getResponseEntity(JsonObject.class);
-
-                            if(jsonObject.has("error_message")) {
-                                throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
-                            }
-
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -677,24 +577,15 @@ public class StoreSDK {
     public CompletableFuture<Boolean> deleteCoupon(int id) {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.delete("/coupons/" + id)
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 204) {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -708,25 +599,16 @@ public class StoreSDK {
     public CompletableFuture<Boolean> sendEvents(List<ServerEvent> events) {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/events")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if (req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if (req.getStatusCode() == 429) {
-                            throw new CompletionException(new RateLimitException("You are being rate limited."));
-                        } else if (req.getStatusCode() != 204) {
-                            platform.sendTriageEvent("Unexpected status code (" + req.getStatusCode() + ")");
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
@@ -746,21 +628,15 @@ public class StoreSDK {
     public CompletableFuture<Package> getPackage(int id) {
         if (getSecretKey() == null) {
             CompletableFuture<Package> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/package/" + id)
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -780,21 +656,15 @@ public class StoreSDK {
     public CompletableFuture<List<Package>> getPackages() {
         if (getSecretKey() == null) {
             CompletableFuture<List<Package>> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/packages")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -814,21 +684,15 @@ public class StoreSDK {
     public CompletableFuture<Boolean> sendTelemetry() {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.LEGACY_HTTP_CLIENT.post("/analytics/startup")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() != 200) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -849,7 +713,7 @@ public class StoreSDK {
     public CompletableFuture<Boolean> createBan(String playerUUID, String ip, String reason) {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
@@ -860,16 +724,10 @@ public class StoreSDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/bans")
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(payload))
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() == 404) {
-                            throw new CompletionException(new ServerNotFoundException());
-                        } else if(req.getStatusCode() != 422) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -889,19 +747,15 @@ public class StoreSDK {
     public CompletableFuture<PlayerLookupInfo> getPlayerLookupInfo(String username) {
         if (getSecretKey() == null) {
             CompletableFuture<PlayerLookupInfo> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
+            future.completeExceptionally(new NotFoundException());
             return future;
         }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/user/" + username)
-                    .withHeader("X-Tebex-Secret", secretKey)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(req -> {
-                        if(req.getStatusCode() != 404) {
-                            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
-                        }
-                    })
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {

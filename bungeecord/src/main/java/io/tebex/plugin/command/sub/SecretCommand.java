@@ -4,7 +4,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.StoreSDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import net.md_5.bungee.api.CommandSender;
 
@@ -46,7 +46,7 @@ public class SecretCommand extends SubCommand {
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
-            if(cause instanceof ServerNotFoundException) {
+            if(cause instanceof NotFoundException) {
                 sender.sendMessage("§b[Tebex] §7Server not found. Please check your secret key.");
                 platform.halt();
             } else {

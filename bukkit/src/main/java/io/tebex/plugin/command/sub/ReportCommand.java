@@ -1,9 +1,7 @@
 package io.tebex.plugin.command.sub;
 
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
 
 public class ReportCommand extends SubCommand {

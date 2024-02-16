@@ -6,8 +6,6 @@ import com.velocitypowered.api.proxy.Player;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.sdk.obj.QueuedPlayer;
 
-import java.util.UUID;
-
 public class JoinListener {
     private final TebexPlugin plugin;
 
