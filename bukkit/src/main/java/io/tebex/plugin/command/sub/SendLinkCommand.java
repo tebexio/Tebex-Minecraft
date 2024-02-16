@@ -4,11 +4,8 @@ import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.obj.CheckoutUrl;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.concurrent.ExecutionException;
 
 public class SendLinkCommand extends SubCommand {
     public SendLinkCommand(TebexPlugin platform) {
@@ -35,7 +32,7 @@ public class SendLinkCommand extends SubCommand {
             return;
         }
 
-        platform.getSDK()
+        platform.getStoreSDK()
                 .createCheckoutUrl(packageId, username)
                 .thenAccept(checkoutUrl -> {
                     platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));

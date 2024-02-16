@@ -1,20 +1,22 @@
 package io.tebex.sdk;
 
-import com.google.gson.*;
-import com.intellectualsites.http.EntityMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.intellectualsites.http.HttpClient;
 import com.intellectualsites.http.HttpResponse;
 import com.intellectualsites.http.external.GsonMapper;
 import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.obj.Package;
+import io.tebex.sdk.store.obj.*;
 import io.tebex.sdk.obj.*;
 import io.tebex.sdk.platform.Platform;
-import io.tebex.sdk.request.builder.CreateCouponRequest;
-import io.tebex.sdk.request.exception.RateLimitException;
-import io.tebex.sdk.request.response.DuePlayersResponse;
-import io.tebex.sdk.request.response.OfflineCommandsResponse;
-import io.tebex.sdk.request.response.PaginatedResponse;
-import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.store.builder.CreateCouponRequest;
+import io.tebex.sdk.exception.RateLimitException;
+import io.tebex.sdk.store.response.DuePlayersResponse;
+import io.tebex.sdk.store.response.OfflineCommandsResponse;
+import io.tebex.sdk.store.response.PaginatedResponse;
+import io.tebex.sdk.store.response.ServerInformation;
+import io.tebex.sdk.store.obj.Package;
 import io.tebex.sdk.util.Pagination;
 
 import java.io.IOException;
@@ -28,15 +30,8 @@ import java.util.stream.Collectors;
  * The main StoreSDK class for interacting with the Tebex API.
  */
 public class StoreSDK {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .create();
-
     private final HttpClient HTTP_CLIENT;
     private final HttpClient LEGACY_HTTP_CLIENT;
-    private final String API_URL = "https://plugin.tebex.io";
     private final String SECRET_KEY_HEADER = "X-Tebex-Secret";
 
     private final Platform platform;
@@ -52,25 +47,11 @@ public class StoreSDK {
         this.platform = platform;
         this.secretKey = secretKey;
 
-        final EntityMapper mapper = EntityMapper.newInstance()
-                .registerSerializer(JsonObject.class, GsonMapper.serializer(JsonObject.class, GSON))
-                .registerDeserializer(JsonObject.class, GsonMapper.deserializer(JsonObject.class, GSON))
-                .registerSerializer(JsonArray.class, GsonMapper.serializer(JsonArray.class, GSON))
-                .registerDeserializer(JsonArray.class, GsonMapper.deserializer(JsonArray.class, GSON))
-                .registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, GSON))
-                ;
+        HttpSdkBuilder httpSdkBuilder = new HttpSdkBuilder("https://plugin.tebex.io");
+        httpSdkBuilder.getEntityMapper().registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, httpSdkBuilder.getGson()));
 
-        this.HTTP_CLIENT = HttpClient.newBuilder()
-                .withBaseURL(API_URL)
-                .withEntityMapper(mapper)
-                .withDecorator(request -> request.withHeader("User-Agent", "Tebex-StoreSDK").withHeader("Content-Type", "application/json"))
-                .build();
-
-        this.LEGACY_HTTP_CLIENT = HttpClient.newBuilder()
-                .withBaseURL("https://plugin.buycraft.net")
-                .withDecorator(request -> request.withHeader("User-Agent", "Tebex-StoreSDK").withHeader("Content-Type", "application/json"))
-                .withEntityMapper(mapper)
-                .build();
+        this.HTTP_CLIENT = httpSdkBuilder.build();
+        this.LEGACY_HTTP_CLIENT = new HttpSdkBuilder("https://plugin.buycraft.net").build();
     }
 
     private void handleResponseErrors(HttpResponse response) {

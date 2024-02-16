@@ -1,8 +1,8 @@
 package io.tebex.plugin.placeholder;
 
-import io.tebex.sdk.obj.QueuedPlayer;
-import io.tebex.sdk.placeholder.Placeholder;
-import io.tebex.sdk.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.obj.QueuedPlayer;
+import io.tebex.sdk.store.placeholder.Placeholder;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.util.UUIDUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;

@@ -24,18 +24,18 @@ public class SecretCommand extends SubCommand {
         String serverToken = context.getArgument("key", String.class);
         TebexPlugin platform = getPlatform();
 
-        if(platform.isSetup()) {
+        if(platform.isStoreSetup()) {
             source.sendFeedback(new LiteralText("§b[Tebex] §7Already connected to a store."), false);
             return;
         }
 
-        StoreSDK analyse = platform.getSDK();
+        StoreSDK analyse = platform.getStoreSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
         analyse.setSecretKey(serverToken);
 
-        platform.getSDK().getServerInformation().thenAccept(serverInformation -> {
+        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
             analyseConfig.setSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 

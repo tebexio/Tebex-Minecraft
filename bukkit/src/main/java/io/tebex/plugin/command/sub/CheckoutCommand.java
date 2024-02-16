@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.CheckoutUrl;
+import io.tebex.sdk.store.obj.CheckoutUrl;
 import org.bukkit.command.CommandSender;
 
 import java.util.concurrent.ExecutionException;
@@ -17,14 +17,14 @@ public class CheckoutCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
 
         try {
             int packageId = Integer.parseInt(args[0]);
-            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, sender.getName()).get();
+            CheckoutUrl checkoutUrl = platform.getStoreSDK().createCheckoutUrl(packageId, sender.getName()).get();
             platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));
         } catch (InterruptedException|ExecutionException e) {
             platform.sendMessage(sender, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());

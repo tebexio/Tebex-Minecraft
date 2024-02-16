@@ -4,7 +4,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.Player;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.obj.QueuedPlayer;
+import io.tebex.sdk.store.obj.QueuedPlayer;
 
 public class JoinListener {
     private final TebexPlugin plugin;

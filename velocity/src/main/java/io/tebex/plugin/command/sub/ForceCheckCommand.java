@@ -15,7 +15,7 @@ public class ForceCheckCommand extends SubCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
-        if(! platform.isSetup()) {
+        if(! platform.isStoreSetup()) {
             sender.sendMessage(Component.text("§cTebex is not setup yet!"));
             return;
         }

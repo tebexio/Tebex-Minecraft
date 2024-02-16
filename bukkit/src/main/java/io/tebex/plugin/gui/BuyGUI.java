@@ -5,10 +5,10 @@ import dev.triumphteam.gui.guis.Gui;
 import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.MaterialUtil;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.CategoryPackage;
-import io.tebex.sdk.obj.ICategory;
-import io.tebex.sdk.obj.SubCategory;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.CategoryPackage;
+import io.tebex.sdk.store.obj.ICategory;
+import io.tebex.sdk.store.obj.SubCategory;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -97,7 +97,7 @@ public class BuyGUI {
             player.closeInventory();
 
             // Create Checkout Url
-            platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName()).thenAccept(checkout -> {
+            platform.getStoreSDK().createCheckoutUrl(categoryPackage.getId(), player.getName()).thenAccept(checkout -> {
                 platform.sendMessage(player, Lang.CHECKOUT_URL.getMessage(checkout.getUrl()));
             }).exceptionally(ex -> {
                 platform.sendMessage(player, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());

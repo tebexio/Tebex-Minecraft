@@ -3,15 +3,15 @@ package io.tebex.sdk.platform;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.QueuedCommand;
-import io.tebex.sdk.obj.QueuedPlayer;
-import io.tebex.sdk.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.QueuedCommand;
+import io.tebex.sdk.store.obj.QueuedPlayer;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.config.IPlatformConfig;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
-import io.tebex.sdk.triage.TriageEvent;
+import io.tebex.sdk.store.response.ServerInformation;
+import io.tebex.sdk.store.triage.TriageEvent;
 import io.tebex.sdk.util.StringUtil;
 import io.tebex.sdk.util.UUIDUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public interface Platform {
      *
      * @return The StoreSDK instance.
      */
-    StoreSDK getSDK();
+    StoreSDK getStoreSDK();
 
     /**
      * Gets the directory where the plugin is running from.
@@ -62,12 +62,12 @@ public interface Platform {
      *
      * @return True if the platform is set up, false otherwise.
      */
-    boolean isSetup();
+    boolean isStoreSetup();
 
     /**
      * Sets whether the platform is set up and ready to use.
      */
-    void setSetup(boolean setup);
+    void setStoreSetup(boolean setup);
 
     /**
      * Checks if the platform is in online mode.
@@ -88,17 +88,17 @@ public interface Platform {
 
     default void init() {
         if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
-            getSDK().getServerInformation().thenAccept(serverInformation -> {
+            getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
                 ServerInformation.Server server = serverInformation.getServer();
                 ServerInformation.Store store = serverInformation.getStore();
 
                 info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
 
-                setSetup(true);
+                setStoreSetup(true);
                 configure();
             }).exceptionally(ex -> {
                 Throwable cause = ex.getCause();
-                setSetup(false);
+                setStoreSetup(false);
 
                 if (cause instanceof NotFoundException) {
                     warning("Failed to connect. Please double-check your server key or run the setup command again.");
@@ -138,12 +138,12 @@ public interface Platform {
     }
 
     default void performCheck(boolean runAfter) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         debug("Checking for due players..");
         getQueuedPlayers().clear();
 
-        getSDK().getDuePlayers().thenAccept(duePlayersResponse -> {
+        getStoreSDK().getDuePlayers().thenAccept(duePlayersResponse -> {
             if(runAfter) {
                 executeAsyncLater(this::performCheck, duePlayersResponse.getNextCheck(), TimeUnit.SECONDS);
             }
@@ -181,7 +181,7 @@ public interface Platform {
     }
 
     default void handleOnlineCommands(QueuedPlayer player) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         debug("Processing online commands for player '" + player.getName() + "'...");
         Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
@@ -192,7 +192,7 @@ public interface Platform {
             return;
         }
 
-        getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
+        getStoreSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
             if(onlineCommands.isEmpty()) {
                 debug("No commands found for " + player.getName() + ".");
                 return;
@@ -232,7 +232,7 @@ public interface Platform {
      * @param commands The commands to process.
      */
     default void processOnlineCommands(String playerName, Object playerId, List<QueuedCommand> commands) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         List<Integer> completedCommands = new ArrayList<>();
         boolean hasInventorySpace = true;
@@ -265,9 +265,9 @@ public interface Platform {
     }
 
     default void handleOfflineCommands() {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
-        getSDK().getOfflineCommands().thenAccept(offlineData -> {
+        getStoreSDK().getOfflineCommands().thenAccept(offlineData -> {
             if(offlineData.getCommands().isEmpty()) {
                 return;
             }
@@ -299,7 +299,7 @@ public interface Platform {
     }
 
     default void deleteCompletedCommands(List<Integer> completedCommands) {
-        getSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
+        getStoreSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
             warning("Failed to delete commands: " + ex.getMessage());
             ex.printStackTrace();
             sendTriageEvent(ex);
@@ -413,14 +413,14 @@ public interface Platform {
     }
 
     default void refreshListings() {
-        getSDK().getServerInformation()
-                .thenAccept(this::setStoreInfo)
+        getStoreSDK().getServerInformation()
+                .thenAccept(this::setStoreInformation)
                 .exceptionally(ex -> {
                     warning("Failed to get server information: " + ex.getMessage());
                     sendTriageEvent(ex);
                     return null;
                 });
-        getSDK().getListing()
+        getStoreSDK().getListing()
                 .thenAccept(this::setStoreCategories).exceptionally(ex -> {
             warning("Failed to get store categories: " + ex.getMessage());
             sendTriageEvent(ex);
@@ -428,7 +428,7 @@ public interface Platform {
         });
     }
 
-    void setStoreInfo(ServerInformation info);
+    void setStoreInformation(ServerInformation info);
 
     void setStoreCategories(List<Category> categories);
 

@@ -1,7 +1,7 @@
 package io.tebex.plugin.event;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.obj.QueuedPlayer;
+import io.tebex.sdk.store.obj.QueuedPlayer;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;

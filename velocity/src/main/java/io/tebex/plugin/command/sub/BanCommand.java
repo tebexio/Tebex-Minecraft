@@ -32,13 +32,13 @@ public class BanCommand extends SubCommand {
             ip = args[2];
         }
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
         try {
-            boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
+            boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
             if (success) {
                 sender.sendMessage(Component.text("§b[Tebex] §7Player banned successfully."));
             } else {

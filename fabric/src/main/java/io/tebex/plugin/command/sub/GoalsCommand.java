@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.CommunityGoal;
+import io.tebex.sdk.store.obj.CommunityGoal;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
@@ -20,7 +20,7 @@ public class GoalsCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         try {
-            List<CommunityGoal> goals = platform.getSDK().getCommunityGoals().get();
+            List<CommunityGoal> goals = platform.getStoreSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
                     sender.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Community Goals: "), false);

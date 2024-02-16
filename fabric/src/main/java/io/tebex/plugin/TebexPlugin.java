@@ -8,14 +8,14 @@ import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.ServerEvent;
-import io.tebex.sdk.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.store.response.ServerInformation;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -101,13 +101,13 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             @Override
             public void run() {
                 info("Loading store information...");
-                getSDK().getServerInformation()
+                getStoreSDK().getServerInformation()
                         .thenAccept(information -> storeInformation = information)
                         .exceptionally(error -> {
                             warning("Failed to load server information: " + error.getMessage());
                             return null;
                         });
-                getSDK().getListing()
+                getStoreSDK().getListing()
                         .thenAccept(listing -> storeCategories = listing)
                         .exceptionally(error -> {
                             warning("Failed to load store categories: " + error.getMessage());
@@ -117,8 +117,8 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         });
 
         Multithreading.executeAsync(() -> {
-            getSDK().getServerInformation().thenAccept(information -> storeInformation = information);
-            getSDK().getListing().thenAccept(listing -> storeCategories = listing);
+            getStoreSDK().getServerInformation().thenAccept(information -> storeInformation = information);
+            getStoreSDK().getListing().thenAccept(listing -> storeCategories = listing);
         }, 0, 30, TimeUnit.MINUTES);
 
         Multithreading.executeAsync(() -> {
@@ -143,7 +143,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public StoreSDK getSDK() {
+    public StoreSDK getStoreSDK() {
         return storeSdk;
     }
 
@@ -153,12 +153,12 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public boolean isSetup() {
+    public boolean isStoreSetup() {
         return setup;
     }
 
     @Override
-    public void setSetup(boolean setup) {
+    public void setStoreSetup(boolean setup) {
         this.setup = setup;
     }
 
@@ -309,7 +309,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public void setStoreInfo(ServerInformation info) {
+    public void setStoreInformation(ServerInformation info) {
         this.storeInformation = info;
     }
 

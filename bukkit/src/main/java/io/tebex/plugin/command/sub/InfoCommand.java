@@ -14,7 +14,7 @@ public class InfoCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if(! platform.isSetup()) {
+        if(! platform.isStoreSetup()) {
             platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }

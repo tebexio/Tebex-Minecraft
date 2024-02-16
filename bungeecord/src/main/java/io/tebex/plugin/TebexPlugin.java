@@ -6,13 +6,13 @@ import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -76,8 +76,8 @@ public class TebexPlugin extends Plugin implements Platform {
         init();
 
         getProxy().getScheduler().schedule(this, () -> {
-            getSDK().getServerInformation().thenAccept(information -> storeInformation = information);
-            getSDK().getListing().thenAccept(listing -> storeCategories = listing);
+            getStoreSDK().getServerInformation().thenAccept(information -> storeInformation = information);
+            getStoreSDK().getListing().thenAccept(listing -> storeCategories = listing);
         }, 0, 5, TimeUnit.MINUTES);
     }
 
@@ -169,7 +169,7 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public StoreSDK getSDK() {
+    public StoreSDK getStoreSDK() {
         return storeSdk;
     }
 
@@ -179,12 +179,12 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public boolean isSetup() {
+    public boolean isStoreSetup() {
         return setup;
     }
 
     @Override
-    public void setSetup(boolean setup) {
+    public void setStoreSetup(boolean setup) {
         this.setup = setup;
     }
 
@@ -313,7 +313,7 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public void setStoreInfo(ServerInformation info) {
+    public void setStoreInformation(ServerInformation info) {
         this.storeInformation = info;
     }
 

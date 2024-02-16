@@ -10,15 +10,15 @@ import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.ServerEvent;
-import io.tebex.sdk.placeholder.PlaceholderManager;
-import io.tebex.sdk.placeholder.defaults.UuidPlaceholder;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.placeholder.defaults.UuidPlaceholder;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -104,7 +104,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
-            if (!this.isSetup()) return;
+            if (!this.isStoreSetup()) return;
 
             storeSdk.sendEvents(runEvents)
                     .thenAccept(aVoid -> {
@@ -254,7 +254,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public StoreSDK getSDK() {
+    public StoreSDK getStoreSDK() {
         return storeSdk;
     }
 
@@ -264,12 +264,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public boolean isSetup() {
+    public boolean isStoreSetup() {
         return setup;
     }
 
     @Override
-    public void setSetup(boolean setup) {
+    public void setStoreSetup(boolean setup) {
         this.setup = setup;
     }
 
@@ -351,7 +351,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public void setStoreInfo(ServerInformation info) {
+    public void setStoreInformation(ServerInformation info) {
         this.storeInformation = info;
     }
 

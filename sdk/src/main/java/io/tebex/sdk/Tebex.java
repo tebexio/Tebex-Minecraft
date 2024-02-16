@@ -18,7 +18,7 @@ public class Tebex {
     }
 
     /**
-     * Initialises the Tebex StoreSDK with the provided platform instance.
+     * Initialises the Tebex AnalyticsSDK with the provided platform instance.
      *
      * @param platform The platform instance to initialise the StoreSDK with
      */

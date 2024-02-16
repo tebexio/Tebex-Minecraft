@@ -27,13 +27,13 @@ public class BanCommand extends SubCommand {
             ip = context.getArgument("ip", String.class);
         } catch (IllegalArgumentException ignored) {}
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
             return;
         }
 
         try {
-            boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
+            boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
             if (success) {
                 source.sendFeedback(new LiteralText("§b[Tebex] §7Player banned successfully."), false);
             } else {

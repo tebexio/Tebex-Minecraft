@@ -23,13 +23,13 @@ public class SecretCommand extends SubCommand {
 
         String serverToken = args[0];
 
-        StoreSDK analyse = platform.getSDK();
+        StoreSDK analyse = platform.getStoreSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
         analyse.setSecretKey(serverToken);
 
-        platform.getSDK().getServerInformation().thenAccept(serverInformation -> {
+        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
             analyseConfig.setSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 

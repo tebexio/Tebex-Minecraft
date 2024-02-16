@@ -16,7 +16,7 @@ public class BanCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
@@ -33,7 +33,7 @@ public class BanCommand extends SubCommand {
         }
 
         try {
-            boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
+            boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
 
             if (!success) {
                 platform.sendMessage(sender, "&cThat player is already banned.");

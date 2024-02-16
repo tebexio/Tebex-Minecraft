@@ -16,7 +16,7 @@ public class InfoCommand extends SubCommand {
         final ServerCommandSource source = context.getSource();
         TebexPlugin platform = getPlatform();
 
-        if (platform.isSetup()) {
+        if (platform.isStoreSetup()) {
             source.sendFeedback(new LiteralText("§b[Tebex] §7Information for this server:"), false);
             source.sendFeedback(new LiteralText("§b[Tebex] §7" + platform.getStoreInformation().getServer().getName() + " for webstore " + platform.getStoreInformation().getStore().getName()), false);
             source.sendFeedback(new LiteralText("§b[Tebex] §7Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217()), false);

@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.PlayerLookupInfo;
+import io.tebex.sdk.store.obj.PlayerLookupInfo;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
@@ -19,7 +19,7 @@ public class LookupCommand extends SubCommand {
         final ServerCommandSource source = context.getSource();
         TebexPlugin platform = getPlatform();
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
             return;
         }
@@ -28,7 +28,7 @@ public class LookupCommand extends SubCommand {
 
         PlayerLookupInfo lookupInfo = null;
         try {
-            lookupInfo = platform.getSDK().getPlayerLookupInfo(username).get();
+            lookupInfo = platform.getStoreSDK().getPlayerLookupInfo(username).get();
         } catch (InterruptedException|ExecutionException e) {
             source.sendError(new LiteralText("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage()));
             return;

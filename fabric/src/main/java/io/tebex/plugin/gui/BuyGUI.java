@@ -5,10 +5,10 @@ import dev.dejvokep.boostedyaml.block.implementation.Section;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.CategoryPackage;
-import io.tebex.sdk.obj.ICategory;
-import io.tebex.sdk.obj.SubCategory;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.CategoryPackage;
+import io.tebex.sdk.store.obj.ICategory;
+import io.tebex.sdk.store.obj.SubCategory;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -111,7 +111,7 @@ public class BuyGUI {
             player.closeHandledScreen();
 
             // Create Checkout Url
-            platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName().asString()).thenAccept(checkout -> {
+            platform.getStoreSDK().createCheckoutUrl(categoryPackage.getId(), player.getName().asString()).thenAccept(checkout -> {
                 player.sendMessage(new LiteralText("§aYou can checkout here: " + checkout.getUrl()), false);
             }).exceptionally(ex -> {
                 player.sendMessage(new LiteralText("§cFailed to create checkout URL. Please contact an administrator."), false);

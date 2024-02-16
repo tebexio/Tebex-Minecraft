@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.CheckoutUrl;
+import io.tebex.sdk.store.obj.CheckoutUrl;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -29,7 +29,7 @@ public class SendLinkCommand extends SubCommand {
         }
 
         try {
-            CheckoutUrl checkoutUrl = platform.getSDK().createCheckoutUrl(packageId, username).get();
+            CheckoutUrl checkoutUrl = platform.getStoreSDK().createCheckoutUrl(packageId, username).get();
             player.sendMessage(new LiteralText("§b[Tebex] §7A checkout link has been created for you. Click here to complete payment: " + checkoutUrl.getUrl()), false);
         } catch (InterruptedException|ExecutionException e) {
             context.getSource().sendError(new LiteralText("§b[Tebex] §7Failed to get checkout link for package: " + e.getMessage()));

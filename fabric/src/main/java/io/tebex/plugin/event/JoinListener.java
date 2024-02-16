@@ -1,9 +1,9 @@
 package io.tebex.plugin.event;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.obj.QueuedPlayer;
-import io.tebex.sdk.obj.ServerEvent;
-import io.tebex.sdk.obj.ServerEventType;
+import io.tebex.sdk.store.obj.QueuedPlayer;
+import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.store.obj.ServerEventType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 

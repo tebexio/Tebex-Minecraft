@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.PlayerLookupInfo;
+import io.tebex.sdk.store.obj.PlayerLookupInfo;
 import org.bukkit.command.CommandSender;
 
 import java.util.concurrent.CompletableFuture;
@@ -18,7 +18,7 @@ public class LookupCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
@@ -27,7 +27,7 @@ public class LookupCommand extends SubCommand {
 
         PlayerLookupInfo lookupInfo;
         try {
-            CompletableFuture<PlayerLookupInfo> future = platform.getSDK().getPlayerLookupInfo(username);
+            CompletableFuture<PlayerLookupInfo> future = platform.getStoreSDK().getPlayerLookupInfo(username);
             lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
             platform.sendMessage(sender, "&cFailed to complete player lookup. " + e.getMessage());

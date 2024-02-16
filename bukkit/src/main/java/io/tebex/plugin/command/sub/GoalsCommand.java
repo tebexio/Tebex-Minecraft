@@ -3,7 +3,7 @@ package io.tebex.plugin.command.sub;
 import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.obj.CommunityGoal;
+import io.tebex.sdk.store.obj.CommunityGoal;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -18,13 +18,13 @@ public class GoalsCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if(! platform.isSetup()) {
+        if(! platform.isStoreSetup()) {
             platform.sendMessage(sender, Lang.NOT_CONNECTED.getMessage());
             return;
         }
 
         try {
-            List<CommunityGoal> goals = platform.getSDK().getCommunityGoals().get();
+            List<CommunityGoal> goals = platform.getStoreSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
                     platform.sendMessage(sender, "&fCommunity Goals: ");

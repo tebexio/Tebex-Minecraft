@@ -15,7 +15,7 @@ public class BuyCommand extends Command {
 
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
-        if(! platform.isSetup()) {
+        if(! platform.isStoreSetup()) {
             platform.sendMessage(sender, "&cTebex is not setup yet!");
             return true;
         }
