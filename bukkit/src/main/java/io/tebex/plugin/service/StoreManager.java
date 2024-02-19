@@ -156,10 +156,12 @@ public class StoreManager implements ServiceManager {
         this.buyGUI = buyGUI;
     }
 
+    @Override
     public boolean isSetup() {
         return setup;
     }
 
+    @Override
     public void setSetup(boolean setup) {
         this.setup = setup;
     }
