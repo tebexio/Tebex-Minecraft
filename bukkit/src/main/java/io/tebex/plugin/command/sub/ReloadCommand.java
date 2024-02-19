@@ -1,6 +1,7 @@
 package io.tebex.plugin.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.gui.BuyGUI;
@@ -25,9 +26,9 @@ public class ReloadCommand extends SubCommand {
             platform.getStoreManager().setBuyGui(new BuyGUI(platform));
             platform.refreshListings();
 
-            platform.sendMessage(sender, "Successfully reloaded.");
+            platform.sendMessage(sender, Lang.RELOAD_SUCCESS.getMessage());
         } catch (IOException e) {
-            platform.sendMessage(sender, "&cFailed to reload the plugin: Check Console.");
+            platform.sendMessage(sender, Lang.RELOAD_FAILURE.getMessage());
             throw new RuntimeException(e);
         }
     }
