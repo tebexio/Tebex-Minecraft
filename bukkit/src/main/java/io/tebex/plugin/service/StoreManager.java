@@ -9,7 +9,6 @@ import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.NotFoundException;
-import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -26,15 +25,14 @@ import java.util.logging.Level;
 
 public class StoreManager implements ServiceManager {
     private final TebexPlugin platform;
+    public BuyGUI buyGUI;
     private StoreSDK sdk;
     private boolean setup;
     private PlaceholderManager placeholderManager;
     private Map<Object, Integer> queuedPlayers;
-
     private ServerInformation storeInformation;
     private List<Category> storeCategories;
     private List<ServerEvent> serverEvents;
-    public BuyGUI buyGUI;
 
     public StoreManager(TebexPlugin platform) {
         this.platform = platform;
@@ -56,7 +54,7 @@ public class StoreManager implements ServiceManager {
         platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, () -> {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
-            if (! setup) return;
+            if (!setup) return;
 
             sdk.sendEvents(runEvents)
                     .thenAccept(aVoid -> {
@@ -122,7 +120,7 @@ public class StoreManager implements ServiceManager {
         return sdk;
     }
 
-    public BuyGUI getBuyGUI() {
+    public BuyGUI getBuyGui() {
         return buyGUI;
     }
 
@@ -138,16 +136,16 @@ public class StoreManager implements ServiceManager {
         return storeCategories;
     }
 
-    public ServerInformation getStoreInformation() {
-        return storeInformation;
+    public void setStoreCategories(List<Category> storeCategories) {
+        this.storeCategories = storeCategories;
     }
 
     public PlaceholderManager getPlaceholderManager() {
         return placeholderManager;
     }
 
-    public void setStoreCategories(List<Category> storeCategories) {
-        this.storeCategories = storeCategories;
+    public ServerInformation getStoreInformation() {
+        return storeInformation;
     }
 
     public void setStoreInformation(ServerInformation storeInformation) {

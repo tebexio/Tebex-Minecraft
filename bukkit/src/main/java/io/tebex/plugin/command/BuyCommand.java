@@ -26,7 +26,7 @@ public class BuyCommand extends Command {
         }
 
         Player player = (Player) sender;
-        platform.getStoreManager().getBuyGUI().open(player);
+        platform.getStoreManager().getBuyGui().open(player);
 
         return true;
     }

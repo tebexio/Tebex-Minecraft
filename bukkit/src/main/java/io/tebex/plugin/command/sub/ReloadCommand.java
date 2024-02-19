@@ -19,6 +19,7 @@ public class ReloadCommand extends SubCommand {
 
         try {
             YamlDocument configYaml = platform.initPlatformConfig();
+
             platform.loadServerPlatformConfig(configYaml);
             platform.reloadConfig();
             platform.getStoreManager().setBuyGui(new BuyGUI(platform));
