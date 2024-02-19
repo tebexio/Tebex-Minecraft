@@ -8,6 +8,7 @@ import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
+import io.tebex.plugin.service.StoreManager;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.store.obj.Category;
@@ -46,24 +47,16 @@ import java.util.regex.Pattern;
  * The Bukkit platform.
  */
 public final class TebexPlugin extends JavaPlugin implements Platform {
-    private StoreSDK storeSdk;
     private ServerPlatformConfig config;
-    private boolean setup;
-    private PlaceholderManager placeholderManager;
-    private Map<Object, Integer> queuedPlayers;
     private YamlDocument configYaml;
-
-    private ServerInformation storeInformation;
-    private List<Category> storeCategories;
-    private List<ServerEvent> serverEvents;
-    public BuyGUI buyGUI;
+    private StoreManager storeManager;
 
     /**
      * Starts the Bukkit platform.
      */
     @Override
     public void onEnable() {
-        // Bind StoreSDK.
+        // Bind SDK.
         Tebex.init(this);
 
         try {
@@ -77,69 +70,27 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         }
 
         // Initialise Managers.
-        new CommandManager(this).register();
-
-        // Initialise StoreSDK.
-        storeSdk = new StoreSDK(this, config.getSecretKey());
-        placeholderManager = new PlaceholderManager();
-        queuedPlayers = Maps.newConcurrentMap();
-        storeCategories = new ArrayList<>();
-        serverEvents = new ArrayList<>();
-        buyGUI = new BuyGUI(this);
-
-        placeholderManager.register(new BukkitNamePlaceholder(placeholderManager));
-        placeholderManager.register(new UuidPlaceholder(placeholderManager));
-
+        storeManager = new StoreManager(this);
+        storeManager.load();
+        storeManager.connect();
 
         // Migrate the config from BuycraftX.
         migrateConfig();
 
-        // Initialise the platform.
-        init();
-
         registerEvents(new JoinListener(this));
 
-        getServer().getScheduler().runTaskTimerAsynchronously(this, this::refreshListings, 0, 20 * 60 * 5);
-
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
-            if (runEvents.isEmpty()) return;
-            if (!this.isStoreSetup()) return;
-
-            storeSdk.sendEvents(runEvents)
-                    .thenAccept(aVoid -> {
-                        serverEvents.removeAll(runEvents);
-                        debug("Successfully sent analytics.");
-                    })
-                    .exceptionally(throwable -> {
-                        debug("Failed to send analytics: " + throwable.getMessage());
-                        return null;
-                    });
-        }, 0, 20 * 60);
-
-        // Register the custom /buy command
-        try {
-            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-
-            commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to get the CommandMap", e);
-        }
     }
 
     public List<Category> getStoreCategories() {
-        return storeCategories;
+        return storeManager.getStoreCategories();
     }
 
     public ServerInformation getStoreInformation() {
-        return storeInformation;
+        return storeManager.getStoreInformation();
     }
 
     public List<ServerEvent> getServerEvents() {
-        return serverEvents;
+        return storeManager.getServerEvents();
     }
 
     public void migrateConfig() {
@@ -175,7 +126,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
                 config = loadServerPlatformConfig(configYaml);
 
-                storeSdk = new StoreSDK(this, config.getSecretKey());
+                storeManager = new StoreManager(this);
+                storeManager.load();
+                storeManager.connect();
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -229,15 +182,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public Map<Object, Integer> getQueuedPlayers() {
-        return queuedPlayers;
-    }
-
-    public BuyGUI getBuyGUI() {
-        return buyGUI;
-    }
-
-    public void setBuyGUI(BuyGUI buyGUI) {
-        this.buyGUI = buyGUI;
+        return storeManager.getQueuedPlayers();
     }
 
     /**
@@ -255,7 +200,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public StoreSDK getStoreSDK() {
-        return storeSdk;
+        return storeManager.getSdk();
     }
 
     @Override
@@ -265,12 +210,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public boolean isStoreSetup() {
-        return setup;
-    }
-
-    @Override
-    public void setStoreSetup(boolean setup) {
-        this.setup = setup;
+        return storeManager.isSetup();
     }
 
     @Override
@@ -279,20 +219,13 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public void configure() {
-        setup = true;
-        performCheck();
-        storeSdk.sendTelemetry();
-    }
-
-    @Override
     public void halt() {
-        setup = false;
+        storeManager.setSetup(false);
     }
 
     @Override
     public PlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
+        return storeManager.getPlaceholderManager();
     }
 
     @Override
@@ -352,12 +285,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public void setStoreInformation(ServerInformation info) {
-        this.storeInformation = info;
+        storeManager.setStoreInformation(info);
     }
 
     @Override
     public void setStoreCategories(List<Category> categories) {
-        this.storeCategories = categories;
+        storeManager.setStoreCategories(categories);
     }
 
     @Override
@@ -393,6 +326,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public String getServerIp() {
         return Bukkit.getIp();
+    }
+
+    public StoreManager getStoreManager() {
+        return storeManager;
     }
 
     public void sendMessage(CommandSender sender, String message) {

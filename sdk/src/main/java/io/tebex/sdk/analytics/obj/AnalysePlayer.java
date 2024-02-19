@@ -1,7 +1,6 @@
 package io.tebex.sdk.analytics.obj;
 
 import com.google.common.collect.Maps;
-import io.tebex.analytics.sdk.platform.PlayerType;
 
 import java.util.*;
 

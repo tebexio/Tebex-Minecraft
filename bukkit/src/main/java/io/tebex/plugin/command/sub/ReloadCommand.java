@@ -21,7 +21,7 @@ public class ReloadCommand extends SubCommand {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
             platform.reloadConfig();
-            platform.setBuyGUI(new BuyGUI(platform));
+            platform.getStoreManager().setBuyGui(new BuyGUI(platform));
             platform.refreshListings();
 
             platform.sendMessage(sender, "Successfully reloaded.");

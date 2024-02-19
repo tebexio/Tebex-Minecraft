@@ -65,11 +65,6 @@ public interface Platform {
     boolean isStoreSetup();
 
     /**
-     * Sets whether the platform is set up and ready to use.
-     */
-    void setStoreSetup(boolean setup);
-
-    /**
      * Checks if the platform is in online mode.
      *
      * @return Whether the server is in online mode.
@@ -77,44 +72,9 @@ public interface Platform {
     boolean isOnlineMode();
 
     /**
-     * Configures the platform for use.
-     */
-    void configure();
-
-    /**
      * Halts the platform and stops any ongoing tasks.
      */
     void halt();
-
-    default void init() {
-        if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
-            getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
-                ServerInformation.Server server = serverInformation.getServer();
-                ServerInformation.Store store = serverInformation.getStore();
-
-                info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
-
-                setStoreSetup(true);
-                configure();
-            }).exceptionally(ex -> {
-                Throwable cause = ex.getCause();
-                setStoreSetup(false);
-
-                if (cause instanceof NotFoundException) {
-                    warning("Failed to connect. Please double-check your server key or run the setup command again.");
-                    this.halt();
-                } else {
-                    warning("Failed to get server information: " + cause.getMessage());
-                    cause.printStackTrace();
-                }
-
-                return null;
-            });
-        } else {
-            log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
-            log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
-        }
-    }
 
     PlaceholderManager getPlaceholderManager();
 

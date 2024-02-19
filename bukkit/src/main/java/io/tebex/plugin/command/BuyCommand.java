@@ -20,7 +20,14 @@ public class BuyCommand extends Command {
             return true;
         }
 
-        platform.getBuyGUI().open((Player) sender);
+        if(! (sender instanceof Player)) {
+            platform.sendMessage(sender, "&cOnly players can use this command!");
+            return true;
+        }
+
+        Player player = (Player) sender;
+        platform.getStoreManager().getBuyGUI().open(player);
+
         return true;
     }
 }

@@ -127,41 +127,41 @@ public class AnalyticsSDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackPlayerSession(AnalysePlayer player) {
-        platform.getPlayers().remove(player.getUniqueId());
-
-        if (getServerToken() == null) {
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(new NotFoundException());
-            return future;
-        }
-
-        if (! platform.isSetup()) {
-            platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.complete(false);
-            return future;
-        }
-
-        if(platform.isPlayerExcluded(player.getUniqueId())) {
-            platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.complete(false);
-            return future;
-        }
-
-        player.logout();
-        platform.debug("Sending payload: " + GSON.toJson(player));
-
-        if(player.getDurationInSeconds() < platform.getPlatformConfig().getMinimumPlaytime()) {
-            platform.debug("Skipped tracking player session for " + player.getName() + " as they haven't played long enough.");
-            platform.debug(
-                    "They played for " + player.getDurationInSeconds() + " " + StringUtil.pluralise(player.getDurationInSeconds(), "second", "seconds")
-                            + " but your minimum requirement is " + platform.getPlatformConfig().getMinimumPlaytime() + " " + StringUtil.pluralise(platform.getPlatformConfig().getMinimumPlaytime(), "second", "seconds") + "."
-            );
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.complete(false);
-            return future;
-        }
+//        platform.getPlayers().remove(player.getUniqueId());
+//
+//        if (getServerToken() == null) {
+//            CompletableFuture<Boolean> future = new CompletableFuture<>();
+//            future.completeExceptionally(new NotFoundException());
+//            return future;
+//        }
+//
+//        if (! platform.isSetup()) {
+//            platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
+//            CompletableFuture<Boolean> future = new CompletableFuture<>();
+//            future.complete(false);
+//            return future;
+//        }
+//
+//        if(platform.isPlayerExcluded(player.getUniqueId())) {
+//            platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
+//            CompletableFuture<Boolean> future = new CompletableFuture<>();
+//            future.complete(false);
+//            return future;
+//        }
+//
+//        player.logout();
+//        platform.debug("Sending payload: " + GSON.toJson(player));
+//
+//        if(player.getDurationInSeconds() < platform.getPlatformConfig().getMinimumPlaytime()) {
+//            platform.debug("Skipped tracking player session for " + player.getName() + " as they haven't played long enough.");
+//            platform.debug(
+//                    "They played for " + player.getDurationInSeconds() + " " + StringUtil.pluralise(player.getDurationInSeconds(), "second", "seconds")
+//                            + " but your minimum requirement is " + platform.getPlatformConfig().getMinimumPlaytime() + " " + StringUtil.pluralise(platform.getPlatformConfig().getMinimumPlaytime(), "second", "seconds") + "."
+//            );
+//            CompletableFuture<Boolean> future = new CompletableFuture<>();
+//            future.complete(false);
+//            return future;
+//        }
 
         platform.debug("Tracking player session for " + player.getName() + "..");
         platform.debug(" - UUID: " + player.getUniqueId());

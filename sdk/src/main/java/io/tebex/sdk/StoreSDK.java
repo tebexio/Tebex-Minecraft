@@ -589,7 +589,7 @@ public class StoreSDK {
             final HttpResponse response = this.HTTP_CLIENT.post("/events")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(events))
-                    .onStatus(200, req -> {})
+                    .onStatus(204, req -> {})
                     .onRemaining(this::handleResponseErrors)
                     .execute();
 

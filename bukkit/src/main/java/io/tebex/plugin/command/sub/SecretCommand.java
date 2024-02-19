@@ -41,9 +41,8 @@ public class SecretCommand extends SubCommand {
 
             platform.loadServerPlatformConfig(configFile);
             platform.reloadConfig();
-            platform.setBuyGUI(new BuyGUI(platform));
+            platform.getStoreManager().setBuyGui(new BuyGUI(platform));
             platform.refreshListings();
-            platform.configure();
 
             platform.sendMessage(sender, "Connected to &b" + serverInformation.getServer().getName() + "&7.");
         })
