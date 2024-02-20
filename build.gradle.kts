@@ -26,6 +26,9 @@ subprojects {
     }
 
     repositories {
+        maven("https://mvn-repo.arim.space/lesser-gpl3/") {
+            name = "arim-lesser-gpl3"
+        }
         maven("https://s01.oss.sonatype.org/content/groups/staging/") {
             name = "sonatype-staging-repo"
         }

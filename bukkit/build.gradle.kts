@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":sdk"))
     implementation("com.github.cryptomorin:XSeries:9.3.1") { isTransitive = false }
     implementation("dev.triumphteam:triumph-gui:3.1.2")
+    implementation("space.arim.morepaperlib:morepaperlib:0.4.3")
 
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("dev.dejvokep:boosted-yaml:1.3")

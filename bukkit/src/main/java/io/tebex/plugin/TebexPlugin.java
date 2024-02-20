@@ -25,12 +25,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
+import space.arim.morepaperlib.scheduling.GracefulScheduling;
+import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -46,6 +51,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private StoreManager storeManager;
     private AnalyticsManager analyticsManager;
     private FloodgateHook floodgateHook;
+    private MorePaperLib morePaperLib;
 
     /**
      * Starts the Bukkit
@@ -54,6 +60,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public void onEnable() {
         // Bind SDK.
         Tebex.init(this);
+
+        morePaperLib = new MorePaperLib(this);
 
         try {
             // Load the platform config file.
@@ -285,28 +293,28 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public void executeAsync(Runnable runnable) {
         if (!isEnabled()) return;
 
-        getServer().getScheduler().runTaskAsynchronously(this, runnable);
+        getAsyncScheduler().run(runnable);
     }
 
     @Override
     public void executeAsyncLater(Runnable runnable, long time, TimeUnit unit) {
         if (!isEnabled()) return;
 
-        getServer().getScheduler().runTaskLaterAsynchronously(this, runnable, unit.toMillis(time) / 50);
+        getAsyncScheduler().runDelayed(runnable, Duration.ofMillis(unit.toMillis(time)));
     }
 
     @Override
     public void executeBlocking(Runnable runnable) {
         if (!isEnabled()) return;
 
-        getServer().getScheduler().runTask(this, runnable);
+        getScheduler().run(runnable);
     }
 
     @Override
     public void executeBlockingLater(Runnable runnable, long time, TimeUnit unit) {
         if (!isEnabled()) return;
 
-        getServer().getScheduler().runTaskLater(this, runnable, unit.toMillis(time) / 50);
+        getScheduler().runDelayed(runnable, unit.toMillis(time));
     }
 
     public Player getPlayer(Object player) {
@@ -389,6 +397,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     public FloodgateHook getFloodgateHook() {
         return floodgateHook;
+    }
+
+    public RegionalScheduler getScheduler() {
+        return morePaperLib.scheduling().globalRegionalScheduler();
+    }
+
+    public AsynchronousScheduler getAsyncScheduler() {
+        return morePaperLib.scheduling().asyncScheduler();
     }
 
     public void sendMessage(CommandSender sender, String message) {
