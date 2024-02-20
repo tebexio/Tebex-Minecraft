@@ -2,14 +2,19 @@ package io.tebex.sdk.platform.config;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 /**
- * The PlatformConfig class holds the configuration for the Tebex StoreSDK.
+ * The PlatformConfig class holds the configuration for the Tebex Plugin.
  * It contains settings related to excluded players, minimum playtime, and various other options.
  */
 public class ServerPlatformConfig implements IPlatformConfig {
     private final int configVersion;
     private YamlDocument yamlDocument;
 
+    /* Tebex Store specific settings */
     private String buyCommandName;
     private boolean buyCommandEnabled;
     private boolean checkForUpdates;
@@ -18,6 +23,13 @@ public class ServerPlatformConfig implements IPlatformConfig {
     private String secretKey;
 
     private boolean autoReportEnabled;
+
+    /* Tebex Analytics specific settings */
+    private List<UUID> excludedPlayers;
+    private boolean floodgateHook;
+    private String analyticsSecretKey;
+    private String bedrockPrefix;
+    private boolean useServerFirstJoinedAt;
 
     /**
      * Creates a PlatformConfig instance with the provided configuration version.
@@ -58,6 +70,52 @@ public class ServerPlatformConfig implements IPlatformConfig {
     }
 
     public void setAutoReportEnabled(boolean autoReportEnabled) { this.autoReportEnabled = autoReportEnabled; }
+
+
+    /**
+     * Sets the list of excluded players.
+     *
+     * @param excludedPlayers The list of excluded player UUIDs.
+     */
+    public void setExcludedPlayers(List<UUID> excludedPlayers) {
+        this.excludedPlayers = excludedPlayers != null ? excludedPlayers : Collections.emptyList();
+    }
+
+    /**
+     * Sets whether to use the server's first joined timestamp for players.
+     *
+     * @param useServerFirstJoinedAt Whether to use the server's first joined timestamp.
+     */
+    public void setUseServerFirstJoinedAt(boolean useServerFirstJoinedAt) {
+        this.useServerFirstJoinedAt = useServerFirstJoinedAt;
+    }
+
+    /**
+     * Sets the optional Bedrock Floodgate API hook
+     *
+     * @param floodgateHook Whether we should use the Floodgate API to detect Bedrock players instead.
+     */
+    public void setFloodgateHook(boolean floodgateHook) {
+        this.floodgateHook = floodgateHook;
+    }
+
+    /**
+     * Sets the server token.
+     *
+     * @param secretKey The server token.
+     */
+    public void setAnalyticsSecretKey(String secretKey) {
+        this.analyticsSecretKey = secretKey;
+    }
+
+    /**
+     * Sets the prefix for Bedrock Edition players.
+     *
+     * @param bedrockPrefix The prefix for Bedrock Edition players.
+     */
+    public void setBedrockPrefix(String bedrockPrefix) {
+        this.bedrockPrefix = bedrockPrefix;
+    }
 
     /**
      * Sets the YAML document for this configuration.
@@ -111,6 +169,63 @@ public class ServerPlatformConfig implements IPlatformConfig {
 
     public boolean isAutoReportEnabled() { return autoReportEnabled; }
 
+    /* -------- Tebex Analytics -------- */
+
+    /**
+     * Returns the list of excluded players.
+     *
+     * @return The list of excluded player UUIDs.
+     */
+    public List<UUID> getExcludedPlayers() {
+        return excludedPlayers;
+    }
+
+    /**
+     * Checks if a player is excluded based on their UUID.
+     *
+     * @param uuid The player's UUID.
+     * @return True if the player is excluded, false otherwise.
+     */
+    public boolean isPlayerExcluded(UUID uuid) {
+        return excludedPlayers.contains(uuid);
+    }
+
+    /**
+     * Checks if the server should use its first joined timestamp for players.
+     *
+     * @return True if the server should use its first joined timestamp, false otherwise.
+     */
+    public boolean shouldUseServerFirstJoinedAt() {
+        return useServerFirstJoinedAt;
+    }
+
+    /**
+     * Returns the server token.
+     *
+     * @return The server token.
+     */
+    public String getAnalyticsSecretKey() {
+        return analyticsSecretKey;
+    }
+
+    /**
+     * Returns the prefix for Bedrock Edition players.
+     *
+     * @return The prefix for Bedrock Edition players.
+     */
+    public String getBedrockPrefix() {
+        return bedrockPrefix;
+    }
+
+    /**
+     * Returns whether Analytics should hook into Floodgate.
+     *
+     * @return The {@link Boolean} that represents whether Analytics should hook into Floodgate's API or not.
+     */
+    public boolean isFloodgateHookEnabled() {
+        return floodgateHook;
+    }
+
     /**
      * Returns the YAML document for this configuration.
      *
@@ -133,6 +248,11 @@ public class ServerPlatformConfig implements IPlatformConfig {
                 ", proxyMode=" + proxyMode +
                 ", secretKey='" + secretKey + '\'' +
                 ", autoReportEnabled=" + autoReportEnabled +
+                ", excludedPlayers=" + excludedPlayers +
+                ", floodgateHook=" + floodgateHook +
+                ", analyticsSecretKey='" + analyticsSecretKey + '\'' +
+                ", bedrockPrefix='" + bedrockPrefix + '\'' +
+                ", useServerFirstJoinedAt=" + useServerFirstJoinedAt +
                 '}';
     }
 }

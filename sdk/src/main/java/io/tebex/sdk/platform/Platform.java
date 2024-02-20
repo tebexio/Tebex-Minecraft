@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
 
@@ -348,6 +349,7 @@ public interface Platform {
             return config;
         }
 
+        /* Tebex Store */
         config.setSecretKey(configFile.getString("server.secret-key"));
         config.setBuyCommandName(configFile.getString("buy-command.name", "buy"));
         config.setBuyCommandEnabled(configFile.getBoolean("buy-command.enabled", true));
@@ -357,6 +359,12 @@ public interface Platform {
 
         config.setProxyMode(configFile.getBoolean("server.proxy", false));
         config.setAutoReportEnabled(configFile.getBoolean("auto-report-enabled", true));
+
+        /* Tebex Analytics */
+        config.setExcludedPlayers(configFile.getStringList("analytics.settings.excluded-players").stream().map(UUID::fromString).collect(Collectors.toList()));
+        config.setUseServerFirstJoinedAt(configFile.getBoolean("analytics.settings.use-server-playtime", false));
+        config.setBedrockPrefix(configFile.getString("analytics.settings.bedrock-prefix"));
+        config.setAnalyticsSecretKey(configFile.getString("analytics.settings.secret-key"));
 
         return config;
     }

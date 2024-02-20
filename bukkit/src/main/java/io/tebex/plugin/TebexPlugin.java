@@ -2,6 +2,7 @@ package io.tebex.plugin;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
+import io.tebex.plugin.hook.FloodgateHook;
 import io.tebex.plugin.service.AnalyticsManager;
 import io.tebex.plugin.service.StoreManager;
 import io.tebex.sdk.AnalyticsSDK;
@@ -44,6 +45,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private YamlDocument configYaml;
     private StoreManager storeManager;
     private AnalyticsManager analyticsManager;
+    private FloodgateHook floodgateHook;
 
     /**
      * Starts the Bukkit
@@ -61,6 +63,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             log(Level.WARNING, "Failed to load config: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+
+        config.setFloodgateHook(getServer().getPluginManager().isPluginEnabled("floodgate"));
+
+        if(config.isFloodgateHookEnabled()) {
+            floodgateHook = new FloodgateHook();
         }
 
         if (getPlatformConfig().getSecretKey() == null || getPlatformConfig().getSecretKey().isEmpty()) {
@@ -350,6 +358,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     public AnalyticsManager getAnalyticsManager() {
         return analyticsManager;
+    }
+
+    public FloodgateHook getFloodgateHook() {
+        return floodgateHook;
     }
 
     public void sendMessage(CommandSender sender, String message) {

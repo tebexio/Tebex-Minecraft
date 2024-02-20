@@ -5,7 +5,8 @@ import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.command.analytics.AnalyticsCommand;
-import io.tebex.plugin.command.analytics.sub.*;
+import io.tebex.plugin.command.analytics.sub.SetupCommand;
+import io.tebex.plugin.command.analytics.sub.TrackCommand;
 import org.bukkit.command.PluginCommand;
 
 import java.util.Map;
@@ -22,10 +23,7 @@ public class AnalyticsCommandManager {
     public void register() {
         ImmutableList.of(
                 new SetupCommand(platform),
-                new DebugCommand(platform),
-                new StatsCommand(platform),
-                new TrackCommand(platform),
-                new ReloadCommand(platform)
+                new TrackCommand(platform)
         ).forEach(command -> {
             commands.put(command.getName(), command);
         });

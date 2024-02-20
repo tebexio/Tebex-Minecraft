@@ -1,6 +1,7 @@
 package io.tebex.plugin.command.analytics;
 
 import com.google.common.collect.ImmutableList;
+import io.tebex.plugin.Lang;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.manager.AnalyticsCommandManager;
 import org.bukkit.command.Command;
@@ -42,7 +43,13 @@ public class AnalyticsCommand implements TabExecutor {
             return true;
         }
 
-        subCommand.execute(sender, Arrays.copyOfRange(args, 1, args.length));
+        String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
+        if(commandArgs.length < subCommand.getMinArgs()) {
+            commandManager.getPlatform().sendMessage(sender, Lang.INVALID_USAGE.getMessage("analytics", subCommand.getName() + " " + subCommand.getUsage()));
+            return true;
+        }
+
+        subCommand.execute(sender, commandArgs);
         return true;
     }
 

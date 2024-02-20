@@ -17,11 +17,6 @@ public class SetupCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(args.length == 0) {
-            getPlatform().sendMessage(sender, "Invalid usage. Usage: &f/analytics setup <serverToken>");
-            return;
-        }
-
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
@@ -32,8 +27,8 @@ public class SetupCommand extends SubCommand {
         analyse.setServerToken(serverToken);
 
         platform.getAnalyticsSDK().getServerInformation().thenAccept(serverInformation -> {
-//            analyseConfig.setServerToken(serverToken);
-//            configFile.set("server.token", serverToken);
+            analyseConfig.setAnalyticsSecretKey(serverToken);
+            configFile.set("analytics.secret-key", serverToken);
 
             try {
                 configFile.save();
@@ -44,7 +39,8 @@ public class SetupCommand extends SubCommand {
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
                 getPlatform().sendMessage(sender, "Connected to &b" + serverInformation.getName() + "&7.");
-//                platform.configure();
+                platform.getAnalyticsManager().load();
+                platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {
                 getPlatform().sendMessage(sender, "&cFailed to setup the plugin. Check console for more information.");
                 ex.printStackTrace();
@@ -68,5 +64,10 @@ public class SetupCommand extends SubCommand {
     @Override
     public String getDescription() {
         return null;
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
     }
 }

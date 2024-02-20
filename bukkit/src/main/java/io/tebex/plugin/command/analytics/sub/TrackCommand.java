@@ -32,7 +32,7 @@ public class TrackCommand extends SubCommand {
             return;
         }
 
-        AnalysePlayer player = getPlatform().getPlayer(bukkitPlayer.getUniqueId());
+        AnalysePlayer player = getPlatform().getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
         if (player == null) {
             getPlatform().sendMessage(sender, "&cPlayer not found.");
             return;
