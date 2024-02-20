@@ -20,7 +20,7 @@ public class ServerPlatformConfig implements IPlatformConfig {
     private boolean checkForUpdates;
     private boolean verbose;
     private boolean proxyMode;
-    private String secretKey;
+    private String storeSecretKey;
 
     private boolean autoReportEnabled;
 
@@ -45,8 +45,8 @@ public class ServerPlatformConfig implements IPlatformConfig {
      *
      * @param secretKey The secret key.
      */
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
+    public void setStoreSecretKey(String secretKey) {
+        this.storeSecretKey = secretKey;
     }
 
     public void setBuyCommandName(String buyCommandName) {
@@ -142,8 +142,8 @@ public class ServerPlatformConfig implements IPlatformConfig {
      * @return The secret key.
      */
     @Override
-    public String getSecretKey() {
-        return secretKey;
+    public String getStoreSecretKey() {
+        return storeSecretKey;
     }
 
     public String getBuyCommandName() {
@@ -246,7 +246,7 @@ public class ServerPlatformConfig implements IPlatformConfig {
                 ", checkForUpdates=" + checkForUpdates +
                 ", verbose=" + verbose +
                 ", proxyMode=" + proxyMode +
-                ", secretKey='" + secretKey + '\'' +
+                ", secretKey='" + storeSecretKey + '\'' +
                 ", autoReportEnabled=" + autoReportEnabled +
                 ", excludedPlayers=" + excludedPlayers +
                 ", floodgateHook=" + floodgateHook +

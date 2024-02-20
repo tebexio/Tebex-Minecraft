@@ -84,7 +84,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         Tebex.init(this);
 
         // Initialise StoreSDK.
-        storeSdk = new StoreSDK(this, config.getSecretKey());
+        storeSdk = new StoreSDK(this, config.getStoreSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();

@@ -127,41 +127,28 @@ public class AnalyticsSDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackPlayerSession(AnalysePlayer player) {
-//        platform.getPlayers().remove(player.getUniqueId());
-//
-//        if (getServerToken() == null) {
-//            CompletableFuture<Boolean> future = new CompletableFuture<>();
-//            future.completeExceptionally(new NotFoundException());
-//            return future;
-//        }
-//
-//        if (! platform.isSetup()) {
-//            platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
-//            CompletableFuture<Boolean> future = new CompletableFuture<>();
-//            future.complete(false);
-//            return future;
-//        }
-//
-//        if(platform.isPlayerExcluded(player.getUniqueId())) {
-//            platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
-//            CompletableFuture<Boolean> future = new CompletableFuture<>();
-//            future.complete(false);
-//            return future;
-//        }
-//
-//        player.logout();
-//        platform.debug("Sending payload: " + GSON.toJson(player));
-//
-//        if(player.getDurationInSeconds() < platform.getPlatformConfig().getMinimumPlaytime()) {
-//            platform.debug("Skipped tracking player session for " + player.getName() + " as they haven't played long enough.");
-//            platform.debug(
-//                    "They played for " + player.getDurationInSeconds() + " " + StringUtil.pluralise(player.getDurationInSeconds(), "second", "seconds")
-//                            + " but your minimum requirement is " + platform.getPlatformConfig().getMinimumPlaytime() + " " + StringUtil.pluralise(platform.getPlatformConfig().getMinimumPlaytime(), "second", "seconds") + "."
-//            );
-//            CompletableFuture<Boolean> future = new CompletableFuture<>();
-//            future.complete(false);
-//            return future;
-//        }
+        if (getServerToken() == null) {
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(new NotFoundException());
+            return future;
+        }
+
+        if (! platform.isAnalyticsSetup()) {
+            platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.complete(false);
+            return future;
+        }
+
+        if(platform.isPlayerExcluded(player.getUniqueId())) {
+            platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.complete(false);
+            return future;
+        }
+
+        player.logout();
+        platform.debug("Sending payload: " + GSON.toJson(player));
 
         platform.debug("Tracking player session for " + player.getName() + "..");
         platform.debug(" - UUID: " + player.getUniqueId());
@@ -181,8 +168,6 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/sessions")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(player))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -192,6 +177,7 @@ public class AnalyticsSDK {
                 throw new CompletionException(new IOException("Failed to track player session"));
             }
 
+            System.out.println(response.getResponseEntity(String.class));
             JsonObject body = response.getResponseEntity(JsonObject.class);
 
             return body.get("success").getAsBoolean();
@@ -213,8 +199,6 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/setup")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
                     .execute();
@@ -247,8 +231,6 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/heartbeat")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -279,8 +261,6 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/telemetry")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
                     .withInput(() -> GSON.toJson(platform.getTelemetry()))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -292,79 +272,6 @@ public class AnalyticsSDK {
 
             JsonObject responseBody = response.getResponseEntity(JsonObject.class);
             return responseBody.get("success").getAsBoolean();
-        });
-    }
-
-    /**
-     * Get the first page of a specified statistic leaderboard.
-     *
-     * @param leaderboard The leaderboard identifier
-     * @return CompletableFuture containing the leaderboard data
-     */
-    public CompletableFuture<AnalyseLeaderboard> getLeaderboard(String leaderboard) {
-        return getLeaderboard(leaderboard, 1);
-    }
-
-    /**
-     * Get a specified page of a statistic leaderboard.
-     *
-     * @param leaderboard The leaderboard identifier
-     * @param page The requested page number
-     * @return CompletableFuture containing the leaderboard data
-     */
-    public CompletableFuture<AnalyseLeaderboard> getLeaderboard(String leaderboard, int page) {
-        if (getServerToken() == null) {
-            CompletableFuture<AnalyseLeaderboard> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
-            return future;
-        }
-
-        return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.get("/server/leaderboard/" + leaderboard + "?page=" + page)
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
-                    .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
-                    .execute();
-
-            if(response == null) {
-                throw new CompletionException(new IOException("Failed to retrieve leaderboard"));
-            }
-
-            JsonObject body = response.getResponseEntity(JsonObject.class);
-            return GSON.fromJson(body.get("leaderboard"), AnalyseLeaderboard.class);
-        });
-    }
-
-    /**
-     * Get information about a specific player by their name or UUID.
-     *
-     * @param id The player's name or UUID
-     * @return CompletableFuture containing the player's profile data
-     */
-    public CompletableFuture<PlayerProfile> getPlayer(String id) {
-        if (getServerToken() == null) {
-            CompletableFuture<PlayerProfile> future = new CompletableFuture<>();
-            future.completeExceptionally(new ServerNotSetupException());
-            return future;
-        }
-
-        return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.get("/server/player/" + id)
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
-                    .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
-                    .execute();
-
-            if(response == null) {
-                throw new CompletionException(new IOException("Failed to retrieve player"));
-            }
-
-            JsonObject body = response.getResponseEntity(JsonObject.class);
-            return GSON.fromJson(body.get("player"), PlayerProfile.class);
         });
     }
 
@@ -386,8 +293,6 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/ip/" + ip)
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
-                    .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
                     .execute();

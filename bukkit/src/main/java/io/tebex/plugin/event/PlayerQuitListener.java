@@ -32,6 +32,7 @@ public class PlayerQuitListener implements Listener {
                 return;
             }
 
+            platform.getAnalyticsManager().removePlayer(player.getUniqueId());
             platform.debug("Successfully tracked player session for " + player.getName() + ".");
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();

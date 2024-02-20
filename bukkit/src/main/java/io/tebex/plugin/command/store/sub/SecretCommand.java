@@ -30,7 +30,7 @@ public class SecretCommand extends SubCommand {
         analyse.setSecretKey(serverToken);
 
         platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
-            analyseConfig.setSecretKey(serverToken);
+            analyseConfig.setStoreSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 
             try {

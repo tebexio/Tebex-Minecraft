@@ -88,7 +88,7 @@ public class TebexPlugin implements Platform {
         new CommandManager(this).register();
 
         // Initialise StoreSDK.
-        storeSdk = new StoreSDK(this, config.getSecretKey());
+        storeSdk = new StoreSDK(this, config.getStoreSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -150,7 +150,7 @@ public class TebexPlugin implements Platform {
 
                 config = loadProxyPlatformConfig(configYaml);
 
-                storeSdk = new StoreSDK(this, config.getSecretKey());
+                storeSdk = new StoreSDK(this, config.getStoreSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }

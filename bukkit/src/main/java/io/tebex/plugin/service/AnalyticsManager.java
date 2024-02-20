@@ -25,7 +25,7 @@ public class AnalyticsManager implements ServiceManager {
 
     @Override
     public void load() {
-        sdk = new AnalyticsSDK(platform, platform.getPlatformConfig().getSecretKey());
+        sdk = new AnalyticsSDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
 
         new AnalyticsCommandManager(platform).register();
 
@@ -37,7 +37,7 @@ public class AnalyticsManager implements ServiceManager {
     @Override
     public void connect() {
         sdk.getServerInformation().thenAccept(serverInformation -> {
-            platform.info(String.format("Connected to %s on Tebex Analytics.", serverInformation.getName()));
+            platform.info(String.format("Connected to the %s analytics.", serverInformation.getName()));
             this.setup = true;
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
@@ -75,5 +75,9 @@ public class AnalyticsManager implements ServiceManager {
 
     public AnalysePlayer getPlayer(UUID uuid) {
         return players.get(uuid);
+    }
+
+    public void removePlayer(UUID uuid) {
+        players.remove(uuid);
     }
 }

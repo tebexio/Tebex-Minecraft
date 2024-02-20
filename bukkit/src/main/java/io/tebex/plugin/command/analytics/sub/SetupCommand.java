@@ -63,7 +63,12 @@ public class SetupCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return null;
+        return "Connects to your Tebex Analytics.";
+    }
+
+    @Override
+    public String getUsage() {
+        return "<key>";
     }
 
     @Override

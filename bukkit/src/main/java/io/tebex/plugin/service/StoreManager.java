@@ -39,7 +39,7 @@ public class StoreManager implements ServiceManager {
 
     @Override
     public void load() {
-        sdk = new StoreSDK(platform, platform.getPlatformConfig().getSecretKey());
+        sdk = new StoreSDK(platform, platform.getPlatformConfig().getStoreSecretKey());
 
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
@@ -88,7 +88,7 @@ public class StoreManager implements ServiceManager {
             ServerInformation.Server server = serverInformation.getServer();
             ServerInformation.Store store = serverInformation.getStore();
 
-            platform.info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
+            platform.info(String.format("Connected to the %s - %s store.", server.getName(), store.getGameType()));
 
             this.setup = true;
             platform.performCheck();

@@ -3,7 +3,7 @@ package io.tebex.sdk.platform;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.StoreSDK;
-import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.QueuedCommand;
 import io.tebex.sdk.store.obj.QueuedPlayer;
@@ -350,7 +350,7 @@ public interface Platform {
         }
 
         /* Tebex Store */
-        config.setSecretKey(configFile.getString("server.secret-key"));
+        config.setStoreSecretKey(configFile.getString("server.secret-key"));
         config.setBuyCommandName(configFile.getString("buy-command.name", "buy"));
         config.setBuyCommandEnabled(configFile.getBoolean("buy-command.enabled", true));
 
@@ -361,10 +361,10 @@ public interface Platform {
         config.setAutoReportEnabled(configFile.getBoolean("auto-report-enabled", true));
 
         /* Tebex Analytics */
-        config.setExcludedPlayers(configFile.getStringList("analytics.settings.excluded-players").stream().map(UUID::fromString).collect(Collectors.toList()));
-        config.setUseServerFirstJoinedAt(configFile.getBoolean("analytics.settings.use-server-playtime", false));
-        config.setBedrockPrefix(configFile.getString("analytics.settings.bedrock-prefix"));
-        config.setAnalyticsSecretKey(configFile.getString("analytics.settings.secret-key"));
+        config.setExcludedPlayers(configFile.getStringList("analytics.excluded-players").stream().map(UUID::fromString).collect(Collectors.toList()));
+        config.setUseServerFirstJoinedAt(configFile.getBoolean("analytics.use-server-playtime", false));
+        config.setBedrockPrefix(configFile.getString("analytics.bedrock-prefix"));
+        config.setAnalyticsSecretKey(configFile.getString("analytics.secret-key"));
 
         return config;
     }
@@ -429,4 +429,6 @@ public interface Platform {
      * @return IP address of the server as a string
      */
     String getServerIp();
+
+    boolean isPlayerExcluded(UUID uniqueId);
 }

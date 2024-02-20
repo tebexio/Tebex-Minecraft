@@ -71,10 +71,34 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             floodgateHook = new FloodgateHook();
         }
 
-        if (getPlatformConfig().getSecretKey() == null || getPlatformConfig().getSecretKey().isEmpty()) {
-            log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
-            log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
-            return;
+        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null || ! getPlatformConfig().getStoreSecretKey().isEmpty();
+        boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && ! getPlatformConfig().getAnalyticsSecretKey().isEmpty();
+
+        List<String> setupTypes = new ArrayList<>();
+
+        if(! storeSetup) {
+            setupTypes.add("Store");
+        }
+
+        if(! analyticsSetup) {
+            setupTypes.add("Analytics");
+        }
+
+        info("Thanks for installing Tebex v" + getDescription().getVersion() + " for Spigot/Paper.");
+
+        if(! setupTypes.isEmpty()) {
+            warning("It seems that you're using a fresh install, or haven't configured your Tebex " + String.join(" and ", setupTypes) + " secret keys yet!");
+            warning(" ");
+
+            if(! storeSetup) {
+                warning("To setup your Tebex Store, run 'tebex secret <key>' in the console.");
+            }
+            if(! analyticsSetup) {
+                warning("To setup your Tebex Analytics, run 'analytics secret <key>' in the console.");
+            }
+
+            warning(" ");
+            warning("We recommend running these commands from the console to avoid accidentally sharing your secret keys in chat.");
         }
 
         // Migrate the config from BuycraftX.
@@ -85,11 +109,17 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         // Initialise Managers.
         storeManager = new StoreManager(this);
         storeManager.load();
-        storeManager.connect();
+
+        if(storeSetup) {
+            storeManager.connect();
+        }
 
         analyticsManager = new AnalyticsManager(this);
         analyticsManager.load();
-        analyticsManager.connect();
+
+        if(analyticsSetup) {
+            analyticsManager.connect();
+        }
 
         registerEvents(new JoinListener(this));
 
@@ -350,6 +380,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public String getServerIp() {
         return Bukkit.getIp();
+    }
+
+    @Override
+    public boolean isPlayerExcluded(UUID uniqueId) {
+        return getPlatformConfig().isPlayerExcluded(uniqueId);
     }
 
     public StoreManager getStoreManager() {
