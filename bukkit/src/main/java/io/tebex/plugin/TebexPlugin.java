@@ -74,20 +74,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null || ! getPlatformConfig().getStoreSecretKey().isEmpty();
         boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && ! getPlatformConfig().getAnalyticsSecretKey().isEmpty();
 
-        List<String> setupTypes = new ArrayList<>();
-
-        if(! storeSetup) {
-            setupTypes.add("Store");
-        }
-
-        if(! analyticsSetup) {
-            setupTypes.add("Analytics");
-        }
+        String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
 
         info("Thanks for installing Tebex v" + getDescription().getVersion() + " for Spigot/Paper.");
 
-        if(! setupTypes.isEmpty()) {
-            warning("It seems that you're using a fresh install, or haven't configured your Tebex " + String.join(" and ", setupTypes) + " secret keys yet!");
+        if(! storeSetup || ! analyticsSetup) {
+            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
             warning(" ");
 
             if(! storeSetup) {
