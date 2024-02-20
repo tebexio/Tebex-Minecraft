@@ -177,7 +177,6 @@ public class AnalyticsSDK {
                 throw new CompletionException(new IOException("Failed to track player session"));
             }
 
-            System.out.println(response.getResponseEntity(String.class));
             JsonObject body = response.getResponseEntity(JsonObject.class);
 
             return body.get("success").getAsBoolean();
