@@ -3,8 +3,8 @@ package io.tebex.plugin.manager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.command.analytics.AnalyticsCommand;
-import io.tebex.plugin.command.analytics.SubCommand;
 import io.tebex.plugin.command.analytics.sub.*;
 import org.bukkit.command.PluginCommand;
 

@@ -3,7 +3,7 @@ package io.tebex.plugin.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.BuyCommand;
+import io.tebex.plugin.command.store.BuyCommand;
 import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.plugin.manager.StoreCommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;

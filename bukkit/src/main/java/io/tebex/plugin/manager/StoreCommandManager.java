@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.plugin.command.TebexCommand;
-import io.tebex.plugin.command.sub.*;
+import io.tebex.plugin.command.store.TebexCommand;
+import io.tebex.plugin.command.store.sub.*;
 import org.bukkit.command.PluginCommand;
 
 import java.util.Map;

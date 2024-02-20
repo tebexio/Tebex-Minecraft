@@ -1,6 +1,7 @@
 package io.tebex.plugin.command.analytics;
 
 import com.google.common.collect.ImmutableList;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.manager.AnalyticsCommandManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

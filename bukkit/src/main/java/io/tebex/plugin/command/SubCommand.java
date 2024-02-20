@@ -1,4 +1,4 @@
-package io.tebex.plugin.command.analytics;
+package io.tebex.plugin.command;
 
 import io.tebex.plugin.TebexPlugin;
 import org.bukkit.command.CommandSender;
@@ -26,5 +26,15 @@ public abstract class SubCommand {
 
     public String getPermission() {
         return permission;
+    }
+
+    public abstract String getDescription();
+
+    public String getUsage() {
+        return "";
+    }
+
+    public int getMinArgs() {
+        return 0;
     }
 }

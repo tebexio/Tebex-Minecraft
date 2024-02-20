@@ -2,7 +2,7 @@ package io.tebex.plugin.command.analytics.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.analytics.SubCommand;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
 
@@ -18,7 +18,7 @@ public class DebugCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
 
-        boolean debugEnabled = args.length > 0 ? Boolean.parseBoolean(args[0]) : !analyseConfig.hasDebugEnabled();
+        boolean debugEnabled = args.length > 0 ? Boolean.parseBoolean(args[0]) : !analyseConfig.isVerbose();
 
         if(debugEnabled) {
             getPlatform().sendMessage(sender, "You have enabled debug mode. This can be disabled by running &f/analytics debug &7again.");
@@ -27,8 +27,8 @@ public class DebugCommand extends SubCommand {
         }
 
         YamlDocument configFile = analyseConfig.getYamlDocument();
-        configFile.set("debug", debugEnabled);
-        analyseConfig.setDebugEnabled(debugEnabled);
+        configFile.set("verbose", debugEnabled);
+        analyseConfig.setVerbose(debugEnabled);
 
         try {
             configFile.save();
@@ -36,5 +36,10 @@ public class DebugCommand extends SubCommand {
             getPlatform().sendMessage(sender, "&cFailed to toggle debug mode. Check console for more information.");
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
     }
 }

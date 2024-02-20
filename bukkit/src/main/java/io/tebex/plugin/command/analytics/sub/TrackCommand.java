@@ -3,7 +3,7 @@ package io.tebex.plugin.command.analytics.sub;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.analytics.SubCommand;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.analytics.obj.PlayerEvent;
 import org.bukkit.Bukkit;
@@ -55,5 +55,10 @@ public class TrackCommand extends SubCommand {
 
         player.track(event);
         getPlatform().sendMessage(sender, "Event tracked.");
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
     }
 }

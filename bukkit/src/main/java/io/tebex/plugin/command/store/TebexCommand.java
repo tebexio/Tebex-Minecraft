@@ -2,6 +2,7 @@ package io.tebex.plugin.command.store;
 
 import com.google.common.collect.ImmutableList;
 import io.tebex.plugin.Lang;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.manager.StoreCommandManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

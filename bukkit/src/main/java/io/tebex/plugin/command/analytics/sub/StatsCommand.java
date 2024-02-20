@@ -1,7 +1,7 @@
 package io.tebex.plugin.command.analytics.sub;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.analytics.SubCommand;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.analytics.obj.PlayerType;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -144,5 +144,10 @@ public class StatsCommand extends SubCommand {
         } else {
             getPlatform().sendMessage(sender, "&cUsage: /analytics stats [domain|country]");
         }
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
     }
 }

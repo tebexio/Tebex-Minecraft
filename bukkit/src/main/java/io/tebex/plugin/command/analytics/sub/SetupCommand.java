@@ -2,7 +2,7 @@ package io.tebex.plugin.command.analytics.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.analytics.SubCommand;
+import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -32,8 +32,8 @@ public class SetupCommand extends SubCommand {
         analyse.setServerToken(serverToken);
 
         platform.getAnalyticsSDK().getServerInformation().thenAccept(serverInformation -> {
-            analyseConfig.setServerToken(serverToken);
-            configFile.set("server.token", serverToken);
+//            analyseConfig.setServerToken(serverToken);
+//            configFile.set("server.token", serverToken);
 
             try {
                 configFile.save();
@@ -63,5 +63,10 @@ public class SetupCommand extends SubCommand {
             cause.printStackTrace();
             return null;
         });
+    }
+
+    @Override
+    public String getDescription() {
+        return null;
     }
 }
