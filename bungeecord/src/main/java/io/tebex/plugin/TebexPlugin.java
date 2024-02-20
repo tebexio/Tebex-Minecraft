@@ -6,12 +6,12 @@ import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.store.obj.Category;
-import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import net.md_5.bungee.api.ProxyServer;
@@ -73,7 +73,6 @@ public class TebexPlugin extends Plugin implements Platform {
         migrateConfig();
 
         // Initialise the platform.
-        init();
 
         getProxy().getScheduler().schedule(this, () -> {
             getStoreSDK().getServerInformation().thenAccept(information -> storeInformation = information);
@@ -184,16 +183,10 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public void setStoreSetup(boolean setup) {
-        this.setup = setup;
-    }
-
-    @Override
     public boolean isOnlineMode() {
         return false;
     }
 
-    @Override
     public void configure() {
         setup = true;
         performCheck();

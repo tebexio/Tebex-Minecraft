@@ -93,7 +93,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         placeholderManager.registerDefaults();
 
         // Initialise the platform.
-        init();
+//        init();
 
         new JoinListener(this);
 
@@ -158,11 +158,6 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public void setStoreSetup(boolean setup) {
-        this.setup = setup;
-    }
-
-    @Override
     public boolean isOnlineMode() {
         return getPlatformConfig().isProxyMode() || server.isOnlineMode();
     }
@@ -179,7 +174,6 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return serverEvents;
     }
 
-    @Override
     public void configure() {
         setup = true;
         performCheck();

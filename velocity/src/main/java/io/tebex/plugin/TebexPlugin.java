@@ -101,7 +101,6 @@ public class TebexPlugin implements Platform {
         migrateConfig();
 
         // Initialise the platform.
-        init();
 
         proxy.getScheduler()
                 .buildTask(this, () -> {
@@ -189,16 +188,10 @@ public class TebexPlugin implements Platform {
     }
 
     @Override
-    public void setStoreSetup(boolean setup) {
-        this.setup = setup;
-    }
-
-    @Override
     public boolean isOnlineMode() {
         return proxy.getConfiguration().isOnlineMode();
     }
 
-    @Override
     public void configure() {
         setup = true;
         performCheck();

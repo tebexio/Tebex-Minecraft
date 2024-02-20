@@ -56,7 +56,9 @@ public interface Platform {
      *
      * @return The StoreSDK instance.
      */
-    AnalyticsSDK getAnalyticsSDK();
+    default AnalyticsSDK getAnalyticsSDK() {
+        throw new UnsupportedOperationException("getAnalyticsSDK is not implemented");
+    }
 
     /**
      * Gets the directory where the plugin is running from.
@@ -72,7 +74,9 @@ public interface Platform {
      */
     boolean isStoreSetup();
 
-    boolean isAnalyticsSetup();
+    default boolean isAnalyticsSetup() {
+        return false;
+    }
 
     /**
      * Checks if the platform is in online mode.
@@ -430,5 +434,7 @@ public interface Platform {
      */
     String getServerIp();
 
-    boolean isPlayerExcluded(UUID uniqueId);
+    default boolean isPlayerExcluded(UUID uniqueId) {
+        throw new UnsupportedOperationException("isPlayerExcluded(UUID) is not implemented");
+    }
 }
