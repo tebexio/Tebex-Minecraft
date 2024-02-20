@@ -1,30 +1,24 @@
 package io.tebex.plugin;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.command.BuyCommand;
 import io.tebex.plugin.event.JoinListener;
-import io.tebex.plugin.gui.BuyGUI;
-import io.tebex.plugin.manager.CommandManager;
-import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
+import io.tebex.plugin.service.AnalyticsManager;
 import io.tebex.plugin.service.StoreManager;
+import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.store.obj.Category;
-import io.tebex.sdk.store.obj.ServerEvent;
-import io.tebex.sdk.store.placeholder.PlaceholderManager;
-import io.tebex.sdk.store.placeholder.defaults.UuidPlaceholder;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -33,7 +27,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -44,15 +37,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The Bukkit platform.
+ * The Bukkit
  */
 public final class TebexPlugin extends JavaPlugin implements Platform {
     private ServerPlatformConfig config;
     private YamlDocument configYaml;
     private StoreManager storeManager;
+    private AnalyticsManager analyticsManager;
 
     /**
-     * Starts the Bukkit platform.
+     * Starts the Bukkit
      */
     @Override
     public void onEnable() {
@@ -69,13 +63,25 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             return;
         }
 
+        if (getPlatformConfig().getSecretKey() == null || getPlatformConfig().getSecretKey().isEmpty()) {
+            log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
+            log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
+            return;
+        }
+
+        // Migrate the config from BuycraftX.
+        migrateConfig();
+
+        // TODO: Migrate Analyse
+
         // Initialise Managers.
         storeManager = new StoreManager(this);
         storeManager.load();
         storeManager.connect();
 
-        // Migrate the config from BuycraftX.
-        migrateConfig();
+        analyticsManager = new AnalyticsManager(this);
+        analyticsManager.load();
+        analyticsManager.connect();
 
         registerEvents(new JoinListener(this));
 
@@ -204,6 +210,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
+    public AnalyticsSDK getAnalyticsSDK() {
+        return analyticsManager.getSdk();
+    }
+
+    @Override
     public File getDirectory() {
         return getDataFolder();
     }
@@ -211,6 +222,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public boolean isStoreSetup() {
         return storeManager.isSetup();
+    }
+
+    @Override
+    public boolean isAnalyticsSetup() {
+        return analyticsManager.isSetup();
     }
 
     @Override
@@ -330,6 +346,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     public StoreManager getStoreManager() {
         return storeManager;
+    }
+
+    public AnalyticsManager getAnalyticsManager() {
+        return analyticsManager;
     }
 
     public void sendMessage(CommandSender sender, String message) {

@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.BuyCommand;
 import io.tebex.plugin.gui.BuyGUI;
-import io.tebex.plugin.manager.CommandManager;
+import io.tebex.plugin.manager.StoreCommandManager;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.NotFoundException;
@@ -21,7 +21,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class StoreManager implements ServiceManager {
     private final TebexPlugin platform;
@@ -48,7 +47,7 @@ public class StoreManager implements ServiceManager {
         serverEvents = new ArrayList<>();
         buyGUI = new BuyGUI(platform);
 
-        new CommandManager(platform).register();
+        new StoreCommandManager(platform).register();
 
         platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, platform::refreshListings, 0, 20 * 60 * 5);
         platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, () -> {
@@ -85,12 +84,6 @@ public class StoreManager implements ServiceManager {
 
     @Override
     public void connect() {
-        if (platform.getPlatformConfig().getSecretKey() == null || platform.getPlatformConfig().getSecretKey().isEmpty()) {
-            platform.log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
-            platform.log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
-            return;
-        }
-
         getSdk().getServerInformation().thenAccept(serverInformation -> {
             ServerInformation.Server server = serverInformation.getServer();
             ServerInformation.Store store = serverInformation.getStore();

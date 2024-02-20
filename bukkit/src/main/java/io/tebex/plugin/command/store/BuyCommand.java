@@ -1,4 +1,4 @@
-package io.tebex.plugin.command;
+package io.tebex.plugin.command.store;
 
 import io.tebex.plugin.TebexPlugin;
 import org.bukkit.command.Command;

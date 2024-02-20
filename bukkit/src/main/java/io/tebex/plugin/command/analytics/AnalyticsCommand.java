@@ -1,8 +1,7 @@
-package io.tebex.plugin.command;
+package io.tebex.plugin.command.analytics;
 
 import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.Lang;
-import io.tebex.plugin.manager.CommandManager;
+import io.tebex.plugin.manager.AnalyticsCommandManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -12,18 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TebexCommand implements TabExecutor {
-    private final CommandManager commandManager;
+public class AnalyticsCommand implements TabExecutor {
+    private final AnalyticsCommandManager commandManager;
 
-    public TebexCommand(CommandManager commandManager) {
+    public AnalyticsCommand(AnalyticsCommandManager commandManager) {
         this.commandManager = commandManager;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(args.length == 0) {
-            commandManager.getPlatform().sendMessage(sender, "Welcome to Tebex!");
+        if(args.length == 0 && sender.hasPermission("analytics.admin")) {
+            commandManager.getPlatform().sendMessage(sender, "Welcome to Tebex Analytics!");
             commandManager.getPlatform().sendMessage(sender, "This server is running version &fv" + commandManager.getPlatform().getDescription().getVersion() + "&7.");
+            return true;
+        } else if(args.length == 0) {
+            commandManager.getPlatform().sendMessage(sender, "&cYou do not have access to that command.");
             return true;
         }
 
@@ -39,13 +41,7 @@ public class TebexCommand implements TabExecutor {
             return true;
         }
 
-        String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
-        if(commandArgs.length < subCommand.getMinArgs()) {
-            commandManager.getPlatform().sendMessage(sender, Lang.INVALID_USAGE.getMessage("tebex", subCommand.getName() + " " + subCommand.getUsage()));
-            return true;
-        }
-
-        subCommand.execute(sender, commandArgs);
+        subCommand.execute(sender, Arrays.copyOfRange(args, 1, args.length));
         return true;
     }
 

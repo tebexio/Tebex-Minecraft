@@ -10,11 +10,11 @@ import org.bukkit.command.PluginCommand;
 
 import java.util.Map;
 
-public class CommandManager {
+public class StoreCommandManager {
     private final TebexPlugin platform;
     private final Map<String, SubCommand> commands;
 
-    public CommandManager(TebexPlugin platform) {
+    public StoreCommandManager(TebexPlugin platform) {
         this.platform = platform;
         this.commands = Maps.newHashMap();
     }

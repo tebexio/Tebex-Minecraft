@@ -1,6 +1,7 @@
 package io.tebex.sdk.platform;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.store.obj.Category;
@@ -44,11 +45,17 @@ public interface Platform {
     PlatformType getType();
 
     /**
-     * Gets the StoreSDK instance associated with this platform.
+     * Gets the Store SDK instance associated with this platform.
      *
      * @return The StoreSDK instance.
      */
     StoreSDK getStoreSDK();
+    /**
+     * Gets the Analytics SDK instance associated with this platform.
+     *
+     * @return The StoreSDK instance.
+     */
+    AnalyticsSDK getAnalyticsSDK();
 
     /**
      * Gets the directory where the plugin is running from.
@@ -63,6 +70,8 @@ public interface Platform {
      * @return True if the platform is set up, false otherwise.
      */
     boolean isStoreSetup();
+
+    boolean isAnalyticsSetup();
 
     /**
      * Checks if the platform is in online mode.
