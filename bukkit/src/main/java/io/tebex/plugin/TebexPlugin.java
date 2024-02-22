@@ -281,6 +281,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return storeManager.getPlaceholderManager();
     }
 
+    public MorePaperLib getPaperLib() {
+        return morePaperLib;
+    }
+
     @Override
     public void dispatchCommand(String command) {
         if (!isEnabled()) return;

@@ -50,16 +50,8 @@ public class StoreManager implements ServiceManager {
         new CommandManager(platform).register();
 
         // Register the custom /buy command
-        try {
-            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-
-            commandMap.register(platform.getPlatformConfig().getBuyCommandName(), new BuyCommand(platform.getPlatformConfig().getBuyCommandName(), platform));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to get the CommandMap", e);
-        }
+        CommandMap commandMap = platform.getPaperLib().commandRegistration().getServerCommandMap();
+        commandMap.register(platform.getPlatformConfig().getBuyCommandName(), new BuyCommand(platform.getPlatformConfig().getBuyCommandName(), platform));
 
         placeholderManager.register(new BukkitNamePlaceholder(placeholderManager));
         placeholderManager.register(new UuidPlaceholder(placeholderManager));
