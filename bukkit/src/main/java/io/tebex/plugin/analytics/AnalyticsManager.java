@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentMap;
 public class AnalyticsManager implements ServiceManager {
     private final TebexPlugin platform;
     private final HeartbeatManager heartbeatManager;
+    private final ConcurrentMap<UUID, AnalysePlayer> players;
     private AnalyticsSDK sdk;
     private boolean setup;
-    private ConcurrentMap<UUID, AnalysePlayer> players;
 
     public AnalyticsManager(TebexPlugin platform) {
         this.platform = platform;

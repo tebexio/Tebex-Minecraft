@@ -30,9 +30,9 @@ public class StoreManager implements ServiceManager {
     private ServerInformation storeInformation;
     private List<Category> storeCategories;
     private final List<ServerEvent> serverEvents;
-    private boolean setup;
     public BuyGUI buyGUI;
     private StoreSDK sdk;
+    private boolean setup;
 
     public StoreManager(TebexPlugin platform) {
         this.platform = platform;
