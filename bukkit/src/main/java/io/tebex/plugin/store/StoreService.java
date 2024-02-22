@@ -15,15 +15,13 @@ import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.store.placeholder.defaults.UuidPlaceholder;
 import io.tebex.sdk.store.response.ServerInformation;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class StoreManager implements ServiceManager {
+public class StoreService implements ServiceManager {
     private final TebexPlugin platform;
     private final PlaceholderManager placeholderManager;
     private final Map<Object, Integer> queuedPlayers;
@@ -34,7 +32,7 @@ public class StoreManager implements ServiceManager {
     private StoreSDK sdk;
     private boolean setup;
 
-    public StoreManager(TebexPlugin platform) {
+    public StoreService(TebexPlugin platform) {
         this.platform = platform;
 
         sdk = new StoreSDK(platform, platform.getPlatformConfig().getStoreSecretKey());
@@ -51,7 +49,8 @@ public class StoreManager implements ServiceManager {
 
         // Register the custom /buy command
         CommandMap commandMap = platform.getPaperLib().commandRegistration().getServerCommandMap();
-        commandMap.register(platform.getPlatformConfig().getBuyCommandName(), new BuyCommand(platform.getPlatformConfig().getBuyCommandName(), platform));
+        String buyCommandName = platform.getPlatformConfig().getBuyCommandName();
+        commandMap.register(buyCommandName, new BuyCommand(buyCommandName, platform));
 
         placeholderManager.register(new BukkitNamePlaceholder(placeholderManager));
         placeholderManager.register(new UuidPlaceholder(placeholderManager));

@@ -42,10 +42,10 @@ public class JoinListener implements Listener {
         Player bukkitPlayer = event.getPlayer();
 
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
-//        if(analyseConfig.isPlayerExcluded(bukkitPlayer.getUniqueId())) {
-//            platform.debug("Skipped tracking " + bukkitPlayer.getName() + " as they are an excluded player.");
-//            return;
-//        }
+        if(analyseConfig.isPlayerExcluded(bukkitPlayer.getUniqueId())) {
+            platform.debug("Skipped tracking " + bukkitPlayer.getName() + " as they are an excluded player.");
+            return;
+        }
 
         AnalysePlayer player = new AnalysePlayer(
                 bukkitPlayer.getName(),

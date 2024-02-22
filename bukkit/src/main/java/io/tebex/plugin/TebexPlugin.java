@@ -1,9 +1,9 @@
 package io.tebex.plugin;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.analytics.AnalyticsManager;
+import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.analytics.hook.FloodgateHook;
-import io.tebex.plugin.store.StoreManager;
+import io.tebex.plugin.store.StoreService;
 import io.tebex.plugin.store.listener.JoinListener;
 import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.StoreSDK;
@@ -47,8 +47,8 @@ import java.util.regex.Pattern;
 public final class TebexPlugin extends JavaPlugin implements Platform {
     private ServerPlatformConfig config;
     private YamlDocument configYaml;
-    private StoreManager storeManager;
-    private AnalyticsManager analyticsManager;
+    private StoreService storeService;
+    private AnalyticsService analyticsService;
     private FloodgateHook floodgateHook;
     private MorePaperLib morePaperLib;
 
@@ -106,18 +106,18 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         // TODO: Migrate Analyse
 
         // Initialise Managers.
-        storeManager = new StoreManager(this);
-        storeManager.init();
+        storeService = new StoreService(this);
+        storeService.init();
 
         if(storeSetup) {
-            storeManager.connect();
+            storeService.connect();
         }
 
-        analyticsManager = new AnalyticsManager(this);
-        analyticsManager.init();
+        analyticsService = new AnalyticsService(this);
+        analyticsService.init();
 
         if(analyticsSetup) {
-            analyticsManager.connect();
+            analyticsService.connect();
         }
 
         registerEvents(new JoinListener(this));
@@ -125,15 +125,15 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     public List<Category> getStoreCategories() {
-        return storeManager.getStoreCategories();
+        return storeService.getStoreCategories();
     }
 
     public ServerInformation getStoreInformation() {
-        return storeManager.getStoreInformation();
+        return storeService.getStoreInformation();
     }
 
     public List<ServerEvent> getServerEvents() {
-        return storeManager.getServerEvents();
+        return storeService.getServerEvents();
     }
 
     public void migrateConfig() {
@@ -169,9 +169,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
                 config = loadServerPlatformConfig(configYaml);
 
-                storeManager = new StoreManager(this);
-                storeManager.init();
-                storeManager.connect();
+                storeService = new StoreService(this);
+                storeService.init();
+                storeService.connect();
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -225,7 +225,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public Map<Object, Integer> getQueuedPlayers() {
-        return storeManager.getQueuedPlayers();
+        return storeService.getQueuedPlayers();
     }
 
     /**
@@ -243,12 +243,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public StoreSDK getStoreSDK() {
-        return storeManager.getSdk();
+        return storeService.getSdk();
     }
 
     @Override
     public AnalyticsSDK getAnalyticsSDK() {
-        return analyticsManager.getSdk();
+        return analyticsService.getSdk();
     }
 
     @Override
@@ -258,12 +258,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public boolean isStoreSetup() {
-        return storeManager.isSetup();
+        return storeService.isSetup();
     }
 
     @Override
     public boolean isAnalyticsSetup() {
-        return analyticsManager.isSetup();
+        return analyticsService.isSetup();
     }
 
     @Override
@@ -273,12 +273,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public void halt() {
-        storeManager.setSetup(false);
+        storeService.setSetup(false);
     }
 
     @Override
     public PlaceholderManager getPlaceholderManager() {
-        return storeManager.getPlaceholderManager();
+        return storeService.getPlaceholderManager();
     }
 
     public MorePaperLib getPaperLib() {
@@ -342,12 +342,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public void setStoreInformation(ServerInformation info) {
-        storeManager.setStoreInformation(info);
+        storeService.setStoreInformation(info);
     }
 
     @Override
     public void setStoreCategories(List<Category> categories) {
-        storeManager.setStoreCategories(categories);
+        storeService.setStoreCategories(categories);
     }
 
     @Override
@@ -390,12 +390,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return getPlatformConfig().isPlayerExcluded(uniqueId);
     }
 
-    public StoreManager getStoreManager() {
-        return storeManager;
+    public StoreService getStoreManager() {
+        return storeService;
     }
 
-    public AnalyticsManager getAnalyticsManager() {
-        return analyticsManager;
+    public AnalyticsService getAnalyticsManager() {
+        return analyticsService;
     }
 
     public FloodgateHook getFloodgateHook() {

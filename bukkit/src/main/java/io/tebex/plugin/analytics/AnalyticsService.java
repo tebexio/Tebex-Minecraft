@@ -14,14 +14,14 @@ import io.tebex.sdk.exception.NotFoundException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
-public class AnalyticsManager implements ServiceManager {
+public class AnalyticsService implements ServiceManager {
     private final TebexPlugin platform;
     private final HeartbeatManager heartbeatManager;
     private final ConcurrentMap<UUID, AnalysePlayer> players;
     private AnalyticsSDK sdk;
     private boolean setup;
 
-    public AnalyticsManager(TebexPlugin platform) {
+    public AnalyticsService(TebexPlugin platform) {
         this.platform = platform;
         this.players = Maps.newConcurrentMap();
         this.heartbeatManager = new HeartbeatManager(platform);
