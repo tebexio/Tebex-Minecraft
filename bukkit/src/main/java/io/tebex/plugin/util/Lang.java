@@ -1,4 +1,4 @@
-package io.tebex.plugin;
+package io.tebex.plugin.util;
 
 public enum Lang {
     NOT_CONNECTED_TO_STORE("&cThis server is not connected to a webstore. Use &f/tebex secret <key> &cto set your store key."),

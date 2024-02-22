@@ -1,7 +1,7 @@
 package io.tebex.plugin.store.command;
 
 import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.Lang;
+import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.obj.SubCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

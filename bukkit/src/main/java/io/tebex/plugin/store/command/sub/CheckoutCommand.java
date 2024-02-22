@@ -1,6 +1,6 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.plugin.Lang;
+import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.store.obj.CheckoutUrl;

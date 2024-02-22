@@ -2,7 +2,7 @@ package io.tebex.plugin.store.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
-import io.tebex.plugin.Lang;
+import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.MaterialUtil;
 import io.tebex.sdk.store.obj.Category;
