@@ -1,10 +1,10 @@
 package io.tebex.plugin;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.event.JoinListener;
-import io.tebex.plugin.hook.FloodgateHook;
-import io.tebex.plugin.service.AnalyticsManager;
-import io.tebex.plugin.service.StoreManager;
+import io.tebex.plugin.analytics.AnalyticsManager;
+import io.tebex.plugin.analytics.hook.FloodgateHook;
+import io.tebex.plugin.store.StoreManager;
+import io.tebex.plugin.store.listener.JoinListener;
 import io.tebex.sdk.AnalyticsSDK;
 import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.Tebex;
@@ -27,7 +27,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import space.arim.morepaperlib.MorePaperLib;
 import space.arim.morepaperlib.scheduling.AsynchronousScheduler;
-import space.arim.morepaperlib.scheduling.GracefulScheduling;
 import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.io.File;
