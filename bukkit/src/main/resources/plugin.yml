@@ -2,6 +2,7 @@ name: Tebex
 version: '${version}'
 main: io.tebex.plugin.TebexPlugin
 api-version: 1.13
+folia-supported: true
 softdepend:
   - BuycraftX
   - floodgate

@@ -24,9 +24,7 @@ public class AnalyticsCommandManager {
         ImmutableList.of(
                 new SetupCommand(platform),
                 new TrackCommand(platform)
-        ).forEach(command -> {
-            commands.put(command.getName(), command);
-        });
+        ).forEach(command -> commands.put(command.getName(), command));
 
         AnalyticsCommand analyticsCommand = new AnalyticsCommand(this);
         PluginCommand pluginCommand = platform.getCommand("analytics");

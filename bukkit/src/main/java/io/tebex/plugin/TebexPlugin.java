@@ -43,7 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The Bukkit
+ * The Bukkit/Spigot plugin for Tebex.
  */
 public final class TebexPlugin extends JavaPlugin implements Platform {
     private ServerPlatformConfig config;
@@ -54,7 +54,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private MorePaperLib morePaperLib;
 
     /**
-     * Starts the Bukkit
+     * Starts the Bukkit plugin.
      */
     @Override
     public void onEnable() {

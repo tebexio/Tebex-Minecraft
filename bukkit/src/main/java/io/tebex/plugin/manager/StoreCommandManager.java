@@ -33,9 +33,7 @@ public class StoreCommandManager {
                 new ReportCommand(platform),
                 new SendLinkCommand(platform),
                 new GoalsCommand(platform)
-        ).forEach(command -> {
-            commands.put(command.getName(), command);
-        });
+        ).forEach(command -> commands.put(command.getName(), command));
 
         TebexCommand tebexCommand = new TebexCommand(this);
         PluginCommand pluginCommand = platform.getCommand("tebex");
