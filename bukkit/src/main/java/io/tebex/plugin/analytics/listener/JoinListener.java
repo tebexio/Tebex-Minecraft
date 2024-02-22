@@ -37,7 +37,7 @@ public class JoinListener implements Listener {
         joinMap.put(bukkitPlayer.getUniqueId(), event.getHostname());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
 

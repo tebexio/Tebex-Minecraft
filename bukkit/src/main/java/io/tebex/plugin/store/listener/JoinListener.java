@@ -6,6 +6,7 @@ import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.obj.ServerEventType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -18,7 +19,7 @@ public class JoinListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         Object playerId = plugin.getPlayerId(player.getName(), player.getUniqueId());

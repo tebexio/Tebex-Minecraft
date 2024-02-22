@@ -5,6 +5,7 @@ import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.exception.NotFoundException;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -17,7 +18,7 @@ public class QuitListener implements Listener {
         this.platform = platform;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player bukkitPlayer = event.getPlayer();
         AnalysePlayer player = platform.getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
