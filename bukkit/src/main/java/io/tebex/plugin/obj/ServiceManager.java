@@ -1,7 +1,7 @@
 package io.tebex.plugin.obj;
 
 public interface ServiceManager {
-    void load();
+    void init();
     void connect();
 
     boolean isSetup();

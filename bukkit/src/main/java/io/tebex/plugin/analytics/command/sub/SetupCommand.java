@@ -39,7 +39,7 @@ public class SetupCommand extends SubCommand {
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
                 getPlatform().sendMessage(sender, "Connected to &b" + serverInformation.getName() + "&7.");
-                platform.getAnalyticsManager().load();
+                platform.getAnalyticsManager().init();
                 platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {
                 getPlatform().sendMessage(sender, "&cFailed to setup the plugin. Check console for more information.");

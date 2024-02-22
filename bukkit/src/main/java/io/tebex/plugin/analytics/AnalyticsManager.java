@@ -25,12 +25,11 @@ public class AnalyticsManager implements ServiceManager {
         this.platform = platform;
         this.players = Maps.newConcurrentMap();
         this.heartbeatManager = new HeartbeatManager(platform);
+        sdk = new AnalyticsSDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
     }
 
     @Override
-    public void load() {
-        sdk = new AnalyticsSDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
-
+    public void init() {
         new CommandManager(platform).register();
 
         // Register events.

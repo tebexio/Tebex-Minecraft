@@ -25,47 +25,29 @@ import java.util.Map;
 
 public class StoreManager implements ServiceManager {
     private final TebexPlugin platform;
-    public BuyGUI buyGUI;
-    private StoreSDK sdk;
-    private boolean setup;
-    private PlaceholderManager placeholderManager;
-    private Map<Object, Integer> queuedPlayers;
+    private final PlaceholderManager placeholderManager;
+    private final Map<Object, Integer> queuedPlayers;
     private ServerInformation storeInformation;
     private List<Category> storeCategories;
-    private List<ServerEvent> serverEvents;
+    private final List<ServerEvent> serverEvents;
+    private boolean setup;
+    public BuyGUI buyGUI;
+    private StoreSDK sdk;
 
     public StoreManager(TebexPlugin platform) {
         this.platform = platform;
-    }
 
-    @Override
-    public void load() {
         sdk = new StoreSDK(platform, platform.getPlatformConfig().getStoreSecretKey());
-
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
         serverEvents = new ArrayList<>();
         buyGUI = new BuyGUI(platform);
+    }
 
+    @Override
+    public void init() {
         new CommandManager(platform).register();
-
-        platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, platform::refreshListings, 0, 20 * 60 * 5);
-        platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, () -> {
-            List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
-            if (runEvents.isEmpty()) return;
-            if (!setup) return;
-
-            sdk.sendEvents(runEvents)
-                    .thenAccept(aVoid -> {
-                        serverEvents.removeAll(runEvents);
-                        platform.debug("Successfully sent analytics.");
-                    })
-                    .exceptionally(throwable -> {
-                        platform.debug("Failed to send analytics: " + throwable.getMessage());
-                        return null;
-                    });
-        }, 0, 20 * 60);
 
         // Register the custom /buy command
         try {
@@ -91,20 +73,38 @@ public class StoreManager implements ServiceManager {
 
             platform.info(String.format("Connected to the %s - %s store.", server.getName(), store.getGameType()));
 
-            this.setup = true;
+            setSetup(true);
             platform.performCheck();
             sdk.sendTelemetry();
+
+            platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, platform::refreshListings, 0, 20 * 60 * 5);
+            platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, () -> {
+                List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
+                if (runEvents.isEmpty()) return;
+                if (!setup) return;
+
+                sdk.sendEvents(runEvents)
+                        .thenAccept(aVoid -> {
+                            serverEvents.removeAll(runEvents);
+                            platform.debug("Successfully sent analytics.");
+                        })
+                        .exceptionally(throwable -> {
+                            platform.debug("Failed to send analytics: " + throwable.getMessage());
+                            return null;
+                        });
+            }, 0, 20 * 60);
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
-            this.setup = false;
+            setSetup(false);
 
             if (cause instanceof NotFoundException) {
                 platform.warning("Failed to connect. Please double-check your server key or run the setup command again.");
                 platform.halt();
-            } else {
-                platform.warning("Failed to get server information: " + cause.getMessage());
-                cause.printStackTrace();
+                return null;
             }
+
+            platform.warning("Failed to get server information: " + cause.getMessage());
+            cause.printStackTrace();
 
             return null;
         });

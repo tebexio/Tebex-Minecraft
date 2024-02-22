@@ -107,14 +107,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
         // Initialise Managers.
         storeManager = new StoreManager(this);
-        storeManager.load();
+        storeManager.init();
 
         if(storeSetup) {
             storeManager.connect();
         }
 
         analyticsManager = new AnalyticsManager(this);
-        analyticsManager.load();
+        analyticsManager.init();
 
         if(analyticsSetup) {
             analyticsManager.connect();
@@ -170,7 +170,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                 config = loadServerPlatformConfig(configYaml);
 
                 storeManager = new StoreManager(this);
-                storeManager.load();
+                storeManager.init();
                 storeManager.connect();
 
                 info("Successfully migrated your config from BuycraftX.");
