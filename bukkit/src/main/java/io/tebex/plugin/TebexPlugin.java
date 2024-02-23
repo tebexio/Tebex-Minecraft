@@ -331,7 +331,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public Player getPlayer(Object player) {
         if(player == null) return null;
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return getServer().getPlayer((UUID) player);
         }
 

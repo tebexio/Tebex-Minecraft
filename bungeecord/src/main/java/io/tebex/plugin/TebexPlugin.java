@@ -247,7 +247,7 @@ public class TebexPlugin extends Plugin implements Platform {
     private ProxiedPlayer getPlayer(Object player) {
         if(player == null) return null;
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return getProxy().getPlayer((UUID) player);
         }
 

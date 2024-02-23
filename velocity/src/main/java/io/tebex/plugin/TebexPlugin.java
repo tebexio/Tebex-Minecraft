@@ -261,7 +261,7 @@ public class TebexPlugin implements Platform {
     private Optional<Player> getPlayer(Object player) {
         if(player == null) return Optional.empty();
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return proxy.getPlayer((UUID) player);
         }
 

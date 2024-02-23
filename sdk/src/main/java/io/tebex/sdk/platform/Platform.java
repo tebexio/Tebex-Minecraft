@@ -1,6 +1,5 @@
 package io.tebex.sdk.platform;
 
-import com.google.common.base.Strings;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
@@ -76,6 +75,21 @@ public interface Platform {
      * @return Whether the server is in online mode.
      */
     boolean isOnlineMode();
+
+    /**
+     * Checks if the configured store is Geyser/Offline
+     *
+     * @return Whether the store is a Offline/Geyser type webstore
+     */
+    default boolean isGeyser() {
+        if (!isSetup()) return false;
+
+        if (getStoreType() == null || getStoreType().isEmpty()) {
+            return false;
+        }
+
+        return getStoreType().contains("Offline/Geyser");
+    }
 
     /**
      * Configures the platform for use.
