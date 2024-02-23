@@ -1,9 +1,9 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.store;
 
 import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.SubCommand;
+import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;

@@ -67,3 +67,11 @@ tasks.remapJar {
     archiveClassifier.set(shadowJar.archiveClassifier)
     delete(shadowJar.archiveFile)
 }
+
+tasks.register("copyToServer", Copy::class.java) {
+    from(project.tasks.named("shadowJar").get().outputs)
+    into("${project.rootDir}/FabricMCServer/plugins")
+
+    // rely on the shadowJar task to build the jar
+    dependsOn("shadowJar")
+}

@@ -1,9 +1,9 @@
-package io.tebex.plugin.command;
+package io.tebex.plugin.store.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.gui.BuyGUI;
+import io.tebex.plugin.store.gui.BuyGUI;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;

@@ -2,7 +2,7 @@ package io.tebex.plugin;
 
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.event.JoinListener;
+import io.tebex.plugin.listener.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;

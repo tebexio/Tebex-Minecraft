@@ -11,7 +11,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.ProxyVersion;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.event.JoinListener;
+import io.tebex.plugin.listener.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;

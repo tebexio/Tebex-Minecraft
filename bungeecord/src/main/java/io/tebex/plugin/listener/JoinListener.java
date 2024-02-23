@@ -1,4 +1,4 @@
-package io.tebex.plugin.event;
+package io.tebex.plugin.listener;
 
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.sdk.store.obj.QueuedPlayer;

@@ -1,13 +1,12 @@
-package io.tebex.plugin.manager;
+package io.tebex.plugin.store.command;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.command.BuyCommand;
-import io.tebex.plugin.command.SubCommand;
-import io.tebex.plugin.command.sub.*;
+import io.tebex.plugin.obj.SubCommand;
+import io.tebex.plugin.store.command.store.*;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 

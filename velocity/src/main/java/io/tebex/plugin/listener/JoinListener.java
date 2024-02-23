@@ -1,4 +1,4 @@
-package io.tebex.plugin.event;
+package io.tebex.plugin.listener;
 
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;

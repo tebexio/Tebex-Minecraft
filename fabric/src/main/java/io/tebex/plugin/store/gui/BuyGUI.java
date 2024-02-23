@@ -1,4 +1,4 @@
-package io.tebex.plugin.gui;
+package io.tebex.plugin.store.gui;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
