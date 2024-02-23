@@ -28,9 +28,7 @@ public class CommandManager {
                 new HelpCommand(platform, this),
                 new BanCommand(platform),
                 new DebugCommand(platform)
-        ).forEach(command -> {
-            commands.put(command.getName(), command);
-        });
+        ).forEach(command -> commands.put(command.getName(), command));
 
         SimpleCommand tebexCommand = new TebexCommand(this);
 
