@@ -21,13 +21,13 @@ public class QueuedCommand {
         this.online = true;
     }
 
-    public QueuedCommand(int id, String command, int payment, int packageId, int delay, QueuedPlayer player) {
+    public QueuedCommand(int id, String command, int payment, int packageId, int delay, int requiredSlots, QueuedPlayer player) {
         this.id = id;
         this.command = command;
         this.payment = payment;
         this.packageId = packageId;
         this.delay = delay;
-        this.requiredSlots = 0;
+        this.requiredSlots = requiredSlots;
         this.player = player;
         this.online = false;
     }
@@ -42,14 +42,19 @@ public class QueuedCommand {
 
     public String getParsedCommand() {
         String parsedCommand = command;
+
         if (player != null) {
             parsedCommand = parsedCommand.replace("{username}", player.getName());
             parsedCommand = parsedCommand.replace("{name}", player.getName());
-            if (player.getUuid() != null) { // offline servers will return null uuid here
+
+            if (player.getUuid() != null) { // offline servers will return null uuid here as these uuids are not verified
                 parsedCommand = parsedCommand.replace("{id}", player.getUuid());
                 parsedCommand = parsedCommand.replace("{uuid}", player.getUuid());
+            } else { // {id} must still be replaced with username if uuid is not present
+                parsedCommand = parsedCommand.replace("{id}", player.getName());
             }
         }
+
         return parsedCommand;
     }
 

@@ -369,6 +369,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
+    }
+
+    @Override
     public PlatformTelemetry getTelemetry() {
         String serverVersion = getServer().getVersion();
 

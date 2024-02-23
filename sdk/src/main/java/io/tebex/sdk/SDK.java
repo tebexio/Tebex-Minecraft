@@ -172,7 +172,8 @@ public class SDK {
                             platform.getPlaceholderManager().handlePlaceholders(queuedPlayer, commandJson.get("command").getAsString()),
                             paymentId,
                             packageId,
-                            conditions.get("delay").getAsInt(),
+                            conditions.has("delay") ? conditions.get("delay").getAsInt() : 0,
+                            conditions.has("slots") ? conditions.get("slots").getAsInt() : 0,
                             queuedPlayer
                     ));
                 }
@@ -216,14 +217,15 @@ public class SDK {
 
                     int packageId = commandJson.get("package").isJsonNull() ? 0 : commandJson.get("package").getAsInt();
                     int paymentId = commandJson.get("payment").isJsonNull() ? 0 : commandJson.get("payment").getAsInt();
+
                     queuedCommands.add(new QueuedCommand(
                             commandJson.get("id").getAsInt(),
                             platform.getPlaceholderManager().handlePlaceholders(player, commandJson.get("command").getAsString()),
                             paymentId,
                             packageId,
-                            conditions.get("delay").getAsInt(),
-                            conditions.get("slots").getAsInt()
-
+                            conditions.has("delay") ? conditions.get("delay").getAsInt() : 0,
+                            conditions.has("slots") ? conditions.get("slots").getAsInt() : 0,
+                            player
                     ));
                 }
 

@@ -44,6 +44,13 @@ public interface Platform {
     PlatformType getType();
 
     /**
+     * Gets the store's type from store info. This info should be cached and not fetched on each request
+     *
+     * @return Store info string ex. "Minecraft (Offline/Geyser)"
+     */
+    String getStoreType();
+
+    /**
      * Gets the SDK instance associated with this platform.
      *
      * @return The SDK instance.

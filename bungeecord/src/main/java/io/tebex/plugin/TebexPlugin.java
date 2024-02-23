@@ -271,6 +271,11 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
+    }
+
+    @Override
     public void log(Level level, String message) {
         getLogger().log(level, message);
     }
