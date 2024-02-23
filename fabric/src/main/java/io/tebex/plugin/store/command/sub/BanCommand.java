@@ -1,4 +1,4 @@
-package io.tebex.plugin.store.command.store;
+package io.tebex.plugin.store.command.sub;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;

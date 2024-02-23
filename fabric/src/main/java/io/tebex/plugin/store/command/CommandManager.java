@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.plugin.store.command.store.*;
+import io.tebex.plugin.store.command.sub.*;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
@@ -19,7 +19,7 @@ public class CommandManager {
     private final TebexPlugin platform;
     private final List<SubCommand> commands;
 
-    public CommandManager(TebexPlugin  platform) {
+    public CommandManager(TebexPlugin platform) {
         this.platform = platform;
         this.commands = ImmutableList.of(
                 new SecretCommand(platform),
