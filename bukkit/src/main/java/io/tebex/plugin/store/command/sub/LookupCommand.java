@@ -19,7 +19,7 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 

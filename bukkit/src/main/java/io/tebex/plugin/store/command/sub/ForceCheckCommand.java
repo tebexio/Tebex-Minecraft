@@ -16,7 +16,7 @@ public class ForceCheckCommand extends SubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if(! platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 

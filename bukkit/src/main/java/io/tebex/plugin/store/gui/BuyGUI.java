@@ -98,9 +98,9 @@ public class BuyGUI {
 
             // Create Checkout Url
             platform.getStoreSDK().createCheckoutUrl(categoryPackage.getId(), player.getName()).thenAccept(checkout -> {
-                platform.sendMessage(player, Lang.CHECKOUT_URL.getMessage(checkout.getUrl()));
+                platform.sendMessage(player, Lang.CHECKOUT_URL.get(checkout.getUrl()));
             }).exceptionally(ex -> {
-                platform.sendMessage(player, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());
+                platform.sendMessage(player, Lang.FAILED_TO_CREATE_CHECKOUT_URL.get());
                 ex.printStackTrace();
                 platform.sendTriageEvent(ex);
                 return null;

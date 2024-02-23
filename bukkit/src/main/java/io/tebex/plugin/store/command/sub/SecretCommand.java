@@ -36,7 +36,7 @@ public class SecretCommand extends SubCommand {
             try {
                 configFile.save();
             } catch (IOException e) {
-                platform.sendMessage(sender, Lang.COMMAND_ERROR.getMessage(e.getLocalizedMessage()));
+                platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
             }
 
             platform.loadServerPlatformConfig(configFile);
@@ -45,18 +45,18 @@ public class SecretCommand extends SubCommand {
             platform.getStoreManager().setSetup(true);
             platform.refreshListings();
 
-            platform.sendMessage(sender, "Connected to &b" + serverInformation.getServer().getName() + "&7.");
+            platform.sendMessage(sender, Lang.CONNECT_SUCCESSFUL.get(serverInformation.getServer().getName()));
         })
         .exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                platform.sendMessage(sender, "&cServer not found. Please check your secret key.");
+                platform.sendMessage(sender, Lang.INVALID_SECRET_KEY.get());
                 platform.halt();
                 return null;
             }
 
-            platform.sendMessage(sender, Lang.COMMAND_ERROR.getMessage(cause.getLocalizedMessage()));
+            platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
             return null;
         });
     }

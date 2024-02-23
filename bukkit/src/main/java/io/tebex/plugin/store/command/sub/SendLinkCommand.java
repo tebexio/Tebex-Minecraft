@@ -35,7 +35,7 @@ public class SendLinkCommand extends SubCommand {
         platform.getStoreSDK()
                 .createCheckoutUrl(packageId, username)
                 .thenAccept(checkoutUrl -> {
-                    platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));
+                    platform.sendMessage(sender, Lang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
                 })
                 .exceptionally(ex -> {
                     Throwable cause = ex.getCause();
@@ -45,7 +45,7 @@ public class SendLinkCommand extends SubCommand {
                         return null;
                     }
 
-                    platform.sendMessage(sender, Lang.COMMAND_ERROR.getMessage(cause.getLocalizedMessage()));
+                    platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
                     return null;
                 });
     }

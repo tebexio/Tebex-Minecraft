@@ -26,9 +26,9 @@ public class ReloadCommand extends SubCommand {
             platform.getStoreManager().setBuyGui(new BuyGUI(platform));
             platform.refreshListings();
 
-            platform.sendMessage(sender, Lang.RELOAD_SUCCESS.getMessage());
+            platform.sendMessage(sender, Lang.RELOAD_SUCCESS.get());
         } catch (IOException e) {
-            platform.sendMessage(sender, Lang.RELOAD_FAILURE.getMessage());
+            platform.sendMessage(sender, Lang.RELOAD_FAILURE.get());
             throw new RuntimeException(e);
         }
     }

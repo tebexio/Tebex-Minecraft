@@ -1,8 +1,8 @@
 package io.tebex.plugin.analytics.command;
 
 import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.plugin.util.Lang;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -26,25 +26,25 @@ public class BaseCommand implements TabExecutor {
             commandManager.getPlatform().sendMessage(sender, "This server is running version &fv" + commandManager.getPlatform().getDescription().getVersion() + "&7.");
             return true;
         } else if(args.length == 0) {
-            commandManager.getPlatform().sendMessage(sender, "&cYou do not have access to that command.");
+            commandManager.getPlatform().sendMessage(sender, Lang.NO_PERMISSION.get());
             return true;
         }
 
         Map<String, SubCommand> commands = commandManager.getCommands();
         if(! commands.containsKey(args[0].toLowerCase())) {
-            commandManager.getPlatform().sendMessage(sender, "&cUnknown command.");
+            commandManager.getPlatform().sendMessage(sender, Lang.UNKNOWN_COMMAND.get());
             return true;
         }
 
         final SubCommand subCommand = commands.get(args[0].toLowerCase());
         if (! sender.hasPermission(subCommand.getPermission())) {
-            commandManager.getPlatform().sendMessage(sender, "&cYou do not have access to that command.");
+            commandManager.getPlatform().sendMessage(sender, Lang.NO_PERMISSION.get());
             return true;
         }
 
         String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
         if(commandArgs.length < subCommand.getMinArgs()) {
-            commandManager.getPlatform().sendMessage(sender, Lang.INVALID_USAGE.getMessage("analytics", subCommand.getName() + " " + subCommand.getUsage()));
+            commandManager.getPlatform().sendMessage(sender, Lang.INVALID_USAGE.get("analytics", subCommand.getName() + " " + subCommand.getUsage()));
             return true;
         }
 

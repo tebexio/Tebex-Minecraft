@@ -34,15 +34,15 @@ public class CommandManager {
                 new GoalsCommand(platform)
         ).forEach(command -> commands.put(command.getName(), command));
 
-        TebexCommand tebexCommand = new TebexCommand(this);
+        BaseCommand baseCommand = new BaseCommand(this);
         PluginCommand pluginCommand = platform.getCommand("tebex");
 
         if(pluginCommand == null) {
             throw new RuntimeException("Tebex command not found.");
         }
 
-        pluginCommand.setExecutor(tebexCommand);
-        pluginCommand.setTabCompleter(tebexCommand);
+        pluginCommand.setExecutor(baseCommand);
+        pluginCommand.setTabCompleter(baseCommand);
     }
 
     public Map<String, SubCommand> getCommands() {

@@ -18,16 +18,16 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.getMessage());
+            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 
         try {
             int packageId = Integer.parseInt(args[0]);
             CheckoutUrl checkoutUrl = platform.getStoreSDK().createCheckoutUrl(packageId, sender.getName()).get();
-            platform.sendMessage(sender, Lang.CHECKOUT_URL.getMessage(checkoutUrl.getUrl()));
+            platform.sendMessage(sender, Lang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
         } catch (InterruptedException|ExecutionException e) {
-            platform.sendMessage(sender, Lang.FAILED_TO_CREATE_CHECKOUT_URL.getMessage());
+            platform.sendMessage(sender, Lang.FAILED_TO_CREATE_CHECKOUT_URL.get());
         }
     }
 
