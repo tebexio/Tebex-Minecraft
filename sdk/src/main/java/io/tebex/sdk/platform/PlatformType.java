@@ -1,7 +1,7 @@
 package io.tebex.sdk.platform;
 
 /**
- * The PlatformType enum represents the different server platforms supported by the Analyse StoreSDK.
+ * The PlatformType enum represents the different server platforms supported by the Analyse SDK.
  * The current supported platforms include Bukkit, BungeeCord, and Velocity.
  */
 public enum PlatformType {

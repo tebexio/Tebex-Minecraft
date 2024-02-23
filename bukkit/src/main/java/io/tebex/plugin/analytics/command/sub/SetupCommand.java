@@ -3,7 +3,7 @@ package io.tebex.plugin.analytics.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.AnalyticsSDK;
+import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
@@ -20,7 +20,7 @@ public class SetupCommand extends SubCommand {
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        AnalyticsSDK analyse = platform.getAnalyticsSDK();
+        SDK analyse = platform.getAnalyticsSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 

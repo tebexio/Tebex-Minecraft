@@ -7,7 +7,7 @@ import io.tebex.plugin.analytics.listener.QuitListener;
 import io.tebex.plugin.analytics.command.CommandManager;
 import io.tebex.plugin.analytics.manager.HeartbeatManager;
 import io.tebex.plugin.obj.ServiceManager;
-import io.tebex.sdk.AnalyticsSDK;
+import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.exception.NotFoundException;
 
@@ -18,14 +18,14 @@ public class AnalyticsService implements ServiceManager {
     private final TebexPlugin platform;
     private final HeartbeatManager heartbeatManager;
     private final ConcurrentMap<UUID, AnalysePlayer> players;
-    private AnalyticsSDK sdk;
+    private SDK sdk;
     private boolean setup;
 
     public AnalyticsService(TebexPlugin platform) {
         this.platform = platform;
         this.players = Maps.newConcurrentMap();
         this.heartbeatManager = new HeartbeatManager(platform);
-        sdk = new AnalyticsSDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
+        sdk = new SDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
     }
 
     @Override
@@ -40,7 +40,7 @@ public class AnalyticsService implements ServiceManager {
     @Override
     public void connect() {
         sdk.getServerInformation().thenAccept(serverInformation -> {
-            platform.info(String.format("Connected to the %s analytics.", serverInformation.getName()));
+            platform.info(String.format("Connected to %s on Tebex Analytics.", serverInformation.getName()));
             this.setup = true;
             this.heartbeatManager.start();
         }).exceptionally(ex -> {
@@ -60,7 +60,7 @@ public class AnalyticsService implements ServiceManager {
         });
     }
 
-    public AnalyticsSDK getSdk() {
+    public SDK getSdk() {
         return sdk;
     }
 

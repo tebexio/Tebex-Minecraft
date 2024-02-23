@@ -5,8 +5,7 @@ import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.analytics.hook.FloodgateHook;
 import io.tebex.plugin.store.StoreService;
 import io.tebex.plugin.store.listener.JoinListener;
-import io.tebex.sdk.AnalyticsSDK;
-import io.tebex.sdk.StoreSDK;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
@@ -78,7 +77,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             floodgateHook = new FloodgateHook();
         }
 
-        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null || ! getPlatformConfig().getStoreSecretKey().isEmpty();
+        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && ! getPlatformConfig().getStoreSecretKey().isEmpty();
         boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && ! getPlatformConfig().getAnalyticsSecretKey().isEmpty();
 
         String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
@@ -242,12 +241,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public StoreSDK getStoreSDK() {
+    public SDK getStoreSDK() {
         return storeService.getSdk();
     }
 
     @Override
-    public AnalyticsSDK getAnalyticsSDK() {
+    public io.tebex.sdk.analytics.SDK getAnalyticsSDK() {
         return analyticsService.getSdk();
     }
 

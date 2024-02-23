@@ -1,11 +1,11 @@
-package io.tebex.sdk;
+package io.tebex.sdk.util;
 
 import com.google.gson.*;
 import com.intellectualsites.http.EntityMapper;
 import com.intellectualsites.http.HttpClient;
 import com.intellectualsites.http.external.GsonMapper;
 
-public class HttpSdkBuilder {
+public class HttpClientBuilder {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")
@@ -14,9 +14,9 @@ public class HttpSdkBuilder {
 
     private final String apiUrl;
     private final EntityMapper entityMapper;
-    private String userAgent = "Tebex-StoreSDK";
+    private String userAgent = "Tebex-SDK";
 
-    public HttpSdkBuilder(String baseUrl) {
+    public HttpClientBuilder(String baseUrl) {
         this.apiUrl = baseUrl;
         this.entityMapper = EntityMapper.newInstance()
                 .registerSerializer(JsonObject.class, GsonMapper.serializer(JsonObject.class, GSON))

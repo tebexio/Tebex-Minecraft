@@ -1,9 +1,7 @@
 package io.tebex.sdk.platform;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.sdk.AnalyticsSDK;
-import io.tebex.sdk.StoreSDK;
-import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.QueuedCommand;
 import io.tebex.sdk.store.obj.QueuedPlayer;
@@ -48,15 +46,15 @@ public interface Platform {
     /**
      * Gets the Store SDK instance associated with this platform.
      *
-     * @return The StoreSDK instance.
+     * @return The SDK instance.
      */
-    StoreSDK getStoreSDK();
+    SDK getStoreSDK();
     /**
      * Gets the Analytics SDK instance associated with this platform.
      *
-     * @return The StoreSDK instance.
+     * @return The SDK instance.
      */
-    default AnalyticsSDK getAnalyticsSDK() {
+    default io.tebex.sdk.analytics.SDK getAnalyticsSDK() {
         throw new UnsupportedOperationException("getAnalyticsSDK is not implemented");
     }
 

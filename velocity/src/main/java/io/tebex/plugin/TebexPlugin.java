@@ -13,7 +13,7 @@ import com.velocitypowered.api.util.ProxyVersion;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
-import io.tebex.sdk.StoreSDK;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
         authors = {"Tebex"}
 )
 public class TebexPlugin implements Platform {
-    private StoreSDK storeSdk;
+    private SDK sdk;
     private ProxyPlatformConfig config;
     private boolean setup;
     private PlaceholderManager placeholderManager;
@@ -71,7 +71,7 @@ public class TebexPlugin implements Platform {
 
     @Subscribe
     public void onEnable(ProxyInitializeEvent event) {
-        // Bind StoreSDK.
+        // Bind SDK.
         Tebex.init(this);
 
         try {
@@ -87,8 +87,8 @@ public class TebexPlugin implements Platform {
         // Initialise Managers.
         new CommandManager(this).register();
 
-        // Initialise StoreSDK.
-        storeSdk = new StoreSDK(this, config.getStoreSecretKey());
+        // Initialise SDK.
+        sdk = new SDK(this, config.getStoreSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -149,7 +149,7 @@ public class TebexPlugin implements Platform {
 
                 config = loadProxyPlatformConfig(configYaml);
 
-                storeSdk = new StoreSDK(this, config.getStoreSecretKey());
+                sdk = new SDK(this, config.getStoreSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -173,8 +173,8 @@ public class TebexPlugin implements Platform {
     }
 
     @Override
-    public StoreSDK getStoreSDK() {
-        return storeSdk;
+    public SDK getStoreSDK() {
+        return sdk;
     }
 
     @Override
@@ -195,7 +195,7 @@ public class TebexPlugin implements Platform {
     public void configure() {
         setup = true;
         performCheck();
-        storeSdk.sendTelemetry();
+        sdk.sendTelemetry();
     }
 
     @Override

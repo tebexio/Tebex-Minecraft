@@ -1,4 +1,4 @@
-package io.tebex.sdk;
+package io.tebex.sdk.store;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -16,6 +16,7 @@ import io.tebex.sdk.store.response.DuePlayersResponse;
 import io.tebex.sdk.store.response.OfflineCommandsResponse;
 import io.tebex.sdk.store.response.PaginatedResponse;
 import io.tebex.sdk.store.response.ServerInformation;
+import io.tebex.sdk.util.HttpClientBuilder;
 import io.tebex.sdk.util.Pagination;
 
 import java.io.IOException;
@@ -25,12 +26,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
-import static io.tebex.sdk.HttpSdkBuilder.GSON;
+import static io.tebex.sdk.util.HttpClientBuilder.GSON;
 
 /**
- * The main StoreSDK class for interacting with the Tebex API.
+ * The main SDK class for interacting with the Tebex API.
  */
-public class StoreSDK {
+public class SDK {
     private final HttpClient HTTP_CLIENT;
     private final HttpClient LEGACY_HTTP_CLIENT;
     private final String SECRET_KEY_HEADER = "X-Tebex-Secret";
@@ -39,20 +40,20 @@ public class StoreSDK {
     private String secretKey;
 
     /**
-     * Constructs a new StoreSDK instance with the specified platform and secret key.
+     * Constructs a new SDK instance with the specified platform and secret key.
      *
-     * @param platform  The platform on which the StoreSDK is running.
+     * @param platform  The platform on which the SDK is running.
      * @param secretKey The secret key for authentication.
      */
-    public StoreSDK(Platform platform, String secretKey) {
+    public SDK(Platform platform, String secretKey) {
         this.platform = platform;
         this.secretKey = secretKey;
 
-        HttpSdkBuilder httpSdkBuilder = new HttpSdkBuilder("https://plugin.tebex.io");
-        httpSdkBuilder.getEntityMapper().registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, GSON));
+        HttpClientBuilder httpClientBuilder = new HttpClientBuilder("https://plugin.tebex.io");
+        httpClientBuilder.getEntityMapper().registerDeserializer(CheckoutUrl.class, GsonMapper.deserializer(CheckoutUrl.class, GSON));
 
-        this.HTTP_CLIENT = httpSdkBuilder.build();
-        this.LEGACY_HTTP_CLIENT = new HttpSdkBuilder("https://plugin.buycraft.net").build();
+        this.HTTP_CLIENT = httpClientBuilder.build();
+        this.LEGACY_HTTP_CLIENT = new HttpClientBuilder("https://plugin.buycraft.net").build();
     }
 
     private void handleResponseErrors(HttpResponse response) {
@@ -750,7 +751,7 @@ public class StoreSDK {
     }
 
     /**
-     * Get the secret key associated with this StoreSDK instance.
+     * Get the secret key associated with this SDK instance.
      *
      * @return The secret key as a String
      */
@@ -759,7 +760,7 @@ public class StoreSDK {
     }
 
     /**
-     * Set the secret key for this StoreSDK instance.
+     * Set the secret key for this SDK instance.
      *
      * @param secretKey The secret key as a String
      */

@@ -1,4 +1,4 @@
-package io.tebex.sdk;
+package io.tebex.sdk.analytics;
 
 import com.google.gson.JsonObject;
 import com.intellectualsites.http.HttpClient;
@@ -6,26 +6,24 @@ import com.intellectualsites.http.HttpResponse;
 import io.tebex.sdk.analytics.exception.ServerNotFoundException;
 import io.tebex.sdk.analytics.exception.ServerNotSetupException;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
-import io.tebex.sdk.analytics.response.AnalyseLeaderboard;
-import io.tebex.sdk.analytics.response.PlayerProfile;
 import io.tebex.sdk.analytics.response.PluginInformation;
 import io.tebex.sdk.analytics.response.ServerInformation;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.exception.RateLimitException;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformType;
-import io.tebex.sdk.util.StringUtil;
+import io.tebex.sdk.util.HttpClientBuilder;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import static io.tebex.sdk.HttpSdkBuilder.GSON;
+import static io.tebex.sdk.util.HttpClientBuilder.GSON;
 
 /**
- * The main AnalyticsSDK class for interacting with the Analytics API.
+ * The main SDK class for interacting with the Analytics API.
  */
-public class AnalyticsSDK {
+public class SDK {
     private final HttpClient HTTP_CLIENT;
 
     private final int API_VERSION = 1;
@@ -35,17 +33,17 @@ public class AnalyticsSDK {
     private String serverToken;
 
     /**
-     * Constructs a new AnalyticsSDK instance with the specified platform and server token.
+     * Constructs a new SDK instance with the specified platform and server token.
      *
-     * @param platform    The platform on which the AnalyticsSDK is running.
+     * @param platform    The platform on which the SDK is running.
      * @param serverToken The server token for authentication.
      */
-    public AnalyticsSDK(Platform platform, String serverToken) {
+    public SDK(Platform platform, String serverToken) {
         this.platform = platform;
         this.serverToken = serverToken;
 
-        HttpSdkBuilder httpSdkBuilder = new HttpSdkBuilder(String.format("https://analytics.tebex.io/api/v%d", API_VERSION));
-        this.HTTP_CLIENT = httpSdkBuilder.build();
+        HttpClientBuilder httpClientBuilder = new HttpClientBuilder(String.format("https://analytics.tebex.io/api/v%d", API_VERSION));
+        this.HTTP_CLIENT = httpClientBuilder.build();
     }
 
     private void handleRequestErrors(HttpResponse req) {
@@ -68,7 +66,7 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/plugin")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
+                    .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -105,7 +103,7 @@ public class AnalyticsSDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server")
                     .withHeader(SECRET_KEY_HEADER, serverToken)
-                    .withHeader("User-Agent", "Tebex-AnalyticsSDK")
+                    .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -307,7 +305,7 @@ public class AnalyticsSDK {
     }
 
     /**
-     * Get the server token associated with this AnalyticsSDK instance.
+     * Get the server token associated with this SDK instance.
      *
      * @return The server token as a String
      */
@@ -316,7 +314,7 @@ public class AnalyticsSDK {
     }
 
     /**
-     * Set the server token for this AnalyticsSDK instance.
+     * Set the server token for this SDK instance.
      *
      * @param serverToken The server token as a String
      */

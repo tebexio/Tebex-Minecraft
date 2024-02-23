@@ -3,13 +3,13 @@ package io.tebex.plugin.store;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.obj.ServiceManager;
 import io.tebex.plugin.store.command.BuyCommand;
 import io.tebex.plugin.store.command.CommandManager;
 import io.tebex.plugin.store.gui.BuyGUI;
 import io.tebex.plugin.store.placeholder.BukkitNamePlaceholder;
-import io.tebex.plugin.obj.ServiceManager;
-import io.tebex.sdk.StoreSDK;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -17,6 +17,7 @@ import io.tebex.sdk.store.placeholder.defaults.UuidPlaceholder;
 import io.tebex.sdk.store.response.ServerInformation;
 import org.bukkit.command.CommandMap;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +30,13 @@ public class StoreService implements ServiceManager {
     private List<Category> storeCategories;
     private final List<ServerEvent> serverEvents;
     public BuyGUI buyGUI;
-    private StoreSDK sdk;
+    private SDK sdk;
     private boolean setup;
 
     public StoreService(TebexPlugin platform) {
         this.platform = platform;
 
-        sdk = new StoreSDK(platform, platform.getPlatformConfig().getStoreSecretKey());
+        sdk = new SDK(platform, platform.getPlatformConfig().getStoreSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -62,14 +63,14 @@ public class StoreService implements ServiceManager {
             ServerInformation.Server server = serverInformation.getServer();
             ServerInformation.Store store = serverInformation.getStore();
 
-            platform.info(String.format("Connected to the %s - %s store.", server.getName(), store.getGameType()));
+            platform.info(String.format("Connected to %s - %s on Tebex Creator Panel.", server.getName(), store.getGameType()));
 
             setSetup(true);
             platform.performCheck();
             sdk.sendTelemetry();
 
-            platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, platform::refreshListings, 0, 20 * 60 * 5);
-            platform.getServer().getScheduler().runTaskTimerAsynchronously(platform, () -> {
+            platform.getAsyncScheduler().runAtFixedRate(platform::refreshListings, Duration.ZERO, Duration.ofHours(5));
+            platform.getAsyncScheduler().runAtFixedRate(() -> {
                 List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
                 if (runEvents.isEmpty()) return;
                 if (!setup) return;
@@ -83,7 +84,7 @@ public class StoreService implements ServiceManager {
                             platform.debug("Failed to send analytics: " + throwable.getMessage());
                             return null;
                         });
-            }, 0, 20 * 60);
+            }, Duration.ZERO, Duration.ofMinutes(1));
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
             setSetup(false);
@@ -101,7 +102,7 @@ public class StoreService implements ServiceManager {
         });
     }
 
-    public StoreSDK getSdk() {
+    public SDK getSdk() {
         return sdk;
     }
 

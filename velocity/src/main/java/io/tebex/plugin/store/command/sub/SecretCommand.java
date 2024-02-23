@@ -4,7 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.StoreSDK;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import net.kyori.adventure.text.Component;
@@ -26,7 +26,7 @@ public class SecretCommand extends SubCommand {
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        StoreSDK analyse = platform.getStoreSDK();
+        SDK analyse = platform.getStoreSDK();
         ProxyPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 

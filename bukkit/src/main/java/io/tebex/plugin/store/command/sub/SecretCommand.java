@@ -5,7 +5,7 @@ import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.store.gui.BuyGUI;
-import io.tebex.sdk.StoreSDK;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
@@ -23,7 +23,7 @@ public class SecretCommand extends SubCommand {
 
         String serverToken = args[0];
 
-        StoreSDK analyse = platform.getStoreSDK();
+        SDK analyse = platform.getStoreSDK();
         ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
@@ -42,6 +42,7 @@ public class SecretCommand extends SubCommand {
             platform.loadServerPlatformConfig(configFile);
             platform.reloadConfig();
             platform.getStoreManager().setBuyGui(new BuyGUI(platform));
+            platform.getStoreManager().setSetup(true);
             platform.refreshListings();
 
             platform.sendMessage(sender, "Connected to &b" + serverInformation.getServer().getName() + "&7.");
