@@ -15,6 +15,7 @@ commands:
       - tebexanalytics
   tebex:
     description: The main command
+    permission: tebex.admin
     aliases:
       - buycraft
 permissions:

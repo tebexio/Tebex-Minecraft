@@ -21,9 +21,12 @@ public class TebexCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(args.length == 0) {
+        if(args.length == 0 && sender.hasPermission("analytics.admin")) {
             commandManager.getPlatform().sendMessage(sender, "Welcome to Tebex!");
             commandManager.getPlatform().sendMessage(sender, "This server is running version &fv" + commandManager.getPlatform().getDescription().getVersion() + "&7.");
+            return true;
+        } else if(args.length == 0) {
+            commandManager.getPlatform().sendMessage(sender, "&cYou do not have access to that command.");
             return true;
         }
 

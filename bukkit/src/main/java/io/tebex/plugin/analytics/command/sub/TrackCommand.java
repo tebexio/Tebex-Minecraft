@@ -21,11 +21,6 @@ public class TrackCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            getPlatform().sendMessage(sender, "Usage: /analytics track <player> <event> <metadata>");
-            return;
-        }
-
         Player bukkitPlayer = Bukkit.getServer().getPlayer(args[0]);
         if (bukkitPlayer == null) {
             getPlatform().sendMessage(sender, "&cPlayer not found.");
@@ -58,7 +53,17 @@ public class TrackCommand extends SubCommand {
     }
 
     @Override
+    public String getUsage() {
+        return "<player> <event> <metadata>";
+    }
+
+    @Override
     public String getDescription() {
-        return null;
+        return "Track an event for a player.";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 3;
     }
 }

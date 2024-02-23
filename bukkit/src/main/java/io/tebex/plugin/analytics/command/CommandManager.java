@@ -3,6 +3,7 @@ package io.tebex.plugin.analytics.command;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.analytics.command.sub.HelpCommand;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.analytics.command.sub.SetupCommand;
 import io.tebex.plugin.analytics.command.sub.TrackCommand;
@@ -22,7 +23,8 @@ public class CommandManager {
     public void register() {
         ImmutableList.of(
                 new SetupCommand(platform),
-                new TrackCommand(platform)
+                new TrackCommand(platform),
+                new HelpCommand(platform, this)
         ).forEach(command -> commands.put(command.getName(), command));
 
         BaseCommand baseCommand = new BaseCommand(this);
