@@ -1,4 +1,5 @@
 ![Logo](https://www.tebex.io/assets/img/logos/tebex.svg#gh-light-mode-only)
+
 ![Static Badge](https://img.shields.io/badge/spigot-1.8--1.20-brightgreen)
 ![Static Badge](https://img.shields.io/badge/fabric-1.16.5+-brightgreen)
 ![Static Badge](https://img.shields.io/badge/bungeecord-1.18+-brightgreen)
