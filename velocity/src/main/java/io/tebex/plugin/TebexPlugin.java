@@ -5,12 +5,10 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
@@ -24,12 +22,9 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
-import io.tebex.sdk.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -42,7 +37,7 @@ import java.util.regex.Pattern;
 @Plugin(
         id = "tebex",
         name = "Tebex",
-        version = "@VERSION@",
+        version = Constants.VERSION,
         description = "The Velocity plugin for Tebex.",
         url = "https://tebex.io",
         authors = {"Tebex"}
@@ -126,18 +121,18 @@ public class TebexPlugin implements Platform {
     }
 
     public void migrateConfig() {
-        File oldPluginDir = new File("plugins/BuycraftX");
-        if (!oldPluginDir.exists()) return;
+        final Path oldPluginDir = Path.of("plugins", "BuycraftX");
+        if (Files.notExists(oldPluginDir)) return;
 
-        File oldConfigFile = new File(oldPluginDir, "config.properties");
-        if(!oldConfigFile.exists()) return;
+        final Path oldConfigFile = oldPluginDir.resolve("config.properties");
+        if (Files.notExists(oldConfigFile)) return;
 
         info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
 
         try {
             // Load old properties
             Properties properties = new Properties();
-            properties.load(Files.newInputStream(oldConfigFile.toPath()));
+            properties.load(Files.newInputStream(oldConfigFile));
 
             String secretKey = properties.getProperty("server-key", null);
             secretKey = !Objects.equals(secretKey, "INVALID") ? secretKey : null;
@@ -162,8 +157,8 @@ public class TebexPlugin implements Platform {
             // If BuycraftX is installed, delete it.
             boolean legacyPluginEnabled = getProxy().getPluginManager().getPlugin("BuycraftX").isPresent();
 
-            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(legacyPluginEnabled || !deletedLegacyPluginDir) {
+            final boolean deletedLegacyPluginDir = Files.deleteIfExists(oldPluginDir);
+            if (legacyPluginEnabled || !deletedLegacyPluginDir) {
                 warning("Please manually delete the BuycraftX files in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
