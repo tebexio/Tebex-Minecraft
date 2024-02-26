@@ -3,9 +3,10 @@ package io.tebex.plugin.command.sub;
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import net.kyori.adventure.text.Component;
 
 import java.util.concurrent.ExecutionException;
+
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
 public class BanCommand extends SubCommand {
     public BanCommand(TebexPlugin platform) {
@@ -17,7 +18,7 @@ public class BanCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (args.length < 1) { // require username at minimum
-            sender.sendMessage(Component.text("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
             return;
         }
 
@@ -32,20 +33,20 @@ public class BanCommand extends SubCommand {
             ip = args[2];
         }
 
-        if (!platform.isStoreSetup()) {
-            sender.sendMessage(Component.text("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
+        if (!platform.isSetup()) {
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
         try {
-            boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
+            boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
             if (success) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Player banned successfully."));
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Player banned successfully."));
             } else {
-                sender.sendMessage(Component.text("§b[Tebex] §7Failed to ban player."));
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Failed to ban player."));
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.sendMessage(Component.text("§b[Tebex] §7Error while banning player: " + e.getMessage()));
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Error while banning player: " + e.getMessage()));
         }
     }
 

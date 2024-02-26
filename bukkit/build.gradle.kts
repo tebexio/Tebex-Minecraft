@@ -18,6 +18,10 @@ dependencies {
 tasks.named("shadowJar", ShadowJar::class.java) {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 
+    relocate("it.unimi", "io.tebex.plugin.libs.fastutil")
+    relocate("okhttp3", "io.tebex.plugin.libs.okhttp3")
+    relocate("net.kyori", "io.tebex.plugin.libs.kyori")
+    relocate("okio", "io.tebex.plugin.libs.okio")
     relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
     relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
     relocate("com.google.gson", "io.tebex.plugin.libs.gson")

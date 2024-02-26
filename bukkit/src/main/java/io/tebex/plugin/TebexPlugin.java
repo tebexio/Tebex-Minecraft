@@ -49,6 +49,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private AnalyticsService analyticsService;
     private FloodgateHook floodgateHook;
     private MorePaperLib morePaperLib;
+    private ServerInformation storeInformation;
 
     /**
      * Starts the Bukkit plugin.
@@ -285,7 +286,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public Player getPlayer(Object player) {
         if (player == null) return null;
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return getServer().getPlayer((UUID) player);
         }
 
@@ -353,6 +354,12 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public ServerPlatformConfig getPlatformConfig() {
         return config;
+    }
+
+
+    @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
     }
 
     @Override

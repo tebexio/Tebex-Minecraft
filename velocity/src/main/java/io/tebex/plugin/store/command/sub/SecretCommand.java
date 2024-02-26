@@ -4,12 +4,13 @@ import com.velocitypowered.api.command.CommandSource;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.store.SDK;
-import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.SDK;
+import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
-import net.kyori.adventure.text.Component;
 
 import java.io.IOException;
+
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
 public class SecretCommand extends SubCommand {
     public SecretCommand(TebexPlugin platform) {
@@ -18,40 +19,40 @@ public class SecretCommand extends SubCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
-        if(args.length == 0) {
-            sender.sendMessage(Component.text("§b[Tebex] §7Usage: §f/tebex secret <key>"));
+        if (args.length == 0) {
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Usage: §f/tebex secret <key>"));
             return;
         }
 
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        SDK analyse = platform.getStoreSDK();
+        SDK analyse = platform.getSDK();
         ProxyPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
         analyse.setSecretKey(serverToken);
 
-        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
+        platform.getSDK().getServerInformation().thenAccept(serverInformation -> {
             analyseConfig.setSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 
             try {
                 configFile.save();
             } catch (IOException e) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Failed to save config: " + e.getMessage()));
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Failed to save config: " + e.getMessage()));
             }
 
-            sender.sendMessage(Component.text("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."));
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."));
             platform.configure();
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
-            if(cause instanceof NotFoundException) {
-                sender.sendMessage(Component.text("§b[Tebex] §7Server not found. Please check your secret key."));
+            if (cause instanceof ServerNotFoundException) {
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Server not found. Please check your secret key."));
                 platform.halt();
             } else {
-                sender.sendMessage(Component.text("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
                 cause.printStackTrace();
             }
 

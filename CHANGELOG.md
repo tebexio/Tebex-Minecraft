@@ -1,3 +1,12 @@
+2.0.4
+=====
+
+### Fixes
+- The `{id}` parameter is now properly replaced on Geyser and Minecraft Offline/Geyser store types. For offline servers, it will be replaced with the user's name. For online servers, this will be the player's UUID.
+- Fix for `java.lang.String cannot be cast to class java.util.UUID` on Offline/Geyser servers
+- Fixed the use of deprecated characters directly in components in the Velocity module
+- Relocated Adventure to prevent conflicts with older Adventure APIs on the server
+
 2.0.3
 =====
 

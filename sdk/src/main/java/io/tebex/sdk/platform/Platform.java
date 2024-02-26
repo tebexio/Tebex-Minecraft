@@ -44,11 +44,19 @@ public interface Platform {
     PlatformType getType();
 
     /**
+     * Gets the store's type from store info. This info should be cached and not fetched on each request
+     *
+     * @return Store info string ex. "Minecraft (Offline/Geyser)"
+     */
+    String getStoreType();
+
+    /**
      * Gets the Store SDK instance associated with this platform.
      *
      * @return The SDK instance.
      */
     SDK getStoreSDK();
+
     /**
      * Gets the Analytics SDK instance associated with this platform.
      *
@@ -82,6 +90,26 @@ public interface Platform {
      * @return Whether the server is in online mode.
      */
     boolean isOnlineMode();
+
+    /**
+     * Checks if the configured store is Geyser/Offline
+     *
+     * @return Whether the store is a Offline/Geyser type webstore
+     */
+    default boolean isGeyser() {
+        if (!isStoreSetup()) return false;
+
+        if (getStoreType() == null || getStoreType().isEmpty()) {
+            return false;
+        }
+
+        return getStoreType().contains("Offline/Geyser");
+    }
+
+    /**
+     * Configures the platform for use.
+     */
+    void configure();
 
     /**
      * Halts the platform and stops any ongoing tasks.

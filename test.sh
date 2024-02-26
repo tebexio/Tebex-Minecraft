@@ -82,7 +82,7 @@ function installPluginToFolder() {
   toFolder="$2" # root minecraft server folder containing /plugins
 
   mkdir -p "$toFolder/plugins"
-  cp "../build/libs/tebex-$pluginType-2.0.2.jar" "$toFolder/plugins"
+  cp "../build/libs/tebex-$pluginType-2.0.4.jar" "$toFolder/plugins"
 }
 
 function copyWorlds() {

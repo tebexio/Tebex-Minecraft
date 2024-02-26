@@ -1,18 +1,19 @@
 package io.tebex.plugin.command;
 
 import com.google.common.collect.ImmutableList;
-import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.command.SimpleCommand;
 import io.tebex.plugin.manager.CommandManager;
-import net.kyori.adventure.text.Component;
+import com.velocitypowered.api.command.SimpleCommand;
+import com.velocitypowered.api.command.CommandSource;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
+
 public class TebexCommand implements SimpleCommand {
-    private CommandManager commandManager;
+    private final CommandManager commandManager;
 
     public TebexCommand(CommandManager commandManager) {
         this.commandManager = commandManager;
@@ -24,20 +25,20 @@ public class TebexCommand implements SimpleCommand {
         String[] args = invocation.arguments();
 
         if(args.length == 0) {
-            sender.sendMessage(Component.text("§8[Tebex] §7Welcome to Tebex!"));
-            sender.sendMessage(Component.text("§8[Tebex] §7This server is running version §fv" + commandManager.getPlatform().getVersion() + "§7."));
+            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7Welcome to Tebex!"));
+            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7This server is running version §fv" + commandManager.getPlatform().getVersion() + "§7."));
             return;
         }
 
         Map<String, SubCommand> commands = commandManager.getCommands();
         if(! commands.containsKey(args[0].toLowerCase())) {
-            sender.sendMessage(Component.text("§8[Tebex] §7Unknown command."));
+            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7Unknown command."));
             return;
         }
 
         final SubCommand subCommand = commands.get(args[0].toLowerCase());
         if (! sender.hasPermission(subCommand.getPermission())) {
-            sender.sendMessage(Component.text("§b[Tebex] §7You do not have access to that command."));
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7You do not have access to that command."));
             return;
         }
 

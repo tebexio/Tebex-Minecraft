@@ -4,9 +4,10 @@ import com.velocitypowered.api.command.CommandSource;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import net.kyori.adventure.text.Component;
 
 import java.io.IOException;
+
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
 public class ReloadCommand extends SubCommand {
     public ReloadCommand(TebexPlugin platform) {
@@ -20,9 +21,9 @@ public class ReloadCommand extends SubCommand {
             YamlDocument configYaml = platform.initPlatformConfig();
             platform.loadServerPlatformConfig(configYaml);
             platform.refreshListings();
-            sender.sendMessage(Component.text("§8[Tebex] §7Successfully reloaded."));
+            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7Successfully reloaded."));
         } catch (IOException e) {
-            sender.sendMessage(Component.text("§8[Tebex] §cFailed to reload the plugin: Check Console."));
+            sender.sendMessage(legacySection().deserialize("§8[Tebex] §cFailed to reload the plugin: Check Console."));
             throw new RuntimeException(e);
         }
     }

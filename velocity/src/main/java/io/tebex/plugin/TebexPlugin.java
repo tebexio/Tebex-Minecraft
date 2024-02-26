@@ -22,7 +22,6 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.store.response.ServerInformation;
-import io.tebex.sdk.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
 @Plugin(
         id = "tebex",
         name = "Tebex",
-        version = "@VERSION@",
+        version = Constants.VERSION,
         description = "The Velocity plugin for Tebex.",
         url = "https://tebex.io",
         authors = {"Tebex"}
@@ -121,18 +120,18 @@ public class TebexPlugin implements Platform {
     }
 
     public void migrateConfig() {
-        File oldPluginDir = new File("plugins/BuycraftX");
-        if (!oldPluginDir.exists()) return;
+        final Path oldPluginDir = Path.of("plugins", "BuycraftX");
+        if (Files.notExists(oldPluginDir)) return;
 
-        File oldConfigFile = new File(oldPluginDir, "config.properties");
-        if(!oldConfigFile.exists()) return;
+        final Path oldConfigFile = oldPluginDir.resolve("config.properties");
+        if (Files.notExists(oldConfigFile)) return;
 
         info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
 
         try {
             // Load old properties
             Properties properties = new Properties();
-            properties.load(Files.newInputStream(oldConfigFile.toPath()));
+            properties.load(Files.newInputStream(oldConfigFile));
 
             String secretKey = properties.getProperty("server-key", null);
             secretKey = !Objects.equals(secretKey, "INVALID") ? secretKey : null;
@@ -157,8 +156,8 @@ public class TebexPlugin implements Platform {
             // If BuycraftX is installed, delete it.
             boolean legacyPluginEnabled = getProxy().getPluginManager().getPlugin("BuycraftX").isPresent();
 
-            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(legacyPluginEnabled || !deletedLegacyPluginDir) {
+            final boolean deletedLegacyPluginDir = Files.deleteIfExists(oldPluginDir);
+            if (legacyPluginEnabled || !deletedLegacyPluginDir) {
                 warning("Please manually delete the BuycraftX files in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
@@ -250,7 +249,7 @@ public class TebexPlugin implements Platform {
     private Optional<Player> getPlayer(Object player) {
         if(player == null) return Optional.empty();
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return proxy.getPlayer((UUID) player);
         }
 
@@ -271,6 +270,11 @@ public class TebexPlugin implements Platform {
     @Override
     public String getVersion() {
         return "@VERSION@";
+    }
+
+    @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
     }
 
     @Override
