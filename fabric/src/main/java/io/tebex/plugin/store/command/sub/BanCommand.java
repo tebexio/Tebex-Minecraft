@@ -3,8 +3,8 @@ package io.tebex.plugin.store.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 import java.util.concurrent.ExecutionException;
 
@@ -15,8 +15,13 @@ public class BanCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        final ServerCommandSource source = context.getSource();
-        TebexPlugin platform = getPlatform();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
+
+        if (! platform.isStoreSetup()) {
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
+            return;
+        }
 
         String playerName = context.getArgument("playerName", String.class);
         String reason = "";
@@ -27,20 +32,17 @@ public class BanCommand extends SubCommand {
             ip = context.getArgument("ip", String.class);
         } catch (IllegalArgumentException ignored) {}
 
-        if (!platform.isStoreSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
-            return;
-        }
-
         try {
             boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
-            if (success) {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Player banned successfully."), false);
-            } else {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Failed to ban player."), false);
+
+            if(! success) {
+                platform.sendMessage(sender, "&cThat player is already banned.");
+                return;
             }
+
+            platform.sendMessage(sender, "&7Player banned successfully.");
         } catch (InterruptedException | ExecutionException e) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Error while banning player: " + e.getMessage()), false);
+            platform.sendMessage(sender, "&cError while banning player: &f" + e.getMessage());
         }
     }
 

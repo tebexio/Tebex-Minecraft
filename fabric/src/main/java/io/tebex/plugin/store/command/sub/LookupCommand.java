@@ -3,10 +3,11 @@ package io.tebex.plugin.store.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.store.obj.PlayerLookupInfo;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class LookupCommand extends SubCommand {
@@ -16,29 +17,35 @@ public class LookupCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        final ServerCommandSource source = context.getSource();
-        TebexPlugin platform = getPlatform();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
 
-        if (!platform.isStoreSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
+        if (! platform.isStoreSetup()) {
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 
         String username = context.getArgument("username", String.class);
 
-        PlayerLookupInfo lookupInfo = null;
+        PlayerLookupInfo lookupInfo;
         try {
-            lookupInfo = platform.getStoreSDK().getPlayerLookupInfo(username).get();
+            CompletableFuture<PlayerLookupInfo> future = platform.getStoreSDK().getPlayerLookupInfo(username);
+            lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
-            source.sendError(new LiteralText("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage()));
+            platform.sendMessage(sender, "&cFailed to complete player lookup. " + e.getMessage());
             return;
         }
 
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername()), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId()), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Bans Total: " + lookupInfo.banCount), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Payments: " + lookupInfo.payments.size()), false);
+        if(lookupInfo == null) {
+            platform.sendMessage(sender, "&cNo information found for that player.");
+            return;
+        }
+
+        platform.sendMessage(sender, "Username: " + lookupInfo.getLookupPlayer().getUsername());
+        platform.sendMessage(sender, "Id: " + lookupInfo.getLookupPlayer().getId());
+        platform.sendMessage(sender, "Chargeback Rate: " + lookupInfo.chargebackRate);
+        platform.sendMessage(sender, "Bans Total: " + lookupInfo.banCount);
+        platform.sendMessage(sender, "Payments: " + lookupInfo.payments.size());
     }
 
     @Override

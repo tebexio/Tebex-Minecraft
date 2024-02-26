@@ -3,10 +3,9 @@ package io.tebex.plugin.store.command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.store.gui.BuyGUI;
+import io.tebex.sdk.platform.PlatformLang;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 
 public class BuyCommand {
     private final TebexPlugin plugin;
@@ -17,11 +16,16 @@ public class BuyCommand {
     public int execute(CommandContext<ServerCommandSource> context) {
         final ServerCommandSource source = context.getSource();
 
+        if(source.getEntity() == null) {
+            plugin.sendMessage(source, PlatformLang.MUST_BE_PLAYER.get());
+            return 1;
+        }
+
         try {
             ServerPlayerEntity player = source.getPlayer();
-            new BuyGUI(plugin).open(player);
+            plugin.getBuyGUI().open(player);
         } catch (CommandSyntaxException e) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7You must be a player to run this command!"), false);
+            plugin.sendMessage(source, PlatformLang.ERROR_OCCURRED.get(e.getMessage()));
         }
 
         return 1;

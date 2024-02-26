@@ -15,20 +15,18 @@ public class ReportCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        TebexPlugin platform = getPlatform();
-
-        ServerPlatformConfig config = platform.getPlatformConfig();
-        YamlDocument configFile = config.getYamlDocument();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
 
         String message = context.getArgument("message", String.class);
 
         if (message.isBlank()) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7A message is required for your report."), false);
-        } else {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Sending your report to Tebex..."), false);
-            platform.sendTriageEvent(new Error("User reported error in-game: " + message));
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Report sent successfully."), false);
+            platform.sendMessage(sender, "&cA message is required for your report.");
+            return;
         }
+
+        platform.sendMessage(sender, "Sending your report to Tebex...");
+        platform.sendTriageEvent(new Error("User reported error in-game: " + message));
     }
 
     @Override
@@ -38,6 +36,6 @@ public class ReportCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "'<message>'";
+        return "<message>";
     }
 }

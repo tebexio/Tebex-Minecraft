@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.util.StringUtil;
 import net.minecraft.server.command.ServerCommandSource;
@@ -18,30 +19,37 @@ public class DebugCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        final ServerCommandSource source = context.getSource();
-        TebexPlugin platform = getPlatform();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
 
         ServerPlatformConfig config = platform.getPlatformConfig();
         YamlDocument configFile = config.getYamlDocument();
 
         String input = context.getArgument("trueOrFalse", String.class);
         if (StringUtil.isTruthy(input)) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Debug mode enabled."), false);
             config.setVerbose(true);
-            configFile.set("verbose", true);
         } else if (StringUtil.isFalsy(input)) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Debug mode disabled."), false);
             config.setVerbose(false);
-            configFile.set("verbose", false);
         } else {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()), false);
+            platform.sendMessage(sender, PlatformLang.INVALID_USAGE.get("tebex", getName() + " " + getUsage()));
+            return;
         }
+
+        configFile.set("verbose", config.isVerbose());
 
         try {
             configFile.save();
         } catch (IOException e) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Failed to save configuration file."), false);
+            platform.sendMessage(sender, "&cFailed to save configuration file.");
+            return;
         }
+
+        if(config.isVerbose()) {
+            platform.sendMessage(sender, "Debug mode enabled.");
+            return;
+        }
+
+        platform.sendMessage(sender, "Debug mode disabled.");
     }
 
     @Override

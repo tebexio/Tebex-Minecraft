@@ -1,6 +1,7 @@
 package io.tebex.plugin.store.command;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -8,20 +9,24 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.store.command.sub.*;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 import java.util.List;
+import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class CommandManager {
     private final TebexPlugin platform;
-    private final List<SubCommand> commands;
+    private final Map<String, SubCommand> commands;
 
     public CommandManager(TebexPlugin platform) {
         this.platform = platform;
-        this.commands = ImmutableList.of(
+        this.commands = Maps.newHashMap();
+    }
+
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+        ImmutableList.of(
                 new SecretCommand(platform),
                 new ReloadCommand(platform),
                 new ForceCheckCommand(platform),
@@ -34,14 +39,12 @@ public class CommandManager {
                 new ReportCommand(platform),
                 new SendLinkCommand(platform),
                 new GoalsCommand(platform)
-        );
-    }
+        ).forEach(command -> commands.put(command.getName(), command));
 
-    public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("tebex").executes(context -> {
             final ServerCommandSource source = context.getSource();
-            source.sendFeedback(new LiteralText("§8[Tebex] §7Welcome to Tebex!"), false);
-            source.sendFeedback(new LiteralText("§8[Tebex] §7This server is running version §fv" + platform.getVersion() + "§7."), false);
+            platform.sendMessage(source, "Welcome to Tebex!");
+            platform.sendMessage(source, "This server is running version &fv" + platform.getVersion() + "&7.");
 
             return 1;
         });
@@ -49,7 +52,7 @@ public class CommandManager {
         BuyCommand buyCommand = new BuyCommand(platform);
         dispatcher.register(literal(platform.getPlatformConfig().getBuyCommandName()).executes(buyCommand::execute));
 
-        commands.forEach(command -> {
+        commands.values().forEach(command -> {
             LiteralArgumentBuilder<ServerCommandSource> subCommand = literal(command.getName());
 
             if(command.getName().equalsIgnoreCase("secret")) {
@@ -74,7 +77,7 @@ public class CommandManager {
         return platform;
     }
 
-    public List<SubCommand> getCommands() {
+    public Map<String, SubCommand> getCommands() {
         return commands;
     }
 }

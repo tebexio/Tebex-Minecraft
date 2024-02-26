@@ -1,7 +1,7 @@
 package io.tebex.plugin.store.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -22,28 +22,33 @@ public class DebugCommand extends SubCommand {
         ServerPlatformConfig config = platform.getPlatformConfig();
         YamlDocument configFile = config.getYamlDocument();
 
-        if(args.length == 0) {
+        String input = args.length > 0 ? args[0] : null;
+        if(input == null) {
             config.setVerbose(! config.isVerbose());
-        } else if(StringUtil.isTruthy(args[0]) || StringUtil.isFalsy(args[0])) {
-            config.setVerbose(StringUtil.isTruthy(args[0]));
+        } else if (StringUtil.isTruthy(input)) {
+            config.setVerbose(true);
+        } else if (StringUtil.isFalsy(input)) {
+            config.setVerbose(false);
         } else {
-            platform.sendMessage(sender, Lang.INVALID_USAGE.get("tebex", getName() + " " + getUsage()));
+            platform.sendMessage(sender, PlatformLang.INVALID_USAGE.get("tebex", getName() + " " + getUsage()));
             return;
         }
 
         configFile.set("verbose", config.isVerbose());
 
-        if(config.isVerbose()) {
-            platform.sendMessage(sender, "Debug mode enabled.");
-        } else {
-            platform.sendMessage(sender, "Debug mode disabled.");
-        }
-
         try {
             configFile.save();
         } catch (IOException e) {
             platform.sendMessage(sender, "&cFailed to save configuration file.");
+            return;
         }
+
+        if(config.isVerbose()) {
+            platform.sendMessage(sender, "Debug mode enabled.");
+            return;
+        }
+
+        platform.sendMessage(sender, "Debug mode disabled.");
     }
 
     @Override

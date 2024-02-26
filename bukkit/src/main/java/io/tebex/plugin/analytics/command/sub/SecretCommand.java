@@ -3,7 +3,7 @@ package io.tebex.plugin.analytics.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -34,16 +34,16 @@ public class SecretCommand extends SubCommand {
             try {
                 configFile.save();
             } catch (IOException e) {
-                getPlatform().sendMessage(sender, Lang.ERROR_OCCURRED.get(e.getMessage()));
+                getPlatform().sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getMessage()));
                 e.printStackTrace();
             }
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
-                platform.sendMessage(sender, Lang.CONNECT_SUCCESSFUL.get(serverInformation.getName()));
+                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getName()));
                 platform.getAnalyticsManager().init();
                 platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {
-                getPlatform().sendMessage(sender, Lang.ERROR_OCCURRED.get(ex.getMessage()));
+                getPlatform().sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(ex.getMessage()));
                 ex.printStackTrace();
                 return null;
             });
@@ -51,12 +51,12 @@ public class SecretCommand extends SubCommand {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                getPlatform().sendMessage(sender, Lang.INVALID_SECRET_KEY.get());
+                getPlatform().sendMessage(sender, PlatformLang.INVALID_SECRET_KEY.get());
                 platform.halt();
                 return null;
             }
 
-            getPlatform().sendMessage(sender, Lang.ERROR_OCCURRED.get(cause.getMessage()));
+            getPlatform().sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getMessage()));
             cause.printStackTrace();
             return null;
         });

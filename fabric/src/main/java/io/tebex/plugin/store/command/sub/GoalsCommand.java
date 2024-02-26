@@ -3,9 +3,9 @@ package io.tebex.plugin.store.command.sub;
 import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.store.obj.CommunityGoal;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -16,19 +16,25 @@ public class GoalsCommand extends SubCommand {
     }
 
     @Override
-    public void execute(CommandContext<ServerCommandSource> sender) {
-        TebexPlugin platform = getPlatform();
+    public void execute(CommandContext<ServerCommandSource> context) {
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
+
+        if (! platform.isStoreSetup()) {
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
+            return;
+        }
 
         try {
             List<CommunityGoal> goals = platform.getStoreSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
-                    sender.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Community Goals: "), false);
-                    sender.getSource().sendFeedback(new LiteralText(String.format("§b[Tebex] §7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus())), false);
+                    platform.sendMessage(sender, "&fCommunity Goals:");
+                    platform.sendMessage(sender, String.format("&7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus()));
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Unexpected response: " + e.getMessage()), false);
+            platform.sendMessage(sender, "&cUnexpected response: " + e.getMessage());
         }
     }
 

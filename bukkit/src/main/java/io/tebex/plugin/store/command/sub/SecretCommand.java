@@ -1,7 +1,7 @@
 package io.tebex.plugin.store.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.store.gui.BuyGUI;
@@ -19,24 +19,24 @@ public class SecretCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        TebexPlugin platform = getPlatform();
+        final TebexPlugin platform = getPlatform();
 
         String serverToken = args[0];
 
-        SDK analyse = platform.getStoreSDK();
-        ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
-        YamlDocument configFile = analyseConfig.getYamlDocument();
+        SDK sdk = platform.getStoreSDK();
+        ServerPlatformConfig platformConfig = platform.getPlatformConfig();
+        YamlDocument configFile = platformConfig.getYamlDocument();
 
-        analyse.setSecretKey(serverToken);
+        sdk.setSecretKey(serverToken);
 
         platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
-            analyseConfig.setStoreSecretKey(serverToken);
+            platformConfig.setStoreSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 
             try {
                 configFile.save();
             } catch (IOException e) {
-                platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
+                platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
             }
 
             platform.loadServerPlatformConfig(configFile);
@@ -45,18 +45,19 @@ public class SecretCommand extends SubCommand {
             platform.getStoreManager().setSetup(true);
             platform.refreshListings();
 
-            platform.sendMessage(sender, Lang.CONNECT_SUCCESSFUL.get(serverInformation.getServer().getName()));
-        })
-        .exceptionally(ex -> {
+            platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
+        }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                platform.sendMessage(sender, Lang.INVALID_SECRET_KEY.get());
+                platform.sendMessage(sender, PlatformLang.INVALID_SECRET_KEY.get());
                 platform.halt();
                 return null;
             }
 
-            platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
+            platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
+            cause.printStackTrace();
+
             return null;
         });
     }

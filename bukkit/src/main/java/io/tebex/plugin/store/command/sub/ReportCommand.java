@@ -11,7 +11,7 @@ public class ReportCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        TebexPlugin platform = getPlatform();
+        final TebexPlugin platform = getPlatform();
 
         if (args.length == 0) {
             platform.sendMessage(sender, "&cA message is required for your report.");

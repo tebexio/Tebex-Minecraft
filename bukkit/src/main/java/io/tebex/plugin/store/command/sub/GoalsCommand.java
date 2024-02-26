@@ -1,6 +1,6 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.store.obj.CommunityGoal;
@@ -19,7 +19,7 @@ public class GoalsCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if(! platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 
@@ -27,7 +27,7 @@ public class GoalsCommand extends SubCommand {
             List<CommunityGoal> goals = platform.getStoreSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
-                    platform.sendMessage(sender, "&fCommunity Goals: ");
+                    platform.sendMessage(sender, "&fCommunity Goals:");
                     platform.sendMessage(sender, String.format("&7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus()));
                 }
             }

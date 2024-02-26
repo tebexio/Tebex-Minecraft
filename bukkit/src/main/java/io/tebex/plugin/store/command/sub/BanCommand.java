@@ -1,6 +1,6 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -16,8 +16,8 @@ public class BanCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         TebexPlugin platform = getPlatform();
 
-        if (!platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
+        if (! platform.isStoreSetup()) {
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 

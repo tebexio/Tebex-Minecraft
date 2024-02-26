@@ -1,9 +1,9 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.plugin.util.Lang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.platform.PlatformLang;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -14,13 +14,11 @@ public class SendLinkCommand extends SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        TebexPlugin platform = getPlatform();
+        final TebexPlugin platform = getPlatform();
 
-        String username = args[0];
-
-        Player player = sender.getServer().getPlayer(username);
+        Player player = sender.getServer().getPlayer(args[0]);
         if (player == null) {
-            platform.sendMessage(sender, "&cCould not find a player with that name on the server.");
+            platform.sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
             return;
         }
 
@@ -33,9 +31,9 @@ public class SendLinkCommand extends SubCommand {
         }
 
         platform.getStoreSDK()
-                .createCheckoutUrl(packageId, username)
+                .createCheckoutUrl(packageId, player.getName())
                 .thenAccept(checkoutUrl -> {
-                    platform.sendMessage(sender, Lang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
+                    platform.sendMessage(sender, PlatformLang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
                 })
                 .exceptionally(ex -> {
                     Throwable cause = ex.getCause();
@@ -45,7 +43,7 @@ public class SendLinkCommand extends SubCommand {
                         return null;
                     }
 
-                    platform.sendMessage(sender, Lang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
+                    platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
                     return null;
                 });
     }

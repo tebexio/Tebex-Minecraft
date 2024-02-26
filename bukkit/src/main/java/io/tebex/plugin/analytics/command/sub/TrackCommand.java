@@ -4,7 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.analytics.obj.PlayerEvent;
 import org.bukkit.Bukkit;
@@ -24,13 +24,13 @@ public class TrackCommand extends SubCommand {
     public void execute(CommandSender sender, String[] args) {
         Player bukkitPlayer = Bukkit.getServer().getPlayer(args[0]);
         if (bukkitPlayer == null) {
-            getPlatform().sendMessage(sender, Lang.PLAYER_NOT_FOUND.get());
+            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
             return;
         }
 
         AnalysePlayer player = getPlatform().getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
         if (player == null) {
-            getPlatform().sendMessage(sender, Lang.PLAYER_NOT_FOUND.get());
+            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
             return;
         }
 
@@ -50,7 +50,7 @@ public class TrackCommand extends SubCommand {
         }
 
         player.track(event);
-        getPlatform().sendMessage(sender, Lang.EVENT_TRACKED.get());
+        getPlatform().sendMessage(sender, PlatformLang.EVENT_TRACKED.get());
     }
 
     @Override

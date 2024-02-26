@@ -4,11 +4,11 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.store.SDK;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 import java.io.IOException;
 
@@ -19,44 +19,42 @@ public class SecretCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        final ServerCommandSource source = context.getSource();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
 
         String serverToken = context.getArgument("key", String.class);
-        TebexPlugin platform = getPlatform();
 
-        if(platform.isStoreSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Already connected to a store."), false);
-            return;
-        }
+        SDK sdk = platform.getStoreSDK();
+        ServerPlatformConfig platformConfig = platform.getPlatformConfig();
+        YamlDocument configFile = platformConfig.getYamlDocument();
 
-        SDK analyse = platform.getStoreSDK();
-        ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
-        YamlDocument configFile = analyseConfig.getYamlDocument();
-
-        analyse.setSecretKey(serverToken);
+        sdk.setSecretKey(serverToken);
 
         platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
-            analyseConfig.setStoreSecretKey(serverToken);
+            platformConfig.setStoreSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 
             try {
                 configFile.save();
             } catch (IOException e) {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Failed to save config: " + e.getMessage()), false);
+                platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
             }
 
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."), false);
+            // TODO: Run setup logic
             platform.configure();
+
+            platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Server not found. Please check your secret key."), false);
+                platform.sendMessage(sender, PlatformLang.INVALID_SECRET_KEY.get());
                 platform.halt();
-            } else {
-                source.sendFeedback(new LiteralText("§b[Tebex] §cAn error occurred: " + cause.getMessage()), false);
-                cause.printStackTrace();
+                return null;
             }
+
+            platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
+            cause.printStackTrace();
 
             return null;
         });

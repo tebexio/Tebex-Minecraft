@@ -3,6 +3,7 @@ package io.tebex.plugin;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.plugin.store.gui.BuyGUI;
 import io.tebex.plugin.store.listener.JoinListener;
 import io.tebex.plugin.store.command.CommandManager;
 import io.tebex.plugin.util.Multithreading;
@@ -21,7 +22,11 @@ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,6 +54,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     private PlaceholderManager placeholderManager;
     private Map<Object, Integer> queuedPlayers;
     private YamlDocument configYaml;
+    private BuyGUI buyGUI;
 
     private ServerInformation storeInformation;
     private List<Category> storeCategories;
@@ -93,27 +99,24 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         placeholderManager.registerDefaults();
 
         // Initialise the platform.
-//        init();
+        buyGUI = new BuyGUI(this);
 
         new JoinListener(this);
 
-        executeAsync(new Runnable() {
-            @Override
-            public void run() {
-                info("Loading store information...");
-                getStoreSDK().getServerInformation()
-                        .thenAccept(information -> storeInformation = information)
-                        .exceptionally(error -> {
-                            warning("Failed to load server information: " + error.getMessage());
-                            return null;
-                        });
-                getStoreSDK().getListing()
-                        .thenAccept(listing -> storeCategories = listing)
-                        .exceptionally(error -> {
-                            warning("Failed to load store categories: " + error.getMessage());
-                            return null;
-                        });
-            }
+        executeAsync(() -> {
+            info("Loading store information...");
+            getStoreSDK().getServerInformation()
+                    .thenAccept(information -> storeInformation = information)
+                    .exceptionally(error -> {
+                        warning("Failed to load server information: " + error.getMessage());
+                        return null;
+                    });
+            getStoreSDK().getListing()
+                    .thenAccept(listing -> storeCategories = listing)
+                    .exceptionally(error -> {
+                        warning("Failed to load store categories: " + error.getMessage());
+                        return null;
+                    });
         });
 
         Multithreading.executeAsync(() -> {
@@ -310,5 +313,23 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     @Override
     public void setStoreCategories(List<Category> categories) {
         this.storeCategories = categories;
+    }
+
+    public BuyGUI getBuyGUI() {
+        return buyGUI;
+    }
+
+    public void sendMessage(ServerCommandSource source, String message) {
+        LiteralText text = new LiteralText("§b[Tebex] §7" + message.replace("&", "§"));
+
+        // Sending formatted message to the player
+        source.sendFeedback(text, false);
+    }
+
+    public void sendMessage(ServerPlayerEntity source, String message) {
+        LiteralText text = new LiteralText("§b[Tebex] §7" + message.replace("&", "§"));
+
+        // Sending formatted message to the player
+        source.sendMessage(text, false);
     }
 }

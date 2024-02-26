@@ -30,6 +30,7 @@ public abstract class SubCommand {
     }
 
     public abstract String getDescription();
+
     public String getUsage() {
         return "";
     }

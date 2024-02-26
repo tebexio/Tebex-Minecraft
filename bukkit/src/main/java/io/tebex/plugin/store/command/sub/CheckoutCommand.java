@@ -1,6 +1,6 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.plugin.util.Lang;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.store.obj.CheckoutUrl;
@@ -18,16 +18,16 @@ public class CheckoutCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isStoreSetup()) {
-            platform.sendMessage(sender, Lang.NOT_CONNECTED_TO_STORE.get());
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_STORE.get());
             return;
         }
 
         try {
             int packageId = Integer.parseInt(args[0]);
             CheckoutUrl checkoutUrl = platform.getStoreSDK().createCheckoutUrl(packageId, sender.getName()).get();
-            platform.sendMessage(sender, Lang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
+            platform.sendMessage(sender, PlatformLang.CHECKOUT_URL.get(checkoutUrl.getUrl()));
         } catch (InterruptedException|ExecutionException e) {
-            platform.sendMessage(sender, Lang.FAILED_TO_CREATE_CHECKOUT_URL.get());
+            platform.sendMessage(sender, PlatformLang.FAILED_TO_CREATE_CHECKOUT_URL.get());
         }
     }
 
