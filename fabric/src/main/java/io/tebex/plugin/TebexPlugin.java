@@ -1,21 +1,19 @@
 package io.tebex.plugin;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.store.gui.BuyGUI;
-import io.tebex.plugin.store.listener.JoinListener;
+import io.tebex.plugin.store.StoreService;
 import io.tebex.plugin.store.command.CommandManager;
+import io.tebex.plugin.store.listener.JoinListener;
 import io.tebex.plugin.util.Multithreading;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.store.obj.Category;
-import io.tebex.sdk.store.obj.ServerEvent;
-import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.store.SDK;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.store.response.ServerInformation;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -25,40 +23,35 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The Fabric plugin for Tebex.
+ */
 public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     // Fabric Related
     private static final String MOD_ID = "tebex";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     private final String MOD_VERSION = "@VERSION@";
     private final File MOD_PATH = new File("./mods/" + MOD_ID);
-    private MinecraftServer server;
-
-    private SDK sdk;
     private ServerPlatformConfig config;
-    private boolean setup;
-    private PlaceholderManager placeholderManager;
-    private Map<Object, Integer> queuedPlayers;
     private YamlDocument configYaml;
-    private BuyGUI buyGUI;
-
-    private ServerInformation storeInformation;
-    private List<Category> storeCategories;
-    private List<ServerEvent> serverEvents;
+    private StoreService storeService;
+    private MinecraftServer server;
 
     /**
      * Starts the Fabric platform.
@@ -89,55 +82,37 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         // Bind SDK.
         Tebex.init(this);
 
-        // Initialise SDK.
-        sdk = new SDK(this, config.getStoreSecretKey());
-        placeholderManager = new PlaceholderManager();
-        queuedPlayers = Maps.newConcurrentMap();
-        storeCategories = new ArrayList<>();
-        serverEvents = new ArrayList<>();
+        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && !getPlatformConfig().getStoreSecretKey().isEmpty();
+        boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && !getPlatformConfig().getAnalyticsSecretKey().isEmpty();
 
-        placeholderManager.registerDefaults();
+        String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
 
-        // Initialise the platform.
-        buyGUI = new BuyGUI(this);
+        info("Thanks for installing Tebex v" + MOD_VERSION + " for Fabric.");
+
+        if (!storeSetup || !analyticsSetup) {
+            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
+            warning(" ");
+
+            if (!storeSetup) {
+                warning("To setup your Tebex Store, run 'tebex secret <key>' in the console.");
+            }
+            if (!analyticsSetup) {
+                warning("To setup your Tebex Analytics, run 'analytics secret <key>' in the console.");
+            }
+
+            warning(" ");
+            warning("We recommend running these commands from the console to avoid accidentally sharing your secret keys in chat.");
+        }
+
+        // Initialise Managers.
+        storeService = new StoreService(this);
+        storeService.init();
+
+        if (storeSetup) {
+            storeService.connect();
+        }
 
         new JoinListener(this);
-
-        executeAsync(() -> {
-            info("Loading store information...");
-            getStoreSDK().getServerInformation()
-                    .thenAccept(information -> storeInformation = information)
-                    .exceptionally(error -> {
-                        warning("Failed to load server information: " + error.getMessage());
-                        return null;
-                    });
-            getStoreSDK().getListing()
-                    .thenAccept(listing -> storeCategories = listing)
-                    .exceptionally(error -> {
-                        warning("Failed to load store categories: " + error.getMessage());
-                        return null;
-                    });
-        });
-
-        Multithreading.executeAsync(() -> {
-            getStoreSDK().getServerInformation().thenAccept(information -> storeInformation = information);
-            getStoreSDK().getListing().thenAccept(listing -> storeCategories = listing);
-        }, 0, 30, TimeUnit.MINUTES);
-
-        Multithreading.executeAsync(() -> {
-            List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
-            if (runEvents.isEmpty()) return;
-
-            sdk.sendEvents(runEvents)
-                    .thenAccept(aVoid -> {
-                        serverEvents.removeAll(runEvents);
-                        debug("Successfully sent analytics.");
-                    })
-                    .exceptionally(throwable -> {
-                        warning("Failed to send analytics: " + throwable.getMessage());
-                        return null;
-                    });
-        }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -147,7 +122,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public SDK getStoreSDK() {
-        return sdk;
+        return storeService.getSdk();
     }
 
     @Override
@@ -157,7 +132,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public boolean isStoreSetup() {
-        return setup;
+        return storeService.isSetup();
     }
 
     @Override
@@ -165,37 +140,19 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return getPlatformConfig().isProxyMode() || server.isOnlineMode();
     }
 
-    public List<Category> getStoreCategories() {
-        return storeCategories;
-    }
-
-    public ServerInformation getStoreInformation() {
-        return storeInformation;
-    }
-
-    public List<ServerEvent> getServerEvents() {
-        return serverEvents;
-    }
-
-    public void configure() {
-        setup = true;
-        performCheck();
-        sdk.sendTelemetry();
-    }
-
     @Override
     public void halt() {
-        setup = false;
+        storeService.setSetup(false);
     }
 
     @Override
     public PlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
+        return storeService.getPlaceholderManager();
     }
 
     @Override
     public Map<Object, Integer> getQueuedPlayers() {
-        return queuedPlayers;
+        return storeService.getQueuedPlayers();
     }
 
     @Override
@@ -231,19 +188,19 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         }
     }
 
-    private Optional<ServerPlayerEntity> getPlayer(Object player) {
-        if(player == null) return Optional.empty();
+    @Override
+    public boolean isPlayerOnline(Object player) {
+        return getPlayer(player).isPresent();
+    }
 
-        if(isOnlineMode()) {
+    private Optional<ServerPlayerEntity> getPlayer(Object player) {
+        if (player == null) return Optional.empty();
+
+        if (isOnlineMode()) {
             return Optional.ofNullable(server.getPlayerManager().getPlayer((UUID) player));
         }
 
         return Optional.ofNullable(server.getPlayerManager().getPlayer((String) player));
-    }
-
-    @Override
-    public boolean isPlayerOnline(Object player) {
-        return getPlayer(player).isPresent();
     }
 
     @Override
@@ -264,15 +221,24 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public void log(Level level, String message) {
-        if(level == Level.INFO) {
+        if (level == Level.INFO) {
             LOGGER.info(message);
-        } else if(level == Level.WARNING) {
+        } else if (level == Level.WARNING) {
             LOGGER.warn(message);
-        } else if(level == Level.SEVERE) {
+        } else if (level == Level.SEVERE) {
             LOGGER.error(message);
         } else {
             LOGGER.info(message);
         }
+    }
+
+    public List<Category> getStoreCategories() {
+        return storeService.getStoreCategories();
+    }
+
+    @Override
+    public void setStoreCategories(List<Category> categories) {
+        storeService.setStoreCategories(categories);
     }
 
     @Override
@@ -305,18 +271,21 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return this.server.getServerIp();
     }
 
+    public ServerInformation getStoreInformation() {
+        return storeService.getStoreInformation();
+    }
+
     @Override
     public void setStoreInformation(ServerInformation info) {
-        this.storeInformation = info;
+        storeService.setStoreInformation(info);
     }
 
-    @Override
-    public void setStoreCategories(List<Category> categories) {
-        this.storeCategories = categories;
+    public List<ServerEvent> getServerEvents() {
+        return storeService.getServerEvents();
     }
 
-    public BuyGUI getBuyGUI() {
-        return buyGUI;
+    public StoreService getStoreManager() {
+        return storeService;
     }
 
     public void sendMessage(ServerCommandSource source, String message) {

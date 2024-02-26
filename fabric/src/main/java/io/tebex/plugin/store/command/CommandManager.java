@@ -73,11 +73,11 @@ public class CommandManager {
         dispatcher.register(baseCommand);
     }
 
-    public TebexPlugin getPlatform() {
-        return platform;
-    }
-
     public Map<String, SubCommand> getCommands() {
         return commands;
+    }
+
+    public TebexPlugin getPlatform() {
+        return platform;
     }
 }

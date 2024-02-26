@@ -4,24 +4,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.ServiceManager;
-import io.tebex.plugin.store.command.BuyCommand;
-import io.tebex.plugin.store.command.CommandManager;
 import io.tebex.plugin.store.gui.BuyGUI;
 import io.tebex.plugin.store.listener.JoinListener;
-import io.tebex.plugin.store.placeholder.BukkitNamePlaceholder;
+import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
-import io.tebex.sdk.store.placeholder.defaults.UuidPlaceholder;
 import io.tebex.sdk.store.response.ServerInformation;
-import org.bukkit.command.CommandMap;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class StoreService implements ServiceManager {
     private final TebexPlugin platform;
@@ -47,18 +43,10 @@ public class StoreService implements ServiceManager {
 
     @Override
     public void init() {
-        new CommandManager(platform).register();
+//        new CommandManager(platform).register();
 
         // Register events.
-        platform.registerEvents(new JoinListener(platform));
-
-        // Register the custom /buy command
-        CommandMap commandMap = platform.getPaperLib().commandRegistration().getServerCommandMap();
-        String buyCommandName = platform.getPlatformConfig().getBuyCommandName();
-        commandMap.register(buyCommandName, new BuyCommand(buyCommandName, platform));
-
-        placeholderManager.register(new BukkitNamePlaceholder(placeholderManager));
-        placeholderManager.register(new UuidPlaceholder(placeholderManager));
+        new JoinListener(platform);
     }
 
     @Override
@@ -73,8 +61,8 @@ public class StoreService implements ServiceManager {
             platform.performCheck();
             sdk.sendTelemetry();
 
-            platform.getAsyncScheduler().runAtFixedRate(platform::refreshListings, Duration.ZERO, Duration.ofHours(5));
-            platform.getAsyncScheduler().runAtFixedRate(() -> {
+            Multithreading.executeAsync(platform::refreshListings, 0, 5, TimeUnit.HOURS);
+            Multithreading.executeAsync(() -> {
                 List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
                 if (runEvents.isEmpty()) return;
                 if (!setup) return;
@@ -88,7 +76,7 @@ public class StoreService implements ServiceManager {
                             platform.debug("Failed to send analytics: " + throwable.getMessage());
                             return null;
                         });
-            }, Duration.ZERO, Duration.ofMinutes(1));
+            }, 0, 1, TimeUnit.MINUTES);
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
             setSetup(false);

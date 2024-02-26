@@ -4,13 +4,12 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.analytics.hook.FloodgateHook;
 import io.tebex.plugin.store.StoreService;
-import io.tebex.plugin.store.listener.JoinListener;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -73,25 +72,25 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
         config.setFloodgateHook(getServer().getPluginManager().isPluginEnabled("floodgate"));
 
-        if(config.isFloodgateHookEnabled()) {
+        if (config.isFloodgateHookEnabled()) {
             floodgateHook = new FloodgateHook();
         }
 
-        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && ! getPlatformConfig().getStoreSecretKey().isEmpty();
-        boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && ! getPlatformConfig().getAnalyticsSecretKey().isEmpty();
+        boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && !getPlatformConfig().getStoreSecretKey().isEmpty();
+        boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && !getPlatformConfig().getAnalyticsSecretKey().isEmpty();
 
         String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
 
         info("Thanks for installing Tebex v" + getDescription().getVersion() + " for Spigot/Paper.");
 
-        if(! storeSetup || ! analyticsSetup) {
+        if (!storeSetup || !analyticsSetup) {
             warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
             warning(" ");
 
-            if(! storeSetup) {
+            if (!storeSetup) {
                 warning("To setup your Tebex Store, run 'tebex secret <key>' in the console.");
             }
-            if(! analyticsSetup) {
+            if (!analyticsSetup) {
                 warning("To setup your Tebex Analytics, run 'analytics secret <key>' in the console.");
             }
 
@@ -108,31 +107,16 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         storeService = new StoreService(this);
         storeService.init();
 
-        if(storeSetup) {
+        if (storeSetup) {
             storeService.connect();
         }
 
         analyticsService = new AnalyticsService(this);
         analyticsService.init();
 
-        if(analyticsSetup) {
+        if (analyticsSetup) {
             analyticsService.connect();
         }
-
-        registerEvents(new JoinListener(this));
-
-    }
-
-    public List<Category> getStoreCategories() {
-        return storeService.getStoreCategories();
-    }
-
-    public ServerInformation getStoreInformation() {
-        return storeService.getStoreInformation();
-    }
-
-    public List<ServerEvent> getServerEvents() {
-        return storeService.getServerEvents();
     }
 
     public void migrateConfig() {
@@ -140,7 +124,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         if (!oldPluginDir.exists()) return;
 
         File oldConfigFile = new File(oldPluginDir, "config.properties");
-        if(!oldConfigFile.exists()) return;
+        if (!oldConfigFile.exists()) return;
 
         info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
 
@@ -152,10 +136,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             String secretKey = properties.getProperty("server-key", null);
             secretKey = !Objects.equals(secretKey, "INVALID") ? secretKey : null;
 
-            if(secretKey != null) {
+            if (secretKey != null) {
                 // Migrate their existing config.
                 configYaml.set("buy-command.name", properties.getProperty("buy-command-name", null));
-                configYaml.set("buy-command.enabled", ! Boolean.parseBoolean(properties.getProperty("disable-buy-command", null)));
+                configYaml.set("buy-command.enabled", !Boolean.parseBoolean(properties.getProperty("disable-buy-command", null)));
 
                 configYaml.set("check-for-updates", properties.getOrDefault("check-for-updates", null));
                 configYaml.set("verbose", properties.getOrDefault("verbose", false));
@@ -179,11 +163,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             boolean legacyPluginEnabled = Bukkit.getPluginManager().isPluginEnabled("BuycraftX");
             boolean deletedLegacyPluginJar = false;
 
-            if(legacyPluginEnabled) {
+            if (legacyPluginEnabled) {
                 try {
                     JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin("BuycraftX");
 
-                    if(plugin != null) {
+                    if (plugin != null) {
                         Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
                         getFileMethod.setAccessible(true);
                         File file = (File) getFileMethod.invoke(plugin);
@@ -198,41 +182,13 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             }
 
             boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(! deletedLegacyPluginDir || !deletedLegacyPluginJar) {
+            if (!deletedLegacyPluginDir || !deletedLegacyPluginJar) {
                 warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
             warning("Failed to migrate config: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public int getFreeSlots(Object playerId) {
-        Player player = getPlayer(playerId);
-        if (player == null) return -1;
-
-        ItemStack[] inv = player.getInventory().getContents();
-
-        // Only get the first 36 slots
-        inv = Arrays.copyOfRange(inv, 0, 36);
-
-        return (int) Arrays.stream(inv)
-                .filter(item -> item == null || item.getType() == Material.AIR)
-                .count();
-    }
-
-    @Override
-    public Map<Object, Integer> getQueuedPlayers() {
-        return storeService.getQueuedPlayers();
-    }
-
-    /**
-     * Registers the specified listener with the plugin manager.
-     * @param l the listener to register
-     */
-    public <T extends Listener> void registerEvents(T l) {
-        getServer().getPluginManager().registerEvents(l, this);
     }
 
     @Override
@@ -267,12 +223,13 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public boolean isOnlineMode() {
-        return getServer().getOnlineMode() && ! config.isProxyMode();
+        return getServer().getOnlineMode() && !config.isProxyMode();
     }
 
     @Override
     public void halt() {
         storeService.setSetup(false);
+        analyticsService.setSetup(false);
     }
 
     @Override
@@ -280,8 +237,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return storeService.getPlaceholderManager();
     }
 
-    public MorePaperLib getPaperLib() {
-        return morePaperLib;
+    @Override
+    public Map<Object, Integer> getQueuedPlayers() {
+        return storeService.getQueuedPlayers();
     }
 
     @Override
@@ -319,8 +277,13 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         getScheduler().runDelayed(runnable, unit.toMillis(time));
     }
 
+    @Override
+    public boolean isPlayerOnline(Object player) {
+        return getPlayer(player) != null;
+    }
+
     public Player getPlayer(Object player) {
-        if(player == null) return null;
+        if (player == null) return null;
 
         if (isOnlineMode()) {
             return getServer().getPlayer((UUID) player);
@@ -330,8 +293,23 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public boolean isPlayerOnline(Object player) {
-        return getPlayer(player) != null;
+    public int getFreeSlots(Object playerId) {
+        Player player = getPlayer(playerId);
+        if (player == null) return -1;
+
+        ItemStack[] inv = player.getInventory().getContents();
+
+        // Only get the first 36 slots
+        inv = Arrays.copyOfRange(inv, 0, 36);
+
+        return (int) Arrays.stream(inv)
+                .filter(item -> item == null || item.getType() == Material.AIR)
+                .count();
+    }
+
+    @Override
+    public String getVersion() {
+        return getDescription().getVersion();
     }
 
     @Override
@@ -339,9 +317,32 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         getLogger().log(level, message);
     }
 
-    @Override
-    public void setStoreInformation(ServerInformation info) {
-        storeService.setStoreInformation(info);
+    public RegionalScheduler getScheduler() {
+        return morePaperLib.scheduling().globalRegionalScheduler();
+    }
+
+    public AsynchronousScheduler getAsyncScheduler() {
+        return morePaperLib.scheduling().asyncScheduler();
+    }
+
+    public MorePaperLib getPaperLib() {
+        return morePaperLib;
+    }
+
+    public StoreService getStoreManager() {
+        return storeService;
+    }
+
+    public AnalyticsService getAnalyticsManager() {
+        return analyticsService;
+    }
+
+    public FloodgateHook getFloodgateHook() {
+        return floodgateHook;
+    }
+
+    public List<Category> getStoreCategories() {
+        return storeService.getStoreCategories();
     }
 
     @Override
@@ -352,11 +353,6 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public ServerPlatformConfig getPlatformConfig() {
         return config;
-    }
-
-    @Override
-    public String getVersion() {
-        return getDescription().getVersion();
     }
 
     @Override
@@ -389,24 +385,17 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return getPlatformConfig().isPlayerExcluded(uniqueId);
     }
 
-    public StoreService getStoreManager() {
-        return storeService;
+    public ServerInformation getStoreInformation() {
+        return storeService.getStoreInformation();
     }
 
-    public AnalyticsService getAnalyticsManager() {
-        return analyticsService;
+    @Override
+    public void setStoreInformation(ServerInformation info) {
+        storeService.setStoreInformation(info);
     }
 
-    public FloodgateHook getFloodgateHook() {
-        return floodgateHook;
-    }
-
-    public RegionalScheduler getScheduler() {
-        return morePaperLib.scheduling().globalRegionalScheduler();
-    }
-
-    public AsynchronousScheduler getAsyncScheduler() {
-        return morePaperLib.scheduling().asyncScheduler();
+    public List<ServerEvent> getServerEvents() {
+        return storeService.getServerEvents();
     }
 
     public void sendMessage(CommandSender sender, String message) {
@@ -418,5 +407,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         }
 
         sender.sendMessage(str);
+    }
+
+    /**
+     * Registers the specified listener with the plugin manager.
+     *
+     * @param l the listener to register
+     */
+    public <T extends Listener> void registerEvents(T l) {
+        getServer().getPluginManager().registerEvents(l, this);
     }
 }

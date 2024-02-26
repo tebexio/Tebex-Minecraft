@@ -23,7 +23,7 @@ public class BuyCommand {
 
         try {
             ServerPlayerEntity player = source.getPlayer();
-            plugin.getBuyGUI().open(player);
+            plugin.getStoreManager().getBuyGui().open(player);
         } catch (CommandSyntaxException e) {
             plugin.sendMessage(source, PlatformLang.ERROR_OCCURRED.get(e.getMessage()));
         }

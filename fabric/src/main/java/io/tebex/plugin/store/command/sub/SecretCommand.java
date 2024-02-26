@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.plugin.store.gui.BuyGUI;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -41,7 +42,10 @@ public class SecretCommand extends SubCommand {
             }
 
             // TODO: Run setup logic
-            platform.configure();
+            platform.loadServerPlatformConfig(configFile);
+            platform.getStoreManager().setBuyGui(new BuyGUI(platform));
+            platform.getStoreManager().setSetup(true);
+            platform.refreshListings();
 
             platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
         }).exceptionally(ex -> {
