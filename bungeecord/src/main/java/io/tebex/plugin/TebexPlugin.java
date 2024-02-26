@@ -247,7 +247,7 @@ public class TebexPlugin extends Plugin implements Platform {
     private ProxiedPlayer getPlayer(Object player) {
         if(player == null) return null;
 
-        if (isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return getProxy().getPlayer((UUID) player);
         }
 
@@ -268,6 +268,11 @@ public class TebexPlugin extends Plugin implements Platform {
     @Override
     public String getVersion() {
         return getDescription().getVersion();
+    }
+
+    @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
     }
 
     @Override

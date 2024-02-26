@@ -237,7 +237,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     private Optional<ServerPlayerEntity> getPlayer(Object player) {
         if(player == null) return Optional.empty();
 
-        if(isOnlineMode()) {
+        if (isOnlineMode() && !isGeyser() && player instanceof UUID) {
             return Optional.ofNullable(server.getPlayerManager().getPlayer((UUID) player));
         }
 
@@ -263,6 +263,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     @Override
     public String getVersion() {
         return MOD_VERSION;
+    }
+
+    @Override
+    public String getStoreType() {
+        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
     }
 
     @Override

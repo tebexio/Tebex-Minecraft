@@ -1,6 +1,5 @@
 package io.tebex.sdk.platform;
 
-import com.google.common.base.Strings;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
@@ -45,6 +44,13 @@ public interface Platform {
     PlatformType getType();
 
     /**
+     * Gets the store's type from store info. This info should be cached and not fetched on each request
+     *
+     * @return Store info string ex. "Minecraft (Offline/Geyser)"
+     */
+    String getStoreType();
+
+    /**
      * Gets the SDK instance associated with this platform.
      *
      * @return The SDK instance.
@@ -76,6 +82,21 @@ public interface Platform {
      * @return Whether the server is in online mode.
      */
     boolean isOnlineMode();
+
+    /**
+     * Checks if the configured store is Geyser/Offline
+     *
+     * @return Whether the store is a Offline/Geyser type webstore
+     */
+    default boolean isGeyser() {
+        if (!isSetup()) return false;
+
+        if (getStoreType() == null || getStoreType().isEmpty()) {
+            return false;
+        }
+
+        return getStoreType().contains("Offline/Geyser");
+    }
 
     /**
      * Configures the platform for use.
