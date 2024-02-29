@@ -1,4 +1,4 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.sub;
 
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;

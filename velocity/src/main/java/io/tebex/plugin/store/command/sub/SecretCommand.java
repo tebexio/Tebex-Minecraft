@@ -1,12 +1,12 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.sub;
 
 import com.velocitypowered.api.command.CommandSource;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
+import io.tebex.sdk.store.SDK;
 
 import java.io.IOException;
 
@@ -27,13 +27,13 @@ public class SecretCommand extends SubCommand {
         String serverToken = args[0];
         TebexPlugin platform = getPlatform();
 
-        SDK analyse = platform.getSDK();
+        SDK analyse = platform.getStoreSDK();
         ProxyPlatformConfig analyseConfig = platform.getPlatformConfig();
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
         analyse.setSecretKey(serverToken);
 
-        platform.getSDK().getServerInformation().thenAccept(serverInformation -> {
+        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
             analyseConfig.setSecretKey(serverToken);
             configFile.set("server.secret-key", serverToken);
 
@@ -48,14 +48,13 @@ public class SecretCommand extends SubCommand {
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
-            if (cause instanceof ServerNotFoundException) {
+            if (cause instanceof NotFoundException) {
                 sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Server not found. Please check your secret key."));
                 platform.halt();
-            } else {
-                sender.sendMessage(legacySection().deserialize("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
-                cause.printStackTrace();
             }
 
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
+            cause.printStackTrace();
             return null;
         });
     }

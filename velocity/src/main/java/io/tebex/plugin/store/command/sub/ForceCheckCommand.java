@@ -1,4 +1,4 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.sub;
 
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;
@@ -16,7 +16,7 @@ public class ForceCheckCommand extends SubCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
-        if(! platform.isSetup()) {
+        if(! platform.isStoreSetup()) {
             sender.sendMessage(legacySection().deserialize("§cTebex is not setup yet!"));
             return;
         }

@@ -1,4 +1,4 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.sub;
 
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;
@@ -33,13 +33,13 @@ public class BanCommand extends SubCommand {
             ip = args[2];
         }
 
-        if (!platform.isSetup()) {
+        if (!platform.isStoreSetup()) {
             sender.sendMessage(legacySection().deserialize("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
         try {
-            boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
+            boolean success = platform.getStoreSDK().createBan(playerName, ip, reason).get();
             if (success) {
                 sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Player banned successfully."));
             } else {

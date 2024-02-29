@@ -180,7 +180,7 @@ public class SDK {
             JsonArray commands = jsonObject.get("commands").getAsJsonArray();
 
             List<QueuedCommand> offlineCommands = new ArrayList<>();
-            for (JsonElement element : commands) {
+            for(JsonElement element : commands) {
                 JsonObject commandJson = element.getAsJsonObject();
                 JsonObject conditions = commandJson.get("conditions").getAsJsonObject();
 
@@ -193,7 +193,8 @@ public class SDK {
                         platform.getPlaceholderManager().handlePlaceholders(queuedPlayer, commandJson.get("command").getAsString()),
                         paymentId,
                         packageId,
-                        conditions.get("delay").getAsInt(),
+                        conditions.has("delay") ? conditions.get("delay").getAsInt() : 0,
+                        conditions.has("slots") ? conditions.get("slots").getAsInt() : 0,
                         queuedPlayer
                 ));
             }

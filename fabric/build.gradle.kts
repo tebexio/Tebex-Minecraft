@@ -43,14 +43,14 @@ dependencies {
 tasks.named("shadowJar", ShadowJar::class.java) {
     configurations = listOf(project.configurations.shadow.get())
 
-    relocate("it.unimi", "io.tebex.plugin.libs.fastutil")
-    relocate("okhttp3", "io.tebex.plugin.libs.okhttp3")
-    relocate("okio", "io.tebex.plugin.libs.okio")
-    relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
-    relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
-    relocate("kotlin", "io.tebex.plugin.libs.kotlin")
-    relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
-    relocate("com.google.gson", "io.tebex.plugin.libs.gson")
+//    relocate("it.unimi", "io.tebex.plugin.libs.fastutil")
+//    relocate("okhttp3", "io.tebex.plugin.libs.okhttp3")
+//    relocate("okio", "io.tebex.plugin.libs.okio")
+//    relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
+//    relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
+//    relocate("kotlin", "io.tebex.plugin.libs.kotlin")
+//    relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
+//    relocate("com.google.gson", "io.tebex.plugin.libs.gson")
     minimize()
 
     archiveFileName.set("${project.name}-${project.version}-shadow.jar")

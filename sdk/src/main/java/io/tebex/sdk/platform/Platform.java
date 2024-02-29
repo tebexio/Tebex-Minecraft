@@ -109,7 +109,9 @@ public interface Platform {
     /**
      * Configures the platform for use.
      */
-    void configure();
+    default void configure() {
+
+    }
 
     /**
      * Halts the platform and stops any ongoing tasks.
