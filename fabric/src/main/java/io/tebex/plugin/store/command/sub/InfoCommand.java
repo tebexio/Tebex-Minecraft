@@ -5,7 +5,6 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.platform.PlatformLang;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 public class InfoCommand extends SubCommand {
     public InfoCommand(TebexPlugin platform) {

@@ -1,8 +1,8 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.store.obj.CheckoutUrl;
 import org.bukkit.command.CommandSender;
 

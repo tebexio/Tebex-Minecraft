@@ -3,9 +3,9 @@ package io.tebex.plugin.analytics.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.command.CommandSender;
 

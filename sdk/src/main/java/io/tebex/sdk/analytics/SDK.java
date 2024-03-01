@@ -125,8 +125,6 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackPlayerSession(AnalysePlayer player) {
-        System.out.println("Key: " + secretKey);
-
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new NotFoundException());
@@ -158,13 +156,6 @@ public class SDK {
         platform.debug(" - IP: " + player.getIpAddress());
         platform.debug(" - Joined at: " + player.getJoinedAt());
         platform.debug(" - First joined at: " + player.getFirstJoinedAt());
-
-        if(! player.getStatistics().isEmpty()) {
-            platform.debug(" - Statistics:");
-            player.getStatistics().forEach((key, value) -> platform.debug("   - %" + key + "%: " + value));
-        } else {
-            platform.debug(" - No statistics to track.");
-        }
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/sessions")

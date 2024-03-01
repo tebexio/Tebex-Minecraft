@@ -3,9 +3,9 @@ package io.tebex.plugin.command.sub;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
+import io.tebex.sdk.store.SDK;
 import net.md_5.bungee.api.CommandSender;
 
 import java.io.IOException;

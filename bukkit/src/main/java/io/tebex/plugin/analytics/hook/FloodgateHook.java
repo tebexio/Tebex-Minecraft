@@ -1,6 +1,5 @@
 package io.tebex.plugin.analytics.hook;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.geysermc.floodgate.api.FloodgateApi;
 

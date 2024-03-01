@@ -1,14 +1,14 @@
 package io.tebex.sdk.platform;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.sdk.platform.config.IPlatformConfig;
+import io.tebex.sdk.platform.config.ProxyPlatformConfig;
+import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.QueuedCommand;
 import io.tebex.sdk.store.obj.QueuedPlayer;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
-import io.tebex.sdk.platform.config.IPlatformConfig;
-import io.tebex.sdk.platform.config.ProxyPlatformConfig;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.store.triage.TriageEvent;
 import io.tebex.sdk.util.StringUtil;

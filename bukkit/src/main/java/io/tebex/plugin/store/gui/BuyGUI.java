@@ -2,9 +2,9 @@ package io.tebex.plugin.store.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.MaterialUtil;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.CategoryPackage;
 import io.tebex.sdk.store.obj.ICategory;

@@ -1,8 +1,8 @@
 package io.tebex.plugin.store.command.sub;
 
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
+import io.tebex.sdk.platform.PlatformLang;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

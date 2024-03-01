@@ -1,7 +1,6 @@
 package io.tebex.plugin.analytics.listener;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.exception.NotFoundException;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;

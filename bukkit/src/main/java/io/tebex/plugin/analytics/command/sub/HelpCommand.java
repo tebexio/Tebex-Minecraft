@@ -1,8 +1,8 @@
 package io.tebex.plugin.analytics.command.sub;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.analytics.manager.CommandManager;
+import io.tebex.plugin.obj.SubCommand;
 import org.bukkit.command.CommandSender;
 
 import java.util.Comparator;

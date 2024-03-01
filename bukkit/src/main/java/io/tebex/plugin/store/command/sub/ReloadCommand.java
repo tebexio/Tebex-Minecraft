@@ -1,10 +1,10 @@
 package io.tebex.plugin.store.command.sub;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.store.gui.BuyGUI;
+import io.tebex.sdk.platform.PlatformLang;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;

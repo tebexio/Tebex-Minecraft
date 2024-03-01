@@ -1,12 +1,9 @@
 package io.tebex.plugin.store.command.sub;
 
 import com.mojang.brigadier.context.CommandContext;
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
 
 public class ReportCommand extends SubCommand {
     public ReportCommand(TebexPlugin platform) {

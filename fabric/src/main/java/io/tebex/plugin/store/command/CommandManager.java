@@ -10,7 +10,6 @@ import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.store.command.sub.*;
 import net.minecraft.server.command.ServerCommandSource;
 
-import java.util.List;
 import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.argument;
