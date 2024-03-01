@@ -4,13 +4,11 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.exception.NotFoundException;
 
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class HeartbeatManager {
     private final TebexPlugin platform;
-    private ScheduledFuture<?> task;
     private boolean enabled;
 
     public HeartbeatManager(TebexPlugin platform) {
@@ -21,6 +19,7 @@ public class HeartbeatManager {
     public void start() {
         Multithreading.schedule(() -> {
             if(! enabled) return;
+
             int playerCount = platform.getServer().getCurrentPlayerCount();
 
             if(playerCount == 0) {
@@ -51,7 +50,6 @@ public class HeartbeatManager {
     }
 
     public void stop() {
-        if (task == null) return;
         enabled = false;
     }
 }

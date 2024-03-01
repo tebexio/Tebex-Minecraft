@@ -30,17 +30,17 @@ public class SDK {
     private final String SECRET_KEY_HEADER = "X-Server-Token";
 
     private final Platform platform;
-    private String serverToken;
+    private String secretKey;
 
     /**
      * Constructs a new SDK instance with the specified platform and server token.
      *
      * @param platform    The platform on which the SDK is running.
-     * @param serverToken The server token for authentication.
+     * @param secretKey The server token for authentication.
      */
-    public SDK(Platform platform, String serverToken) {
+    public SDK(Platform platform, String secretKey) {
         this.platform = platform;
-        this.serverToken = serverToken;
+        this.secretKey = secretKey;
 
         HttpClientBuilder httpClientBuilder = new HttpClientBuilder(String.format("https://analytics.tebex.io/api/v%d", API_VERSION));
         this.HTTP_CLIENT = httpClientBuilder.build();
@@ -65,7 +65,7 @@ public class SDK {
     public CompletableFuture<PluginInformation> getPluginVersion(PlatformType platformType) {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/plugin")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
@@ -102,7 +102,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
@@ -125,7 +125,7 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackPlayerSession(AnalysePlayer player) {
-        System.out.println("Key: " + serverToken);
+        System.out.println("Key: " + secretKey);
 
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
@@ -133,16 +133,12 @@ public class SDK {
             return future;
         }
 
-        System.out.println("Is analytics setup: " + platform.isAnalyticsSetup());
-
         if (! platform.isAnalyticsSetup()) {
             platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.complete(false);
             return future;
         }
-
-        System.out.println("Is player excluded: " + platform.isPlayerExcluded(player.getUniqueId()));
 
         if(platform.isPlayerExcluded(player.getUniqueId())) {
             platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
@@ -153,7 +149,6 @@ public class SDK {
 
         player.logout();
 
-        System.out.println("Sending payload: " + GSON.toJson(player));
         platform.debug("Sending payload: " + GSON.toJson(player));
 
         platform.debug("Tracking player session for " + player.getName() + "..");
@@ -173,7 +168,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/sessions")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(player))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -203,7 +198,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/setup")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
                     .execute();
@@ -235,7 +230,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/heartbeat")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -265,7 +260,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/telemetry")
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(platform.getTelemetry()))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
@@ -297,7 +292,7 @@ public class SDK {
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/ip/" + ip)
-                    .withHeader(SECRET_KEY_HEADER, serverToken)
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleRequestErrors)
                     .execute();
@@ -318,7 +313,7 @@ public class SDK {
      * @return The server token as a String
      */
     public String getSecretKey() {
-        return serverToken;
+        return secretKey;
     }
 
     /**
@@ -327,6 +322,6 @@ public class SDK {
      * @param serverToken The server token as a String
      */
     public void setSecretKey(String serverToken) {
-        this.serverToken = serverToken;
+        this.secretKey = serverToken;
     }
 }

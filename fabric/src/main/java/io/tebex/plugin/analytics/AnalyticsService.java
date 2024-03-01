@@ -24,7 +24,7 @@ public class AnalyticsService implements ServiceManager {
         this.platform = platform;
         this.players = Maps.newConcurrentMap();
         this.heartbeatManager = new HeartbeatManager(platform);
-        sdk = new SDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
+        this.sdk = new SDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
     }
 
     @Override

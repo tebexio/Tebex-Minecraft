@@ -280,6 +280,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return this.server.getServerIp();
     }
 
+    @Override
+    public boolean isPlayerExcluded(UUID uniqueId) {
+        return getPlatformConfig().isPlayerExcluded(uniqueId);
+    }
+
     public ServerInformation getStoreInformation() {
         return storeService.getStoreInformation();
     }

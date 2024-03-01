@@ -1,6 +1,7 @@
 package io.tebex.plugin.analytics.listener;
 
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.exception.NotFoundException;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -26,9 +27,6 @@ public class QuitListener implements ServerPlayConnectionEvents.Disconnect {
         if(player == null) return;
 
         platform.debug("Preparing to track " + player.getName() + "..");
-
-        platform.info("Test warning message");
-        platform.warning("Test warning message");
 
         platform.getAnalyticsSDK().trackPlayerSession(player).thenAccept(successful -> {
             if(! successful) {
