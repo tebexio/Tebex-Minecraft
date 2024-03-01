@@ -30,31 +30,35 @@ public class TrackCommand extends SubCommand {
 
     @Override
     public void execute(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
+
+        if (! platform.isAnalyticsSetup()) {
+            platform.sendMessage(sender, PlatformLang.NOT_CONNECTED_TO_ANALYTICS.get());
+            return;
+        }
+
         ServerPlayerEntity playerEntity;
 
         try {
             playerEntity = EntityArgumentType.getPlayer(context, "player");
         } catch (CommandSyntaxException e) {
-            getPlatform().sendMessage(source, PlatformLang.PLAYER_NOT_FOUND.get());
+            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
             return;
         }
 
         AnalysePlayer player = getPlatform().getAnalyticsManager().getPlayer(playerEntity.getUuid());
+        this.getPlatform().sendMessage(sender, "Player: " + playerEntity.getName().asString() + " UUID: " + playerEntity.getUuid());
         if (player == null) {
-            getPlatform().sendMessage(source, PlatformLang.PLAYER_NOT_FOUND.get());
+            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
             return;
         }
 
         String eventArg = StringArgumentType.getString(context, "event");
         String[] namespace = eventArg.split(":", 2);
-        if (namespace.length < 2) {
-            getPlatform().sendMessage(source, "Event argument must be in the format 'origin:eventName'.");
-            return;
-        }
 
         String origin = namespace[0];
-        String eventName = namespace[1];
+        String eventName = namespace.length > 1 ? namespace[1] : "Unknown";
 
         String metadataArg = StringArgumentType.getString(context, "metadata");
         String jsonMetadata = String.join(" ", Stream.of(metadataArg).toArray(String[]::new));
@@ -69,7 +73,7 @@ public class TrackCommand extends SubCommand {
         }
 
         player.track(event);
-        getPlatform().sendMessage(source, PlatformLang.EVENT_TRACKED.get());
+        getPlatform().sendMessage(sender, PlatformLang.EVENT_TRACKED.get());
     }
 
     @Override

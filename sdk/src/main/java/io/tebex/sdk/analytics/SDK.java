@@ -94,7 +94,7 @@ public class SDK {
      * @return A CompletableFuture that contains the ServerInformation object.
      */
     public CompletableFuture<ServerInformation> getServerInformation() {
-        if (getServerToken() == null) {
+        if (getSecretKey() == null) {
             CompletableFuture<ServerInformation> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
             return future;
@@ -125,11 +125,15 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackPlayerSession(AnalysePlayer player) {
-        if (getServerToken() == null) {
+        System.out.println("Key: " + serverToken);
+
+        if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new NotFoundException());
             return future;
         }
+
+        System.out.println("Is analytics setup: " + platform.isAnalyticsSetup());
 
         if (! platform.isAnalyticsSetup()) {
             platform.debug("Skipped tracking player session for " + player.getName() + " as Analytics isn't setup.");
@@ -137,6 +141,8 @@ public class SDK {
             future.complete(false);
             return future;
         }
+
+        System.out.println("Is player excluded: " + platform.isPlayerExcluded(player.getUniqueId()));
 
         if(platform.isPlayerExcluded(player.getUniqueId())) {
             platform.debug("Skipped tracking player session for " + player.getName() + " as they are excluded.");
@@ -146,6 +152,8 @@ public class SDK {
         }
 
         player.logout();
+
+        System.out.println("Sending payload: " + GSON.toJson(player));
         platform.debug("Sending payload: " + GSON.toJson(player));
 
         platform.debug("Tracking player session for " + player.getName() + "..");
@@ -187,7 +195,7 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> completeServerSetup() {
-        if (getServerToken() == null) {
+        if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
             return future;
@@ -216,7 +224,7 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> trackHeartbeat(int playerCount) {
-        if (getServerToken() == null) {
+        if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
             return future;
@@ -249,7 +257,7 @@ public class SDK {
      * @return A CompletableFuture that indicates whether the operation was successful.
      */
     public CompletableFuture<Boolean> sendTelemetry() {
-        if (getServerToken() == null) {
+        if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
             return future;
@@ -281,7 +289,7 @@ public class SDK {
      */
     @Deprecated
     public CompletableFuture<String> getCountryFromIp(String ip) {
-        if (getServerToken() == null) {
+        if (getSecretKey() == null) {
             CompletableFuture<String> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
             return future;
@@ -309,7 +317,7 @@ public class SDK {
      *
      * @return The server token as a String
      */
-    public String getServerToken() {
+    public String getSecretKey() {
         return serverToken;
     }
 

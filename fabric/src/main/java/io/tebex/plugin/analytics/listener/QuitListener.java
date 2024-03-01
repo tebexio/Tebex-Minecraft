@@ -27,6 +27,9 @@ public class QuitListener implements ServerPlayConnectionEvents.Disconnect {
 
         platform.debug("Preparing to track " + player.getName() + "..");
 
+        platform.info("Test warning message");
+        platform.warning("Test warning message");
+
         platform.getAnalyticsSDK().trackPlayerSession(player).thenAccept(successful -> {
             if(! successful) {
                 platform.warning("Failed to track player session for " + player.getName() + ".");

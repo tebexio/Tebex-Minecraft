@@ -64,6 +64,15 @@ public class CommandManager {
                 return;
             }
 
+            if(command.getName().equalsIgnoreCase("debug")) {
+                baseCommand.then(subCommand.then(argument("trueOrFalse", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+
+                return;
+            }
+
             baseCommand.then(subCommand.executes(context -> {
                 command.execute(context);
                 return 1;

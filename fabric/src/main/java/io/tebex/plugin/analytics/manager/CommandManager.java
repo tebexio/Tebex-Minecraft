@@ -12,7 +12,6 @@ import io.tebex.plugin.analytics.command.sub.TrackCommand;
 import io.tebex.plugin.obj.SubCommand;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
 import java.util.Map;
 

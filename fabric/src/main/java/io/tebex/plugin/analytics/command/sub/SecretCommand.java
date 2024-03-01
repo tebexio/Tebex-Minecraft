@@ -30,7 +30,7 @@ public class SecretCommand extends SubCommand {
 
         sdk.setSecretKey(serverToken);
 
-        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
+        platform.getAnalyticsSDK().getServerInformation().thenAccept(serverInformation -> {
             platformConfig.setAnalyticsSecretKey(serverToken);
             configFile.set("analytics.secret-key", serverToken);
 
@@ -41,7 +41,7 @@ public class SecretCommand extends SubCommand {
             }
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
-                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
+                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getName()));
                 platform.getAnalyticsManager().init();
                 platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {

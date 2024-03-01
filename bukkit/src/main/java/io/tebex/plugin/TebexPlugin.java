@@ -9,7 +9,6 @@ import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -36,8 +35,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The Bukkit/Spigot plugin for Tebex.
@@ -49,7 +46,6 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private AnalyticsService analyticsService;
     private FloodgateHook floodgateHook;
     private MorePaperLib morePaperLib;
-    private ServerInformation storeInformation;
 
     /**
      * Starts the Bukkit plugin.
@@ -66,7 +62,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             configYaml = initPlatformConfig();
             config = loadServerPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load config: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -120,85 +116,13 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         }
     }
 
-    public void migrateConfig() {
-        File oldPluginDir = new File("plugins/BuycraftX");
-        if (!oldPluginDir.exists()) return;
-
-        File oldConfigFile = new File(oldPluginDir, "config.properties");
-        if (!oldConfigFile.exists()) return;
-
-        info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
-
-        try {
-            // Load old properties
-            Properties properties = new Properties();
-            properties.load(Files.newInputStream(oldConfigFile.toPath()));
-
-            String secretKey = properties.getProperty("server-key", null);
-            secretKey = !Objects.equals(secretKey, "INVALID") ? secretKey : null;
-
-            if (secretKey != null) {
-                // Migrate their existing config.
-                configYaml.set("buy-command.name", properties.getProperty("buy-command-name", null));
-                configYaml.set("buy-command.enabled", !Boolean.parseBoolean(properties.getProperty("disable-buy-command", null)));
-
-                configYaml.set("check-for-updates", properties.getOrDefault("check-for-updates", null));
-                configYaml.set("verbose", properties.getOrDefault("verbose", false));
-
-                configYaml.set("server.proxy", properties.getOrDefault("is-bungeecord", false));
-                configYaml.set("server.secret-key", secretKey);
-
-                // Save new config
-                configYaml.save();
-
-                config = loadServerPlatformConfig(configYaml);
-
-                storeService = new StoreService(this);
-                storeService.init();
-                storeService.connect();
-
-                info("Successfully migrated your config from BuycraftX.");
-            }
-
-            // If BuycraftX is installed, delete it.
-            boolean legacyPluginEnabled = Bukkit.getPluginManager().isPluginEnabled("BuycraftX");
-            boolean deletedLegacyPluginJar = false;
-
-            if (legacyPluginEnabled) {
-                try {
-                    JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin("BuycraftX");
-
-                    if (plugin != null) {
-                        Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-                        getFileMethod.setAccessible(true);
-                        File file = (File) getFileMethod.invoke(plugin);
-
-                        Bukkit.getPluginManager().disablePlugin(plugin);
-                        deletedLegacyPluginJar = file.delete();
-                    }
-                } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                    // Failed to get the plugin file via reflection.
-                    warning("Failed to delete the old BuycraftX files: " + e.getMessage());
-                }
-            }
-
-            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if (!deletedLegacyPluginDir || !deletedLegacyPluginJar) {
-                warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
-            }
-        } catch (IOException e) {
-            warning("Failed to migrate config: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public PlatformType getType() {
         return PlatformType.BUKKIT;
     }
 
     @Override
-    public SDK getStoreSDK() {
+    public io.tebex.sdk.store.SDK getStoreSDK() {
         return storeService.getSdk();
     }
 
@@ -314,6 +238,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
+    public String getStoreType() {
+        return storeService.getStoreInformation() == null ? "" : storeService.getStoreInformation().getStore().getGameType();
+    }
+
+    @Override
     public void log(Level level, String message) {
         getLogger().log(level, message);
     }
@@ -356,28 +285,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return config;
     }
 
-
-    @Override
-    public String getStoreType() {
-        return storeInformation == null ? "" : storeInformation.getStore().getGameType();
-    }
-
     @Override
     public PlatformTelemetry getTelemetry() {
         String serverVersion = getServer().getVersion();
-
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(serverVersion);
-        if (matcher.find()) {
-            serverVersion = matcher.group(1);
-        }
 
         return new PlatformTelemetry(
                 getVersion(),
                 getServer().getName(),
                 serverVersion,
-                System.getProperty("java.version"),
-                System.getProperty("os.arch"),
                 getServer().getOnlineMode()
         );
     }
@@ -423,5 +338,77 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
      */
     public <T extends Listener> void registerEvents(T l) {
         getServer().getPluginManager().registerEvents(l, this);
+    }
+
+    public void migrateConfig() {
+        File oldPluginDir = new File("plugins/BuycraftX");
+        if (!oldPluginDir.exists()) return;
+
+        File oldConfigFile = new File(oldPluginDir, "config.properties");
+        if (!oldConfigFile.exists()) return;
+
+        info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
+
+        try {
+            // Load old properties
+            Properties properties = new Properties();
+            properties.load(Files.newInputStream(oldConfigFile.toPath()));
+
+            String secretKey = properties.getProperty("server-key", null);
+            secretKey = !Objects.equals(secretKey, "INVALID") ? secretKey : null;
+
+            if (secretKey != null) {
+                // Migrate their existing config.
+                configYaml.set("buy-command.name", properties.getProperty("buy-command-name", null));
+                configYaml.set("buy-command.enabled", !Boolean.parseBoolean(properties.getProperty("disable-buy-command", null)));
+
+                configYaml.set("check-for-updates", properties.getOrDefault("check-for-updates", null));
+                configYaml.set("verbose", properties.getOrDefault("verbose", false));
+
+                configYaml.set("server.proxy", properties.getOrDefault("is-bungeecord", false));
+                configYaml.set("server.secret-key", secretKey);
+
+                // Save new config
+                configYaml.save();
+
+                config = loadServerPlatformConfig(configYaml);
+
+                storeService = new StoreService(this);
+                storeService.init();
+                storeService.connect();
+
+                info("Successfully migrated your config from BuycraftX.");
+            }
+
+            // If BuycraftX is installed, delete it.
+            boolean legacyPluginEnabled = Bukkit.getPluginManager().isPluginEnabled("BuycraftX");
+            boolean deletedLegacyPluginJar = false;
+
+            if (legacyPluginEnabled) {
+                try {
+                    JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin("BuycraftX");
+
+                    if (plugin != null) {
+                        Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
+                        getFileMethod.setAccessible(true);
+                        File file = (File) getFileMethod.invoke(plugin);
+
+                        Bukkit.getPluginManager().disablePlugin(plugin);
+                        deletedLegacyPluginJar = file.delete();
+                    }
+                } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+                    // Failed to get the plugin file via reflection.
+                    warning("Failed to delete the old BuycraftX files: " + e.getMessage());
+                }
+            }
+
+            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
+            if (!deletedLegacyPluginDir || !deletedLegacyPluginJar) {
+                warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
+            }
+        } catch (IOException e) {
+            warning("Failed to migrate config: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

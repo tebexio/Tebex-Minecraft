@@ -9,7 +9,6 @@ import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -35,8 +34,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The Fabric plugin for Tebex.
@@ -63,7 +60,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             configYaml = initPlatformConfig();
             config = loadServerPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load config: " + e.getMessage());
             return;
         }
 
@@ -127,7 +124,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public SDK getStoreSDK() {
+    public io.tebex.sdk.store.SDK getStoreSDK() {
         return storeService.getSdk();
     }
 
@@ -159,6 +156,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     @Override
     public void halt() {
         storeService.setSetup(false);
+        analyticsService.setSetup(false);
     }
 
     @Override
@@ -242,11 +240,9 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public void log(Level level, String message) {
-        if (level == Level.INFO) {
-            LOGGER.info(message);
-        } else if (level == Level.WARNING) {
+        if (level.equals(Level.WARNING)) {
             LOGGER.warn(message);
-        } else if (level == Level.SEVERE) {
+        } else if (level.equals(Level.SEVERE)) {
             LOGGER.error(message);
         } else {
             LOGGER.info(message);
@@ -271,18 +267,10 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     public PlatformTelemetry getTelemetry() {
         String serverVersion = server.getVersion();
 
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(serverVersion);
-        if (matcher.find()) {
-            serverVersion = matcher.group(1);
-        }
-
         return new PlatformTelemetry(
                 getVersion(),
                 server.getName(),
                 serverVersion,
-                System.getProperty("java.version"),
-                System.getProperty("os.arch"),
                 server.isOnlineMode()
         );
     }

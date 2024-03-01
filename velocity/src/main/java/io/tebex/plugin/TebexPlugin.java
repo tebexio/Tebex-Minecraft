@@ -292,18 +292,10 @@ public class TebexPlugin implements Platform {
         ProxyVersion proxyVersion = proxy.getVersion();
         String serverVersion = proxyVersion.getVersion();
 
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(serverVersion);
-        if (matcher.find()) {
-            serverVersion = matcher.group(1);
-        }
-
         return new PlatformTelemetry(
                 getVersion(),
                 proxyVersion.getName(),
                 serverVersion,
-                System.getProperty("java.version"),
-                System.getProperty("os.arch"),
                 proxy.getConfiguration().isOnlineMode()
         );
     }

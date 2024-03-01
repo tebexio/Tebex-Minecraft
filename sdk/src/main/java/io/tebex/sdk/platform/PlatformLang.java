@@ -4,7 +4,7 @@ public enum PlatformLang {
     ERROR_OCCURRED("&cAn error occurred: {0}"),
 
     NOT_CONNECTED_TO_STORE("&cThis server is not connected to a webstore. Use &f/tebex secret <key> &cto set your store key."),
-    NOT_CONNECTED_TO_ANALYTICS("&cThis server is not connected to analytics. Use &f/tebex secret <key> &cto set your analytics key."),
+    NOT_CONNECTED_TO_ANALYTICS("&cThis server is not connected to analytics. Use &f/analytics secret <key> &cto set your analytics key."),
 
     INVALID_SECRET_KEY("&cServer not found. Please check your secret key."),
     SUCCESSFULLY_CONNECTED("Connected to &b{0}&7."),

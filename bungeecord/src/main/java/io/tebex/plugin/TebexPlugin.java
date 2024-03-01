@@ -4,12 +4,12 @@ import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.listener.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
-import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
+import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
 import io.tebex.sdk.store.response.ServerInformation;
@@ -27,8 +27,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TebexPlugin extends Plugin implements Platform {
     private SDK sdk;
@@ -281,18 +279,10 @@ public class TebexPlugin extends Plugin implements Platform {
     public PlatformTelemetry getTelemetry() {
         String serverVersion = getProxy().getVersion();
 
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(serverVersion);
-        if (matcher.find()) {
-            serverVersion = matcher.group(1);
-        }
-
         return new PlatformTelemetry(
                 getVersion(),
                 getProxy().getName(),
                 serverVersion,
-                System.getProperty("java.version"),
-                System.getProperty("os.arch"),
                 getProxy().getConfig().isOnlineMode()
         );
     }
