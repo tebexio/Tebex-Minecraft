@@ -132,6 +132,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
+    public io.tebex.sdk.analytics.SDK getAnalyticsSDK() {
+        return analyticsService.getSdk();
+    }
+
+    @Override
     public File getDirectory() {
         return MOD_PATH;
     }

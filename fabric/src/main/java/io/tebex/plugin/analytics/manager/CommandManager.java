@@ -12,6 +12,7 @@ import io.tebex.plugin.analytics.command.sub.TrackCommand;
 import io.tebex.plugin.obj.SubCommand;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import java.util.Map;
 
@@ -55,10 +56,21 @@ public class CommandManager {
             }
 
             if(command.getName().equalsIgnoreCase("track")) {
-                baseCommand.then(subCommand.then(argument("player", EntityArgumentType.player()).then(argument("event", StringArgumentType.string()).then(argument("metadata", StringArgumentType.greedyString()).executes(context -> {
-                    command.execute(context);
-                    return 1;
-                })))));
+                baseCommand.then(subCommand.then(
+                        argument("player", EntityArgumentType.player())
+                                .then(argument("event", StringArgumentType.string())
+                                        .executes(context -> {
+                                            command.execute(context);
+                                            return 1;
+                                        })
+                                        .then(argument("metadata", StringArgumentType.greedyString())
+                                                .executes(context -> {
+                                                    command.execute(context);
+                                                    return 1;
+                                                })
+                                        )
+                                )
+                ));
 
                 return;
             }
