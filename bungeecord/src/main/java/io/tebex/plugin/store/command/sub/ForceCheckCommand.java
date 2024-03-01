@@ -1,4 +1,4 @@
-package io.tebex.plugin.command.sub;
+package io.tebex.plugin.store.command.sub;
 
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;

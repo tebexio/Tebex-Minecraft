@@ -5,10 +5,10 @@ import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.command.TebexCommand;
-import io.tebex.plugin.command.sub.ForceCheckCommand;
-import io.tebex.plugin.command.sub.HelpCommand;
-import io.tebex.plugin.command.sub.ReloadCommand;
-import io.tebex.plugin.command.sub.SecretCommand;
+import io.tebex.plugin.store.command.sub.ForceCheckCommand;
+import io.tebex.plugin.store.command.sub.HelpCommand;
+import io.tebex.plugin.store.command.sub.ReloadCommand;
+import io.tebex.plugin.store.command.sub.SecretCommand;
 import net.md_5.bungee.api.plugin.PluginManager;
 
 import java.util.Map;
