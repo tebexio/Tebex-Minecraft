@@ -3,8 +3,6 @@ package io.tebex.plugin;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.store.StoreService;
-import io.tebex.plugin.store.command.CommandManager;
-import io.tebex.plugin.store.listener.JoinListener;
 import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.platform.Platform;
@@ -75,7 +73,8 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         });
 
         // Initialise Managers.
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> new CommandManager(this).register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> new io.tebex.plugin.store.command.CommandManager(this).register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> new io.tebex.plugin.analytics.manager.CommandManager(this).register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> Multithreading.shutdown());
     }

@@ -1,11 +1,16 @@
 package io.tebex.plugin.analytics.manager;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.analytics.command.sub.HelpCommand;
+import io.tebex.plugin.analytics.command.sub.SecretCommand;
+import io.tebex.plugin.analytics.command.sub.TrackCommand;
 import io.tebex.plugin.obj.SubCommand;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.Map;
@@ -23,12 +28,15 @@ public class CommandManager {
     }
 
     public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-//        ImmutableList.of(
-//        ).forEach(command -> commands.put(command.getName(), command));
+        ImmutableList.of(
+                new HelpCommand(platform, this),
+                new TrackCommand(platform),
+                new SecretCommand(platform)
+        ).forEach(command -> commands.put(command.getName(), command));
 
-        LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("tebex").executes(context -> {
+        LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("analytics").executes(context -> {
             final ServerCommandSource source = context.getSource();
-            platform.sendMessage(source, "Welcome to Tebex!");
+            platform.sendMessage(source, "Welcome to Tebex Analytics!");
             platform.sendMessage(source, "This server is running version &fv" + platform.getVersion() + "&7.");
 
             return 1;
@@ -42,6 +50,15 @@ public class CommandManager {
                     command.execute(context);
                     return 1;
                 })));
+
+                return;
+            }
+
+            if(command.getName().equalsIgnoreCase("track")) {
+                baseCommand.then(subCommand.then(argument("player", EntityArgumentType.player()).then(argument("event", StringArgumentType.string()).then(argument("metadata", StringArgumentType.greedyString()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })))));
 
                 return;
             }

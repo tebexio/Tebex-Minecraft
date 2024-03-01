@@ -1,45 +1,47 @@
 package io.tebex.plugin.analytics.command.sub;
 
+import com.mojang.brigadier.context.CommandContext;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.platform.PlatformLang;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import org.bukkit.command.CommandSender;
+import net.minecraft.server.command.ServerCommandSource;
 
 import java.io.IOException;
 
 public class SecretCommand extends SubCommand {
     public SecretCommand(TebexPlugin platform) {
-        super(platform, "secret", "analytics.setup");
+        super(platform, "secret", "tebex.secret");
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String serverToken = args[0];
-        TebexPlugin platform = getPlatform();
+    public void execute(CommandContext<ServerCommandSource> context) {
+        final ServerCommandSource sender = context.getSource();
+        final TebexPlugin platform = getPlatform();
 
-        SDK analyticsSdk = platform.getAnalyticsSDK();
-        ServerPlatformConfig analyseConfig = platform.getPlatformConfig();
-        YamlDocument configFile = analyseConfig.getYamlDocument();
+        String serverToken = context.getArgument("key", String.class);
 
-        analyticsSdk.setSecretKey(serverToken);
+        SDK sdk = platform.getAnalyticsSDK();
+        ServerPlatformConfig platformConfig = platform.getPlatformConfig();
+        YamlDocument configFile = platformConfig.getYamlDocument();
 
-        platform.getAnalyticsSDK().getServerInformation().thenAccept(serverInformation -> {
-            analyseConfig.setAnalyticsSecretKey(serverToken);
+        sdk.setSecretKey(serverToken);
+
+        platform.getStoreSDK().getServerInformation().thenAccept(serverInformation -> {
+            platformConfig.setAnalyticsSecretKey(serverToken);
             configFile.set("analytics.secret-key", serverToken);
 
             try {
                 configFile.save();
             } catch (IOException e) {
-                getPlatform().sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getMessage()));
-                e.printStackTrace();
+                platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
             }
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
-                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getName()));
+                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
                 platform.getAnalyticsManager().init();
                 platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {
@@ -51,13 +53,14 @@ public class SecretCommand extends SubCommand {
             Throwable cause = ex.getCause();
 
             if(cause instanceof NotFoundException) {
-                getPlatform().sendMessage(sender, PlatformLang.INVALID_SECRET_KEY.get());
+                platform.sendMessage(sender, PlatformLang.INVALID_SECRET_KEY.get());
                 platform.halt();
                 return null;
             }
 
-            getPlatform().sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getMessage()));
+            platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(cause.getLocalizedMessage()));
             cause.printStackTrace();
+
             return null;
         });
     }
@@ -70,10 +73,5 @@ public class SecretCommand extends SubCommand {
     @Override
     public String getUsage() {
         return "<key>";
-    }
-
-    @Override
-    public int getMinArgs() {
-        return 1;
     }
 }

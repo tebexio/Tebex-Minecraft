@@ -318,7 +318,7 @@ public class SDK {
      *
      * @param serverToken The server token as a String
      */
-    public void setServerToken(String serverToken) {
+    public void setSecretKey(String serverToken) {
         this.serverToken = serverToken;
     }
 }
