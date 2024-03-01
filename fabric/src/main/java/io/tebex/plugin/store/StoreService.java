@@ -43,15 +43,13 @@ public class StoreService implements ServiceManager {
 
     @Override
     public void init() {
-//        new CommandManager(platform).register();
-
         // Register events.
         new JoinListener(platform);
     }
 
     @Override
     public void connect() {
-        getSdk().getServerInformation().thenAccept(serverInformation -> {
+        sdk.getServerInformation().thenAccept(serverInformation -> {
             ServerInformation.Server server = serverInformation.getServer();
             ServerInformation.Store store = serverInformation.getStore();
 
@@ -82,7 +80,7 @@ public class StoreService implements ServiceManager {
             setSetup(false);
 
             if (cause instanceof NotFoundException) {
-                platform.warning("Failed to connect. Please double-check your server key or run the setup command again.");
+                platform.warning("Failed to connect to Tebex Webstore. Please double-check your server key or run the setup command again.");
                 platform.halt();
                 return null;
             }

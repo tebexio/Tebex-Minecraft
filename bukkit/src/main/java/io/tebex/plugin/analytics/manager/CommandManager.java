@@ -1,8 +1,9 @@
-package io.tebex.plugin.analytics.command;
+package io.tebex.plugin.analytics.manager;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.analytics.command.BaseCommand;
 import io.tebex.plugin.analytics.command.sub.HelpCommand;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.plugin.analytics.command.sub.SecretCommand;

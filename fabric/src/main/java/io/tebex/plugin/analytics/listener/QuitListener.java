@@ -3,29 +3,29 @@ package io.tebex.plugin.analytics.listener;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
 import io.tebex.sdk.exception.NotFoundException;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.logging.Level;
 
-public class QuitListener implements Listener {
+public class QuitListener implements ServerPlayConnectionEvents.Disconnect {
     private final TebexPlugin platform;
 
     public QuitListener(TebexPlugin platform) {
         this.platform = platform;
+
+        ServerPlayConnectionEvents.DISCONNECT.register(this);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onQuit(PlayerQuitEvent event) {
-        Player bukkitPlayer = event.getPlayer();
-        AnalysePlayer player = platform.getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
-
+    @Override
+    public void onPlayDisconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
+        ServerPlayerEntity serverPlayer = handler.player;
+        AnalysePlayer player = platform.getAnalyticsManager().getPlayer(serverPlayer.getUuid());
         if(player == null) return;
 
-        platform.debug("Preparing to track " + bukkitPlayer.getName() + "..");
+        platform.debug("Preparing to track " + player.getName() + "..");
 
         platform.getAnalyticsSDK().trackPlayerSession(player).thenAccept(successful -> {
             if(! successful) {
@@ -49,3 +49,4 @@ public class QuitListener implements Listener {
         });
     }
 }
+

@@ -1,6 +1,7 @@
 package io.tebex.plugin;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.store.StoreService;
 import io.tebex.plugin.store.command.CommandManager;
 import io.tebex.plugin.store.listener.JoinListener;
@@ -51,6 +52,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     private ServerPlatformConfig config;
     private YamlDocument configYaml;
     private StoreService storeService;
+    private AnalyticsService analyticsService;
     private MinecraftServer server;
 
     /**
@@ -112,7 +114,12 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             storeService.connect();
         }
 
-        new JoinListener(this);
+        analyticsService = new AnalyticsService(this);
+        analyticsService.init();
+
+        if (analyticsSetup) {
+            analyticsService.connect();
+        }
     }
 
     @Override
@@ -133,6 +140,11 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     @Override
     public boolean isStoreSetup() {
         return storeService.isSetup();
+    }
+
+    @Override
+    public boolean isAnalyticsSetup() {
+        return analyticsService.isSetup();
     }
 
     @Override
@@ -293,6 +305,10 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return storeService;
     }
 
+    public AnalyticsService getAnalyticsManager() {
+        return analyticsService;
+    }
+
     public void sendMessage(ServerCommandSource source, String message) {
         LiteralText text = new LiteralText("§b[Tebex] §7" + message.replace("&", "§"));
 
@@ -305,5 +321,9 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
         // Sending formatted message to the player
         source.sendMessage(text, false);
+    }
+
+    public MinecraftServer getServer() {
+        return server;
     }
 }
