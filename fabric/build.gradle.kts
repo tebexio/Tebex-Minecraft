@@ -7,6 +7,7 @@ plugins {
     java
     id("com.github.johnrengelman.shadow")
     id("fabric-loom")
+    id("net.kyori.blossom") version "2.1.0"
 }
 
 var minecraftVersion = properties["minecraft_version"] as String
@@ -18,6 +19,16 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(16))
     sourceCompatibility = JavaVersion.VERSION_16
     targetCompatibility = JavaVersion.VERSION_16
+}
+
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property("version", project.version.toString())
+            }
+        }
+    }
 }
 
 dependencies {

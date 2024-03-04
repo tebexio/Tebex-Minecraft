@@ -1,5 +1,6 @@
 package io.tebex.plugin;
 
+import com.mojang.datafixers.kinds.Const;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.store.StoreService;
@@ -42,7 +43,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     // Fabric Related
     private static final String MOD_ID = "tebex";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    private final String MOD_VERSION = "@VERSION@";
+    private final String MOD_VERSION = Constants.VERSION;
     private final File MOD_PATH = new File("./mods/" + MOD_ID);
     private ServerPlatformConfig config;
     private YamlDocument configYaml;
@@ -63,6 +64,9 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             warning("Failed to load config: " + e.getMessage());
             return;
         }
+
+        System.out.println("MOD_VERSION = " + MOD_VERSION);
+        System.out.println("MOD_VERSION = " + Constants.VERSION);
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
