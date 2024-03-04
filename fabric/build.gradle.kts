@@ -69,8 +69,8 @@ tasks.remapJar {
 }
 
 tasks.register("copyToServer", Copy::class.java) {
-    from(project.tasks.named("shadowJar").get().outputs)
-    into("${project.rootDir}/FabricMCServer/plugins")
+    from(project.tasks.named("remapJar").get().outputs)
+    into("${project.rootDir}/FabricMCServer/mods")
 
     // rely on the shadowJar task to build the jar
     dependsOn("shadowJar")

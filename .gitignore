@@ -11,3 +11,4 @@ ignore/
 docs
 test/**
 MCServer/
+FabricMCServer/
