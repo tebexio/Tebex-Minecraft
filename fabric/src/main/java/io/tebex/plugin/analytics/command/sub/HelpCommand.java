@@ -26,7 +26,7 @@ public class HelpCommand extends SubCommand {
                 .values()
                 .stream()
                 .sorted(Comparator.comparing(SubCommand::getName))
-                .forEach(subCommand -> getPlatform().sendMessage(sender, " &8- &f/tebex " + subCommand.getName() + "&f" + (!subCommand.getUsage().isEmpty() ? " &3" + subCommand.getUsage() + " " : " ") + "&7&o(" + subCommand.getDescription() + ")"));
+                .forEach(subCommand -> getPlatform().sendMessage(sender, " &8- &f/analytics " + subCommand.getName() + "&f" + (!subCommand.getUsage().isEmpty() ? " &3" + subCommand.getUsage() + " " : " ") + "&7&o(" + subCommand.getDescription() + ")"));
     }
 
     @Override

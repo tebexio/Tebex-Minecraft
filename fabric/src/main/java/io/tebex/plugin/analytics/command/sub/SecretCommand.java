@@ -1,6 +1,7 @@
 package io.tebex.plugin.analytics.command.sub;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
@@ -41,7 +42,10 @@ public class SecretCommand extends SubCommand {
             }
 
             platform.getAnalyticsSDK().completeServerSetup().thenAccept(v -> {
-                platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getName()));
+                if(sender.getEntity() != null) {
+                    platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getName()));
+                }
+
                 platform.getAnalyticsManager().init();
                 platform.getAnalyticsManager().connect();
             }).exceptionally(ex -> {

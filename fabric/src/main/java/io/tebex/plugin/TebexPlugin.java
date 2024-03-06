@@ -22,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
  * The Fabric plugin for Tebex.
@@ -310,8 +312,20 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         return analyticsService;
     }
 
+    /**
+     * The special character which prefixes all chat colour codes. Use this if
+     * you need to dynamically convert colour codes from your custom format.
+     */
+    public static final char COLOR_CHAR = '§';
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + COLOR_CHAR + "[0-9A-FK-OR]");
+
     public void sendMessage(ServerCommandSource source, String message) {
         LiteralText text = new LiteralText("§b[Tebex] §7" + message.replace("&", "§"));
+
+        if(source.getEntity() == null) {
+            info(STRIP_COLOR_PATTERN.matcher(text.getRawString()).replaceAll(""));
+            return;
+        }
 
         // Sending formatted message to the player
         source.sendFeedback(text, false);

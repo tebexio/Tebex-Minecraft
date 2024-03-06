@@ -41,11 +41,14 @@ public class SecretCommand extends SubCommand {
                 platform.sendMessage(sender, PlatformLang.ERROR_OCCURRED.get(e.getLocalizedMessage()));
             }
 
-            // TODO: Run setup logic
             platform.loadServerPlatformConfig(configFile);
             platform.getStoreManager().setBuyGui(new BuyGUI(platform));
             platform.getStoreManager().setSetup(true);
             platform.refreshListings();
+
+            if(sender.getEntity() == null) {
+                return;
+            }
 
             platform.sendMessage(sender, PlatformLang.SUCCESSFULLY_CONNECTED.get(serverInformation.getServer().getName()));
         }).exceptionally(ex -> {
