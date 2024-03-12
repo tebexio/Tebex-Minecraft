@@ -73,7 +73,11 @@ public class StoreService implements ServiceManager {
             platform.performCheck();
             sdk.sendTelemetry();
 
-            platform.getAsyncScheduler().runAtFixedRate(platform::refreshListings, Duration.ZERO, Duration.ofHours(5));
+            platform.getAsyncScheduler().runAtFixedRate(() -> {
+                if (!setup) return;
+                platform.refreshListings();
+            }, Duration.ZERO, Duration.ofHours(5));
+
             platform.getAsyncScheduler().runAtFixedRate(() -> {
                 List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
                 if (runEvents.isEmpty()) return;

@@ -465,4 +465,25 @@ public interface Platform {
     default boolean isPlayerExcluded(UUID uniqueId) {
         throw new UnsupportedOperationException("isPlayerExcluded(UUID) is not implemented");
     }
+
+    default void printSetupMessage(boolean storeSetup, boolean analyticsSetup) {
+        String messagePart = !storeSetup && !analyticsSetup ? "Webstore and Analytics" : !storeSetup ? "Webstore" : !analyticsSetup ? "Analytics" : "";
+
+        info("Thanks for installing Tebex v" + getVersion() + " for " + getType().getName() + ".");
+
+        if (!storeSetup || !analyticsSetup) {
+            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
+            info(" ");
+
+            if (!storeSetup) {
+                info("Run 'tebex secret <key>' in the console to setup your Tebex Webstore.");
+            }
+            if (!analyticsSetup) {
+                info("Run 'analytics secret <key>' in the console to setup your Tebex Analytics.");
+            }
+
+            info(" ");
+            warning("We recommend running these commands from the console, to avoid accidentally sharing your secret keys in chat.");
+        }
+    }
 }

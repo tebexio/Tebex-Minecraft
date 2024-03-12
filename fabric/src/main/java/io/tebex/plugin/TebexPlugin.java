@@ -67,9 +67,6 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             return;
         }
 
-        System.out.println("MOD_VERSION = " + MOD_VERSION);
-        System.out.println("MOD_VERSION = " + Constants.VERSION);
-
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
             onEnable();
@@ -88,25 +85,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
         boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && !getPlatformConfig().getStoreSecretKey().isEmpty();
         boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && !getPlatformConfig().getAnalyticsSecretKey().isEmpty();
-
-        String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
-
-        info("Thanks for installing Tebex v" + MOD_VERSION + " for Fabric.");
-
-        if (!storeSetup || !analyticsSetup) {
-            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
-            warning(" ");
-
-            if (!storeSetup) {
-                warning("To setup your Tebex Store, run 'tebex secret <key>' in the console.");
-            }
-            if (!analyticsSetup) {
-                warning("To setup your Tebex Analytics, run 'analytics secret <key>' in the console.");
-            }
-
-            warning(" ");
-            warning("We recommend running these commands from the console to avoid accidentally sharing your secret keys in chat.");
-        }
+        printSetupMessage(storeSetup, analyticsSetup);
 
         // Initialise Managers.
         storeService = new StoreService(this);

@@ -17,6 +17,7 @@ public class HeartbeatManager {
 
     public void start() {
         task = platform.getScheduler().runAtFixedRate(() -> {
+            if(! platform.getAnalyticsManager().isSetup()) return;
             int playerCount = Bukkit.getOnlinePlayers().size();
 
             if(playerCount == 0) {

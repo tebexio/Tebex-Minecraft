@@ -28,12 +28,12 @@ import space.arim.morepaperlib.scheduling.RegionalScheduler;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -73,32 +73,15 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             floodgateHook = new FloodgateHook();
         }
 
+        // Migrate the config from BuycraftX.
+        migrateBuycraftConfig();
+
+        // Migrate the config from Analyse.
+        migrateAnalyseConfig();
+
         boolean storeSetup = getPlatformConfig().getStoreSecretKey() != null && !getPlatformConfig().getStoreSecretKey().isEmpty();
         boolean analyticsSetup = getPlatformConfig().getAnalyticsSecretKey() != null && !getPlatformConfig().getAnalyticsSecretKey().isEmpty();
-
-        String messagePart = !storeSetup && !analyticsSetup ? "Store and Analytics" : !storeSetup ? "Store" : !analyticsSetup ? "Analytics" : "";
-
-        info("Thanks for installing Tebex v" + getDescription().getVersion() + " for Spigot/Paper.");
-
-        if (!storeSetup || !analyticsSetup) {
-            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
-            warning(" ");
-
-            if (!storeSetup) {
-                warning("To setup your Tebex Store, run 'tebex secret <key>' in the console.");
-            }
-            if (!analyticsSetup) {
-                warning("To setup your Tebex Analytics, run 'analytics secret <key>' in the console.");
-            }
-
-            warning(" ");
-            warning("We recommend running these commands from the console to avoid accidentally sharing your secret keys in chat.");
-        }
-
-        // Migrate the config from BuycraftX.
-        migrateConfig();
-
-        // TODO: Migrate Analyse
+        printSetupMessage(storeSetup, analyticsSetup);
 
         // Initialise Managers.
         storeService = new StoreService(this);
@@ -113,6 +96,21 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
         if (analyticsSetup) {
             analyticsService.connect();
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        // cancel all async tasks
+        getServer().getScheduler().cancelTasks(this);
+
+        // shutdown all async tasks
+        if(storeService != null) {
+            storeService.setSetup(false);
+        }
+
+        if(analyticsService != null) {
+            analyticsService.setSetup(false);
         }
     }
 
@@ -340,7 +338,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         getServer().getPluginManager().registerEvents(l, this);
     }
 
-    public void migrateConfig() {
+    public void migrateBuycraftConfig() {
         File oldPluginDir = new File("plugins/BuycraftX");
         if (!oldPluginDir.exists()) return;
 
@@ -373,10 +371,6 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
                 config = loadServerPlatformConfig(configYaml);
 
-                storeService = new StoreService(this);
-                storeService.init();
-                storeService.connect();
-
                 info("Successfully migrated your config from BuycraftX.");
             }
 
@@ -385,20 +379,15 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             boolean deletedLegacyPluginJar = false;
 
             if (legacyPluginEnabled) {
-                try {
-                    JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin("BuycraftX");
+                JavaPlugin plugin = (JavaPlugin) Bukkit.getPluginManager().getPlugin("BuycraftX");
 
-                    if (plugin != null) {
-                        Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-                        getFileMethod.setAccessible(true);
-                        File file = (File) getFileMethod.invoke(plugin);
+                if (plugin != null) {
+                    File file = getPluginFile(plugin);
+                    Bukkit.getPluginManager().disablePlugin(plugin);
 
-                        Bukkit.getPluginManager().disablePlugin(plugin);
+                    if(file != null) {
                         deletedLegacyPluginJar = file.delete();
                     }
-                } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                    // Failed to get the plugin file via reflection.
-                    warning("Failed to delete the old BuycraftX files: " + e.getMessage());
                 }
             }
 
@@ -410,5 +399,79 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             warning("Failed to migrate config: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void migrateAnalyseConfig() {
+        File oldPluginDir = new File("plugins/Analyse");
+        if (!oldPluginDir.exists()) return;
+
+        File oldConfigFile = new File(oldPluginDir, "config.yml");
+        if (!oldConfigFile.exists()) return;
+
+        info("You're running the legacy Analyse plugin. Attempting to migrate..");
+
+        try {
+            // Load old properties
+            YamlDocument oldConfigYaml = YamlDocument.create(oldConfigFile, getResource("config.yml"));
+
+            // Migrate their existing config.
+            configYaml.set("analytics.excluded-players", oldConfigYaml.get("settings.excluded-players"));
+            configYaml.set("analytics.bedrock-prefix", oldConfigYaml.get("settings.bedrock-prefix"));
+            configYaml.set("analytics.use-server-playtime", oldConfigYaml.get("settings.use-server-playtime"));
+            configYaml.set("analytics.secret-key", oldConfigYaml.get("server.token"));
+
+            // Save new config
+            configYaml.save();
+
+            config = loadServerPlatformConfig(configYaml);
+
+            info("Successfully migrated your config from Analyse.");
+        } catch (IOException e) {
+            warning("Failed to migrate your config from Analyse: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // If Analyse is installed, delete it.
+            boolean legacyPluginEnabled = Bukkit.getPluginManager().isPluginEnabled("Analyse");
+            AtomicBoolean deletedLegacyPluginJar = new AtomicBoolean(false);
+
+            if (legacyPluginEnabled) {
+                JavaPlugin plugin = (JavaPlugin) Bukkit.getPluginManager().getPlugin("Analyse");
+
+                info("Disabling Analyse plugin..");
+
+                if (plugin != null) {
+                    File file = getPluginFile(plugin);
+                    Bukkit.getPluginManager().disablePlugin(plugin);
+
+                    if(file != null) {
+                        executeBlockingLater(() -> {
+                            deletedLegacyPluginJar.set(file.delete());
+
+                            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
+                            if (!deletedLegacyPluginDir || !deletedLegacyPluginJar.get()) {
+                                warning("Failed to delete the old Analyse files. Please delete them manually in your /plugins folder to avoid conflicts.");
+                            }
+                        }, 1, TimeUnit.SECONDS);
+                    }
+                }
+            }
+        }
+    }
+
+    public File getPluginFile(JavaPlugin plugin) {
+        final File pluginJar;
+
+        try {
+            Field getFileMethod = JavaPlugin.class.getDeclaredField("file");
+            getFileMethod.setAccessible(true);
+            pluginJar = (File) getFileMethod.get(plugin);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Failed to get the plugin file via reflection.
+            warning("Failed to get the " + plugin.getName() + " plugin file: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+
+        return pluginJar;
     }
 }

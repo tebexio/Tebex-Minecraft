@@ -1,11 +1,14 @@
 name: Tebex
 version: '${version}'
 main: io.tebex.plugin.TebexPlugin
+author: 'Tebex.io'
+website: "https://tebex.io"
 api-version: 1.13
 folia-supported: true
 softdepend:
   - BuycraftX
   - floodgate
+  - Analyse
 commands:
   analytics:
     description: The main command
