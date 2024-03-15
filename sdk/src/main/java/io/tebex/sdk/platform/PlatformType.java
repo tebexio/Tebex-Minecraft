@@ -1,27 +1,37 @@
 package io.tebex.sdk.platform;
 
 /**
- * The PlatformType enum represents the different server platforms supported by the Analyse SDK.
- * The current supported platforms include Bukkit, BungeeCord, and Velocity.
+ * The PlatformType enum represents the different server platforms supported by the Tebex SDK.
+ * The current supported platforms include Bukkit, BungeeCord, Velocity, and Fabric.
  */
 public enum PlatformType {
     /**
      * Represents the Bukkit server platform.
      */
-    BUKKIT,
+    BUKKIT("Spigot/Paper"),
 
     /**
      * Represents the BungeeCord server platform.
      */
-    BUNGEECORD,
+    BUNGEECORD("BungeeCord"),
 
     /**
      * Represents the Velocity server platform.
      */
-    VELOCITY,
+    VELOCITY("Velocity"),
 
     /**
      * Represents the Fabric server platform.
      */
-    FABRIC
+    FABRIC("Fabric");
+
+    private final String name;
+
+    PlatformType(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

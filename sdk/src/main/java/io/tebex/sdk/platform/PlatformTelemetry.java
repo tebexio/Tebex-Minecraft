@@ -1,5 +1,8 @@
 package io.tebex.sdk.platform;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * The PlatformTelemetry class contains information about the server platform
  * and environment, such as server software, plugin version, and Java version.
@@ -18,16 +21,20 @@ public class PlatformTelemetry {
      * @param pluginVersion The plugin version.
      * @param serverSoftware The server software name.
      * @param serverVersion The server version.
-     * @param javaVersion The Java version.
-     * @param systemArch The system architecture.
      * @param onlineMode The server's online mode status.
      */
-    public PlatformTelemetry(String pluginVersion, String serverSoftware, String serverVersion, String javaVersion, String systemArch, boolean onlineMode) {
+    public PlatformTelemetry(String pluginVersion, String serverSoftware, String serverVersion, boolean onlineMode) {
+        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
+        Matcher matcher = pattern.matcher(serverVersion);
+        if (matcher.find()) {
+            serverVersion = matcher.group(1);
+        }
+
         this.pluginVersion = pluginVersion;
         this.serverSoftware = serverSoftware;
         this.serverVersion = serverVersion;
-        this.javaVersion = javaVersion;
-        this.systemArch = systemArch;
+        this.javaVersion = System.getProperty("java.version");
+        this.systemArch = System.getProperty("os.arch");
         this.onlineMode = onlineMode;
     }
 

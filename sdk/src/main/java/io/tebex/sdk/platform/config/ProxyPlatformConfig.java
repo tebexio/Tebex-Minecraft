@@ -59,7 +59,7 @@ public class ProxyPlatformConfig implements IPlatformConfig {
      * @return The secret key.
      */
     @Override
-    public String getSecretKey() {
+    public String getStoreSecretKey() {
         return secretKey;
     }
 

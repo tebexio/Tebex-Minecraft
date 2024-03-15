@@ -7,7 +7,7 @@ import com.velocitypowered.api.command.SimpleCommand;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.command.TebexCommand;
-import io.tebex.plugin.command.sub.*;
+import io.tebex.plugin.store.command.sub.*;
 
 import java.util.Map;
 

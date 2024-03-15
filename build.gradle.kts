@@ -9,7 +9,7 @@ plugins {
 defaultTasks("shadowJar")
 
 group = "io.tebex"
-version = "2.0.4"
+version = "2.0.5-DEV"
 
 subprojects {
     plugins.apply("java")
@@ -26,7 +26,12 @@ subprojects {
     }
 
     repositories {
-        mavenCentral()
+        maven("https://mvn-repo.arim.space/lesser-gpl3/") {
+            name = "arim-lesser-gpl3"
+        }
+        maven("https://s01.oss.sonatype.org/content/groups/staging/") {
+            name = "sonatype-staging-repo"
+        }
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "spigotmc-repo"
         }
@@ -48,6 +53,7 @@ subprojects {
         maven("https://maven.nucleoid.xyz/") {
             name = "nucleoid"
         }
+        mavenCentral()
     }
 
     tasks.named("processResources", Copy::class.java) {

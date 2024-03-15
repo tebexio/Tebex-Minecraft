@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.tebex.plugin.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "ClientServerHandshakeMixin",
+    "HandshakeC2SPacketMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

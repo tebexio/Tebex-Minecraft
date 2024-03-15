@@ -1,9 +1,9 @@
 package io.tebex.plugin.command;
 
 import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.manager.CommandManager;
-import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.command.SimpleCommand;
+import io.tebex.plugin.manager.CommandManager;
 
 import java.util.Arrays;
 import java.util.List;

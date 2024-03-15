@@ -1,11 +1,52 @@
 name: Tebex
 version: '${version}'
 main: io.tebex.plugin.TebexPlugin
+author: 'Tebex.io'
+website: "https://tebex.io"
 api-version: 1.13
+folia-supported: true
 softdepend:
   - BuycraftX
+  - floodgate
+  - Analyse
 commands:
+  analytics:
+    description: The main command
+    permission: analytics.admin
+    aliases:
+      - analyse
+      - tebexanalytics
   tebex:
     description: The main command
+    permission: tebex.admin
     aliases:
       - buycraft
+permissions:
+  analytics.admin:
+    description: Allows debug command
+    default: op
+  analytics.debug:
+    description: Allows debug command
+    default: op
+  analytics.reload:
+    description: Allows reload command
+    default: op
+  analytics.setup:
+    description: Allows setup command
+    default: op
+  analytics.stats:
+    description: Allows stats command
+    default: op
+  analytics.track:
+    description: Allows track command
+    default: op
+  analytics.*:
+    description: Wildcard permission
+    default: op
+    children:
+      analytics.admin: true
+      analytics.debug: true
+      analytics.reload: true
+      analytics.setup: true
+      analytics.stats: true
+      analytics.track: true

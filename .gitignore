@@ -10,3 +10,5 @@ ignore/
 **/.DS_Store
 docs
 test/**
+MCServer/
+FabricMCServer/
