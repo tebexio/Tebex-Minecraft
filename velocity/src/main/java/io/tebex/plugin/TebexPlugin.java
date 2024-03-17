@@ -276,7 +276,7 @@ public class TebexPlugin implements Platform {
 
     @Override
     public String getVersion() {
-        return "@VERSION@";
+        return Constants.VERSION;
     }
 
     @Override
