@@ -15,10 +15,8 @@ var yarnMappings = properties["yarn_mappings"] as String
 var loaderVersion = properties["loader_version"] as String
 var fabricVersion = properties["fabric_version"] as String
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(16))
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
+tasks.compileJava.configure {
+    options.release.set(16)
 }
 
 sourceSets {

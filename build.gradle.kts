@@ -16,7 +16,6 @@ subprojects {
     plugins.apply("com.github.johnrengelman.shadow")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -26,6 +25,7 @@ subprojects {
     }
 
     repositories {
+        mavenCentral()
         maven("https://mvn-repo.arim.space/lesser-gpl3/") {
             name = "arim-lesser-gpl3"
         }
@@ -53,7 +53,6 @@ subprojects {
         maven("https://maven.nucleoid.xyz/") {
             name = "nucleoid"
         }
-        mavenCentral()
     }
 
     tasks.named("processResources", Copy::class.java) {

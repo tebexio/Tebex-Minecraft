@@ -22,11 +22,11 @@ dependencies {
     compileOnly("dev.dejvokep:boosted-yaml:1.3")
 }
 
+tasks.compileJava.configure {
+    options.release.set(17)
+}
+
 tasks {
-    compileJava {
-        options.release.set(17)
-        options.encoding = Charsets.UTF_8.name()
-    }
     shadowJar {
         configurations = listOf(project.configurations.runtimeClasspath.get())
 
@@ -39,5 +39,3 @@ tasks {
         minimize()
     }
 }
-
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
