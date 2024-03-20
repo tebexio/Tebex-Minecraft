@@ -2,6 +2,9 @@ package io.tebex.plugin.command;
 
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexPlugin;
+import net.kyori.adventure.text.Component;
+
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
 public abstract class SubCommand {
     private final TebexPlugin platform;
@@ -32,5 +35,9 @@ public abstract class SubCommand {
 
     public String getUsage() {
         return "";
+    }
+
+    protected Component getInvalidUsageMessage() {
+        return legacySection().deserialize("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
     }
 }
