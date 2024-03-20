@@ -83,7 +83,7 @@ public class QueuedCommand {
      * @return the required slots
      */
     public int getRequiredSlots() {
-        return requiredSlots == null ? 0 : delay;
+        return requiredSlots == null ? 0 : requiredSlots;
     }
 
     public QueuedPlayer getPlayer() {
