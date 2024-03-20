@@ -16,7 +16,7 @@ subprojects {
     plugins.apply("com.github.johnrengelman.shadow")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(JavaVersion.current().toString()))
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -26,11 +26,12 @@ subprojects {
     }
 
     repositories {
-        maven("https://mvn-repo.arim.space/lesser-gpl3/") {
-            name = "arim-lesser-gpl3"
+        mavenCentral()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+            name = "sonatype-snapshots"
         }
-        maven("https://s01.oss.sonatype.org/content/groups/staging/") {
-            name = "sonatype-staging-repo"
+        maven("https://mvn-repo.arim.space/lesser-gpl3/") {
+            name = "arim-repo"
         }
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "spigotmc-repo"
@@ -53,7 +54,6 @@ subprojects {
         maven("https://maven.nucleoid.xyz/") {
             name = "nucleoid"
         }
-        mavenCentral()
     }
 
     tasks.named("processResources", Copy::class.java) {

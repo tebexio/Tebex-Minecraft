@@ -15,12 +15,6 @@ var yarnMappings = properties["yarn_mappings"] as String
 var loaderVersion = properties["loader_version"] as String
 var fabricVersion = properties["fabric_version"] as String
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(16))
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
-}
-
 sourceSets {
     main {
         blossom {
@@ -29,6 +23,11 @@ sourceSets {
             }
         }
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
 }
 
 dependencies {
@@ -77,12 +76,4 @@ tasks.remapJar {
     archiveFileName.set("tebex-${project.name}-${project.version}.jar")
     archiveClassifier.set(shadowJar.archiveClassifier)
     delete(shadowJar.archiveFile)
-}
-
-tasks.register("copyToServer", Copy::class.java) {
-    from(project.tasks.named("remapJar").get().outputs)
-    into("${project.rootDir}/FabricMCServer/mods")
-
-    // rely on the shadowJar task to build the jar
-    dependsOn("shadowJar")
 }

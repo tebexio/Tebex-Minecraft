@@ -3,6 +3,11 @@ plugins {
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 sourceSets {
     main {
         blossom {
@@ -23,10 +28,6 @@ dependencies {
 }
 
 tasks {
-    compileJava {
-        options.release.set(17)
-        options.encoding = Charsets.UTF_8.name()
-    }
     shadowJar {
         configurations = listOf(project.configurations.runtimeClasspath.get())
 
@@ -39,5 +40,3 @@ tasks {
         minimize()
     }
 }
-
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
