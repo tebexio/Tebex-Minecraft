@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.analytics.obj.PlayerEvent;
 import io.tebex.sdk.platform.PlatformLang;
 import org.bukkit.Bukkit;
@@ -28,12 +29,6 @@ public class TrackCommand extends SubCommand {
             return;
         }
 
-        AnalysePlayer player = getPlatform().getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
-        if (player == null) {
-            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
-            return;
-        }
-
         String[] namespace = args[1].split(":", 2);
         String origin = namespace[0];
         String eventName = namespace[1];
@@ -44,12 +39,13 @@ public class TrackCommand extends SubCommand {
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> fields = gson.fromJson(jsonMetadata, type);
 
-        PlayerEvent event = new PlayerEvent(eventName, origin);
+        Event event = new Event(eventName, origin);
+        event.setPlayer(bukkitPlayer.getUniqueId());
         for(Map.Entry<String, Object> entry : fields.entrySet()) {
             event.withMetadata(entry.getKey(), entry.getValue());
         }
 
-        player.track(event);
+        getPlatform().getAnalyticsManager().addEvent(event);
         getPlatform().sendMessage(sender, PlatformLang.EVENT_TRACKED.get());
     }
 

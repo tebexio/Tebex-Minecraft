@@ -6,15 +6,24 @@ import com.intellectualsites.http.HttpResponse;
 import io.tebex.sdk.analytics.exception.ServerNotFoundException;
 import io.tebex.sdk.analytics.exception.ServerNotSetupException;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.analytics.response.PluginInformation;
 import io.tebex.sdk.analytics.response.ServerInformation;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.exception.RateLimitException;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformType;
+import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.util.HttpClientBuilder;
+import io.tebex.sdk.util.TrustAllCertificates;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -27,7 +36,7 @@ public class SDK {
     private final HttpClient HTTP_CLIENT;
 
     private final int API_VERSION = 1;
-    private final String SECRET_KEY_HEADER = "X-Server-Token";
+    private final String SECRET_KEY_HEADER = "X-Secret-Key";
 
     private final Platform platform;
     private String secretKey;
@@ -42,8 +51,19 @@ public class SDK {
         this.platform = platform;
         this.secretKey = secretKey;
 
-        HttpClientBuilder httpClientBuilder = new HttpClientBuilder(String.format("https://analytics.tebex.io/api/v%d", API_VERSION));
+        String baseUrl = String.format("https://tebexanalytics.test/api/v%d", API_VERSION);
+        HttpClientBuilder httpClientBuilder = new HttpClientBuilder(baseUrl);
         this.HTTP_CLIENT = httpClientBuilder.build();
+
+        // trust all certificates if the url contains ".test"
+        if (baseUrl.contains(".test")) {
+            try {
+                TrustAllCertificates.trustAllHttpsCertificates();
+                HttpsURLConnection.setDefaultHostnameVerifier(new TrustAllCertificates());
+            } catch (Exception e) {
+                // ignore
+            }
+        }
     }
 
     private void handleRequestErrors(HttpResponse req) {
@@ -52,6 +72,7 @@ public class SDK {
         } else if (req.getStatusCode() == 429) {
             throw new CompletionException(new RateLimitException("You are being rate limited."));
         } else if (req.getStatusCode() != 200) {
+            platform.warning("Body: " + new String(req.getRawResponse(), StandardCharsets.UTF_8));
             throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
         }
     }
@@ -295,6 +316,31 @@ public class SDK {
             JsonObject jsonObject = response.getResponseEntity(JsonObject.class);
 
             return jsonObject.get("success").getAsBoolean() ? jsonObject.get("country_code").getAsString() : null;
+        });
+    }
+
+    public CompletableFuture<Boolean> sendEvents(List<Event> events) {
+        if (getSecretKey() == null) {
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(new NotFoundException());
+            return future;
+        }
+
+        System.out.println("Sending events: " + GSON.toJson(events));
+
+        return CompletableFuture.supplyAsync(() -> {
+            final HttpResponse response = this.HTTP_CLIENT.post("/server/events")
+                    .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withInput(() -> GSON.toJson(events))
+                    .onStatus(204, req -> {})
+                    .onRemaining(this::handleRequestErrors)
+                    .execute();
+
+            if (response == null) {
+                throw new CompletionException(new IOException("Failed to send events"));
+            }
+
+            return true;
         });
     }
 

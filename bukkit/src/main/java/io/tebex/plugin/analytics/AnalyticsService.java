@@ -1,5 +1,6 @@
 package io.tebex.plugin.analytics;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.analytics.listener.JoinListener;
@@ -9,22 +10,28 @@ import io.tebex.plugin.analytics.manager.HeartbeatManager;
 import io.tebex.plugin.obj.ServiceManager;
 import io.tebex.sdk.analytics.SDK;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.obj.Event;
+import io.tebex.sdk.analytics.obj.PlayerEvent;
 import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.store.obj.ServerEvent;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 public class AnalyticsService implements ServiceManager {
     private final TebexPlugin platform;
     private final HeartbeatManager heartbeatManager;
-    private final ConcurrentMap<UUID, AnalysePlayer> players;
     private SDK sdk;
+    private final List<Event> events;
     private boolean setup;
 
     public AnalyticsService(TebexPlugin platform) {
         this.platform = platform;
-        this.players = Maps.newConcurrentMap();
         this.heartbeatManager = new HeartbeatManager(platform);
+        this.events = new ArrayList<>();
         sdk = new SDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
     }
 
@@ -43,6 +50,22 @@ public class AnalyticsService implements ServiceManager {
             platform.info(String.format("Connected to %s on Tebex Analytics.", serverInformation.getName()));
             this.setup = true;
             this.heartbeatManager.start();
+
+            platform.getAsyncScheduler().runAtFixedRate(() -> {
+                ArrayList<Event> runEvents = Lists.newArrayList(events.subList(0, Math.min(events.size(), 750)));
+                if (runEvents.isEmpty()) return;
+                if (!setup) return;
+
+                sdk.sendEvents(runEvents)
+                        .thenAccept(aVoid -> {
+                            events.removeAll(runEvents);
+                            platform.debug("Successfully sent pending events.");
+                        })
+                        .exceptionally(throwable -> {
+                            platform.debug("Failed to send pending events: " + throwable.getMessage());
+                            return null;
+                        });
+            }, Duration.ZERO, Duration.ofSeconds(10));
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
             this.setup = false;
@@ -78,15 +101,11 @@ public class AnalyticsService implements ServiceManager {
         return heartbeatManager;
     }
 
-    public ConcurrentMap<UUID, AnalysePlayer> getPlayers() {
-        return players;
+    public List<Event> getEvents() {
+        return events;
     }
 
-    public AnalysePlayer getPlayer(UUID uuid) {
-        return players.get(uuid);
-    }
-
-    public void removePlayer(UUID uuid) {
-        players.remove(uuid);
+    public void addEvent(Event event) {
+        events.add(event);
     }
 }

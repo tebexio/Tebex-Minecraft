@@ -1,15 +1,15 @@
 package io.tebex.plugin.analytics.listener;
 
+import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.analytics.obj.AnalysePlayer;
-import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.analytics.obj.Event;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.logging.Level;
+import java.util.Date;
 
 public class QuitListener implements Listener {
     private final TebexPlugin platform;
@@ -21,31 +21,10 @@ public class QuitListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player bukkitPlayer = event.getPlayer();
-        AnalysePlayer player = platform.getAnalyticsManager().getPlayer(bukkitPlayer.getUniqueId());
 
-        if(player == null) return;
+        Event playerEvent = new Event("player:quit", "Analyse", new Date(), bukkitPlayer.getUniqueId(), Maps.newHashMap());
+        platform.getAnalyticsManager().getEvents().add(playerEvent);
 
         platform.debug("Preparing to track " + bukkitPlayer.getName() + "..");
-
-        platform.getAnalyticsSDK().trackPlayerSession(player).thenAccept(successful -> {
-            if(! successful) {
-                platform.warning("Failed to track player session for " + player.getName() + ".");
-                return;
-            }
-
-            platform.getAnalyticsManager().removePlayer(player.getUniqueId());
-            platform.debug("Successfully tracked player session for " + player.getName() + ".");
-        }).exceptionally(ex -> {
-            Throwable cause = ex.getCause();
-            platform.log(Level.WARNING, "Failed to track player session: " + cause.getMessage());
-
-            if(cause instanceof NotFoundException) {
-                platform.halt();
-                return null;
-            }
-
-            cause.printStackTrace();
-            return null;
-        });
     }
 }

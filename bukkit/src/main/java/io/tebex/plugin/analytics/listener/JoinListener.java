@@ -3,6 +3,7 @@ package io.tebex.plugin.analytics.listener;
 import com.google.common.collect.Maps;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.analytics.obj.PlayerType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import org.bukkit.entity.Player;
@@ -73,8 +74,13 @@ public class JoinListener implements Listener {
 
         platform.debug("Tracking " + bukkitPlayer.getName() + " (" + player.getType() + ") that connected via: " + player.getDomain());
 
-        platform.getAnalyticsSDK().getCountryFromIp(player.getIpAddress()).thenAccept(player::setCountry);
-
-        platform.getAnalyticsManager().getPlayers().put(bukkitPlayer.getUniqueId(), player);
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("ip_address", player.getIpAddress());
+        metadata.put("username", player.getName());
+        metadata.put("domain", player.getDomain());
+        metadata.put("type", player.getType().name());
+        metadata.put("first_joined_at", player.getFirstJoinedAt());
+        Event playerEvent = new Event("player:join", "Analyse", new Date(), player.getUniqueId(), metadata);
+        platform.getAnalyticsManager().getEvents().add(playerEvent);
     }
 }
