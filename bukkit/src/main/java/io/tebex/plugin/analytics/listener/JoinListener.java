@@ -74,13 +74,12 @@ public class JoinListener implements Listener {
 
         platform.debug("Tracking " + bukkitPlayer.getName() + " (" + player.getType() + ") that connected via: " + player.getDomain());
 
-        Map<String, Object> metadata = Maps.newHashMap();
-        metadata.put("ip_address", player.getIpAddress());
-        metadata.put("username", player.getName());
-        metadata.put("domain", player.getDomain());
-        metadata.put("type", player.getType().name());
-        metadata.put("first_joined_at", player.getFirstJoinedAt());
-        Event playerEvent = new Event("player:join", "Analyse", new Date(), player.getUniqueId(), metadata);
-        platform.getAnalyticsManager().getEvents().add(playerEvent);
+        Event playerEvent = new Event("player:join", "Analyse", new Date(), bukkitPlayer.getUniqueId())
+                .withMetadata("ip_address", player.getIpAddress())
+                .withMetadata("username", player.getName())
+                .withMetadata("domain", player.getDomain())
+                .withMetadata("type", player.getType().name())
+                .withMetadata("first_joined_at", player.getFirstJoinedAt());
+        platform.getAnalyticsManager().addEvent(playerEvent);
     }
 }

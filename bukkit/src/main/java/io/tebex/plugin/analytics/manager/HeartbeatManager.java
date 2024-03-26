@@ -1,11 +1,11 @@
 package io.tebex.plugin.analytics.manager;
 
 import io.tebex.plugin.TebexPlugin;
-import io.tebex.sdk.exception.NotFoundException;
+import io.tebex.sdk.analytics.obj.Event;
 import org.bukkit.Bukkit;
 import space.arim.morepaperlib.scheduling.ScheduledTask;
 
-import java.util.logging.Level;
+import java.util.Date;
 
 public class HeartbeatManager {
     private final TebexPlugin platform;
@@ -25,25 +25,10 @@ public class HeartbeatManager {
                 return;
             }
 
-            platform.getAnalyticsSDK().trackHeartbeat(playerCount).thenAccept(successful -> {
-                if(! successful) {
-                    platform.warning("Failed to send server heartbeat.");
-                    return;
-                }
+            Event playerEvent = new Event("server:heartbeat", "Analyse", new Date()).withMetadata("players", playerCount);
+            platform.getAnalyticsManager().addEvent(playerEvent);
 
-                platform.debug("Successfully sent server heartbeat.");
-            }).exceptionally(ex -> {
-                Throwable cause = ex.getCause();
-                platform.log(Level.WARNING, "Failed to track server heartbeat: " + cause.getMessage());
-
-                if(cause instanceof NotFoundException) {
-                    platform.halt();
-                    return null;
-                }
-
-                cause.printStackTrace();
-                return null;
-            });
+            platform.debug("Successfully sent server heartbeat.");
         }, 1, 20 * 60);
     }
 

@@ -22,7 +22,7 @@ public class QuitListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player bukkitPlayer = event.getPlayer();
 
-        Event playerEvent = new Event("player:quit", "Analyse", new Date(), bukkitPlayer.getUniqueId(), Maps.newHashMap());
+        Event playerEvent = new Event("player:quit", "Analyse", new Date(), bukkitPlayer.getUniqueId());
         platform.getAnalyticsManager().getEvents().add(playerEvent);
 
         platform.debug("Preparing to track " + bukkitPlayer.getName() + "..");

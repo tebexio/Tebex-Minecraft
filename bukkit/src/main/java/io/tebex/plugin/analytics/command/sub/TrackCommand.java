@@ -39,8 +39,7 @@ public class TrackCommand extends SubCommand {
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> fields = gson.fromJson(jsonMetadata, type);
 
-        Event event = new Event(eventName, origin);
-        event.setPlayer(bukkitPlayer.getUniqueId());
+        Event event = new Event(eventName, origin, bukkitPlayer.getUniqueId());
         for(Map.Entry<String, Object> entry : fields.entrySet()) {
             event.withMetadata(entry.getKey(), entry.getValue());
         }

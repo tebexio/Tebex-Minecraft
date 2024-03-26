@@ -20,10 +20,26 @@ public class Event {
         this.metadata = Maps.newHashMap();
     }
 
+    public Event(String identifier, String origin, UUID player) {
+        this.identifier = identifier;
+        this.origin = origin;
+        this.timestamp = new Date();
+        this.player = player;
+        this.metadata = Maps.newHashMap();
+    }
+
     public Event(String identifier, String origin, Date timestamp) {
         this.identifier = identifier;
         this.origin = origin;
         this.timestamp = timestamp;
+        this.metadata = Maps.newHashMap();
+    }
+
+    public Event(String identifier, String origin, Date timestamp, UUID player) {
+        this.identifier = identifier;
+        this.origin = origin;
+        this.timestamp = timestamp;
+        this.player = player;
         this.metadata = Maps.newHashMap();
     }
 
@@ -55,11 +71,13 @@ public class Event {
         return metadata;
     }
 
-    public void setPlayer(UUID player) {
+    public Event forPlayer(UUID player) {
         this.player = player;
+        return this;
     }
 
-    public void withMetadata(String key, Object value) {
+    public Event withMetadata(String key, Object value) {
         metadata.put(key, value);
+        return this;
     }
 }
