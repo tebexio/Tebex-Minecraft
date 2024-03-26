@@ -26,6 +26,8 @@ tasks.named("shadowJar", ShadowJar::class.java) {
     relocate("kotlin", "io.tebex.plugin.libs.kotlin")
     relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
     relocate("com.google.gson", "io.tebex.plugin.libs.gson")
+    relocate("dev.triumphteam.gui", "io.tebex.plugin.libs.triumphgui")
+
     minimize()
 }
 
