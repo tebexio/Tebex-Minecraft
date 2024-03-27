@@ -314,6 +314,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         return playerCountService;
     }
 
+    public void setPlayerCountService(PlayerCountService playerCountService) {
+        this.playerCountService = playerCountService;
+    }
+
     @Override
     public boolean isPlayerExcluded(UUID uniqueId) {
         return getPlatformConfig().isPlayerExcluded(uniqueId);

@@ -35,6 +35,11 @@ analytics:
   # instead of when they first joined Analytics.
   use-server-playtime: true
 
+  # Multi-Instance
+  # If you are running an enterprise server, you can set this to true.
+  # By enabling this, you'll be required to configure heartbeats yourself.
+  multi-instance: false
+
   # Secret Key
   # This is used to identify your server on Tebex Analytics.
   secret-key: ''
