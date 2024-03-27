@@ -18,7 +18,9 @@ public class HeartbeatManager {
     public void start() {
         task = platform.getScheduler().runAtFixedRate(() -> {
             if(! platform.getAnalyticsManager().isSetup()) return;
-            int playerCount = Bukkit.getOnlinePlayers().size();
+            if(platform.getPlayerCountService() == null) return;
+
+            int playerCount = platform.getPlayerCountService().getPlayerCount();
 
             if(playerCount == 0) {
                 platform.debug("Not sending heartbeat as there are no players online.");
@@ -34,6 +36,7 @@ public class HeartbeatManager {
 
     public void stop() {
         if (task == null) return;
+
         task.cancel();
     }
 }

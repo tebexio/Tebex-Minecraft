@@ -3,12 +3,14 @@ package io.tebex.plugin;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.analytics.AnalyticsService;
 import io.tebex.plugin.analytics.hook.FloodgateHook;
+import io.tebex.plugin.analytics.service.BukkitPlayerCountService;
 import io.tebex.plugin.store.StoreService;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.platform.service.PlayerCountService;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.ServerEvent;
 import io.tebex.sdk.store.placeholder.PlaceholderManager;
@@ -46,6 +48,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     private AnalyticsService analyticsService;
     private FloodgateHook floodgateHook;
     private MorePaperLib morePaperLib;
+    private PlayerCountService playerCountService;
 
     /**
      * Starts the Bukkit plugin.
@@ -65,6 +68,10 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             warning("Failed to load config: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+
+        if(! config.isMultiInstance()) {
+            playerCountService = new BukkitPlayerCountService();
         }
 
         config.setFloodgateHook(getServer().getPluginManager().isPluginEnabled("floodgate"));
@@ -151,6 +158,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public void halt() {
+        getServer().getScheduler().cancelTasks(this);
+
         storeService.setSetup(false);
         analyticsService.setSetup(false);
     }
@@ -298,6 +307,11 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public String getServerIp() {
         return Bukkit.getIp();
+    }
+
+    @Override
+    public PlayerCountService getPlayerCountService() {
+        return playerCountService;
     }
 
     @Override

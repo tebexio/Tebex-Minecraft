@@ -4,6 +4,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.platform.config.IPlatformConfig;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
+import io.tebex.sdk.platform.service.PlayerCountService;
 import io.tebex.sdk.store.SDK;
 import io.tebex.sdk.store.obj.Category;
 import io.tebex.sdk.store.obj.QueuedCommand;
@@ -398,6 +399,7 @@ public interface Platform {
         config.setBedrockPrefix(configFile.getString("analytics.bedrock-prefix"));
         config.setAnalyticsSecretKey(configFile.getString("analytics.secret-key"));
         config.setDeveloperMode(configFile.getBoolean("analytics.developer-mode", false));
+        config.setMultiInstance(configFile.getBoolean("analytics.multi-instance", false));
 
         return config;
     }
@@ -462,6 +464,10 @@ public interface Platform {
      * @return IP address of the server as a string
      */
     String getServerIp();
+
+    default PlayerCountService getPlayerCountService() {
+        throw new UnsupportedOperationException("getPlayerCountService() is not implemented");
+    }
 
     default boolean isPlayerExcluded(UUID uniqueId) {
         throw new UnsupportedOperationException("isPlayerExcluded(UUID) is not implemented");

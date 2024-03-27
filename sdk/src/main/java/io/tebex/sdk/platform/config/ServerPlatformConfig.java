@@ -31,6 +31,7 @@ public class ServerPlatformConfig implements IPlatformConfig {
     private String bedrockPrefix;
     private boolean useServerFirstJoinedAt;
     private boolean developerMode;
+    private boolean multiInstance;
 
     /**
      * Creates a PlatformConfig instance with the provided configuration version.
@@ -98,6 +99,14 @@ public class ServerPlatformConfig implements IPlatformConfig {
      */
     public void setDeveloperMode(boolean developerMode) {
         this.developerMode = developerMode;
+    }
+    /**
+     * Sets whether to use the multi-instance mode.
+     *
+     * @param developerMode Whether to use multi-instance.
+     */
+    public void setMultiInstance(boolean multiInstance) {
+        this.multiInstance = multiInstance;
     }
 
     /**
@@ -216,6 +225,15 @@ public class ServerPlatformConfig implements IPlatformConfig {
      */
     public boolean isDeveloperMode() {
         return developerMode;
+    }
+
+    /**
+     * Returns whether the plugin should run in multi-instance mode (Used for Enterprise Networks).
+     *
+     * @return True if the plugin should be multi-instance mode.
+     */
+    public boolean isMultiInstance() {
+        return multiInstance;
     }
 
     /**

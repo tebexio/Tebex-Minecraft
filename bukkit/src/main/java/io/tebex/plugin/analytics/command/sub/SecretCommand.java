@@ -26,6 +26,7 @@ public class SecretCommand extends SubCommand {
         YamlDocument configFile = analyseConfig.getYamlDocument();
 
         analyticsSdk.setSecretKey(serverToken);
+        platform.halt();
 
         platform.getAnalyticsSDK().getServerInformation().thenAccept(serverInformation -> {
             analyseConfig.setAnalyticsSecretKey(serverToken);
