@@ -13,16 +13,13 @@ import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.exception.RateLimitException;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformType;
-import io.tebex.sdk.store.obj.ServerEvent;
+import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.util.HttpClientBuilder;
 import io.tebex.sdk.util.TrustAllCertificates;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -51,12 +48,22 @@ public class SDK {
         this.platform = platform;
         this.secretKey = secretKey;
 
-        String baseUrl = String.format("https://tebexanalytics.test/api/v%d", API_VERSION);
-        HttpClientBuilder httpClientBuilder = new HttpClientBuilder(baseUrl);
+        String baseUrl = "https://analytics.tebex.io/api/v%d";
+
+        if(platform instanceof ServerPlatformConfig) {
+            ServerPlatformConfig serverPlatformConfig = (ServerPlatformConfig) platform;
+
+            if(serverPlatformConfig.isDeveloperMode()) {
+                baseUrl = "https://tebexanalytics.test/api/v%d";
+            }
+        }
+
+        String url = String.format(baseUrl, API_VERSION);
+        HttpClientBuilder httpClientBuilder = new HttpClientBuilder(url);
         this.HTTP_CLIENT = httpClientBuilder.build();
 
         // trust all certificates if the url contains ".test"
-        if (baseUrl.contains(".test")) {
+        if (url.contains(".test")) {
             try {
                 TrustAllCertificates.trustAllHttpsCertificates();
                 HttpsURLConnection.setDefaultHostnameVerifier(new TrustAllCertificates());
@@ -329,7 +336,7 @@ public class SDK {
         System.out.println("Sending events: " + GSON.toJson(events));
 
         return CompletableFuture.supplyAsync(() -> {
-            final HttpResponse response = this.HTTP_CLIENT.post("/server/events")
+            final HttpResponse response = this.HTTP_CLIENT.post("/events")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(204, req -> {})

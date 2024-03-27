@@ -7,8 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.obj.SubCommand;
-import io.tebex.sdk.analytics.obj.AnalysePlayer;
-import io.tebex.sdk.analytics.obj.PlayerEvent;
+import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.platform.PlatformLang;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -42,13 +41,6 @@ public class TrackCommand extends SubCommand {
             return;
         }
 
-        AnalysePlayer player = getPlatform().getAnalyticsManager().getPlayer(playerEntity.getUuid());
-        this.getPlatform().sendMessage(sender, "Player: " + playerEntity.getName().asString() + " UUID: " + playerEntity.getUuid());
-        if (player == null) {
-            getPlatform().sendMessage(sender, PlatformLang.PLAYER_NOT_FOUND.get());
-            return;
-        }
-
         String eventArg = StringArgumentType.getString(context, "event");
         String[] namespace = eventArg.split(":", 2);
 
@@ -62,12 +54,12 @@ public class TrackCommand extends SubCommand {
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         Map<String, Object> fields = gson.fromJson(jsonMetadata, type);
 
-        PlayerEvent event = new PlayerEvent(eventName, origin);
-        for (Map.Entry<String, Object> entry : fields.entrySet()) {
+        Event event = new Event(eventName, origin, playerEntity.getUuid());
+        for(Map.Entry<String, Object> entry : fields.entrySet()) {
             event.withMetadata(entry.getKey(), entry.getValue());
         }
 
-        player.track(event);
+        getPlatform().getAnalyticsManager().addEvent(event);
         getPlatform().sendMessage(sender, PlatformLang.EVENT_TRACKED.get());
     }
 

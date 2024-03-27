@@ -74,7 +74,7 @@ public class JoinListener implements Listener {
 
         platform.debug("Tracking " + bukkitPlayer.getName() + " (" + player.getType() + ") that connected via: " + player.getDomain());
 
-        Event playerEvent = new Event("player:join", "Analyse", new Date(), bukkitPlayer.getUniqueId())
+        Event playerEvent = new Event("player:join", "Analyse", new Date(), player.getUniqueId())
                 .withMetadata("ip_address", player.getIpAddress())
                 .withMetadata("username", player.getName())
                 .withMetadata("domain", player.getDomain())

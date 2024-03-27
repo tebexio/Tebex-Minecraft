@@ -5,6 +5,7 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.mixin.HandshakeC2SPacketMixin;
 import io.tebex.plugin.util.FabricEventHandler;
 import io.tebex.sdk.analytics.obj.AnalysePlayer;
+import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -91,9 +92,13 @@ public class JoinListener implements ServerPlayConnectionEvents.Join {
 
         platform.debug("Tracking " + player.getName() + " (" + player.getType() + ") that connected via: " + player.getDomain());
 
-        platform.getAnalyticsSDK().getCountryFromIp(player.getIpAddress()).thenAccept(player::setCountry);
-
-        platform.getAnalyticsManager().getPlayers().put(player.getUniqueId(), player);
+        Event playerEvent = new Event("player:join", "Analyse", new Date(), player.getUniqueId())
+                .withMetadata("ip_address", player.getIpAddress())
+                .withMetadata("username", player.getName())
+                .withMetadata("domain", player.getDomain())
+                .withMetadata("type", player.getType().name())
+                .withMetadata("first_joined_at", player.getFirstJoinedAt());
+        platform.getAnalyticsManager().addEvent(playerEvent);
     }
 }
 

@@ -30,6 +30,7 @@ public class ServerPlatformConfig implements IPlatformConfig {
     private String analyticsSecretKey;
     private String bedrockPrefix;
     private boolean useServerFirstJoinedAt;
+    private boolean developerMode;
 
     /**
      * Creates a PlatformConfig instance with the provided configuration version.
@@ -88,6 +89,15 @@ public class ServerPlatformConfig implements IPlatformConfig {
      */
     public void setUseServerFirstJoinedAt(boolean useServerFirstJoinedAt) {
         this.useServerFirstJoinedAt = useServerFirstJoinedAt;
+    }
+
+    /**
+     * Sets whether to use the developer mode.
+     *
+     * @param developerMode Whether to use the developer mode.
+     */
+    public void setDeveloperMode(boolean developerMode) {
+        this.developerMode = developerMode;
     }
 
     /**
@@ -197,6 +207,15 @@ public class ServerPlatformConfig implements IPlatformConfig {
      */
     public boolean shouldUseServerFirstJoinedAt() {
         return useServerFirstJoinedAt;
+    }
+
+    /**
+     * Returns whether the plugin should run in developer mode (Local testing).
+     *
+     * @return True if the plugin should run in developer mode, false otherwise.
+     */
+    public boolean isDeveloperMode() {
+        return developerMode;
     }
 
     /**

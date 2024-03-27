@@ -48,6 +48,7 @@ public class AnalyticsService implements ServiceManager {
     public void connect() {
         sdk.getServerInformation().thenAccept(serverInformation -> {
             platform.info(String.format("Connected to %s on Tebex Analytics.", serverInformation.getName()));
+
             this.setup = true;
             this.heartbeatManager.start();
 
@@ -65,7 +66,7 @@ public class AnalyticsService implements ServiceManager {
                             platform.debug("Failed to send pending events: " + throwable.getMessage());
                             return null;
                         });
-            }, Duration.ZERO, Duration.ofSeconds(10));
+            }, Duration.ZERO, Duration.ofSeconds(30));
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
             this.setup = false;
@@ -79,6 +80,7 @@ public class AnalyticsService implements ServiceManager {
 
             platform.warning("Failed to get analytics information: " + cause.getMessage());
             cause.printStackTrace();
+
             return null;
         });
     }
@@ -95,10 +97,6 @@ public class AnalyticsService implements ServiceManager {
     @Override
     public void setSetup(boolean setup) {
         this.setup = setup;
-    }
-
-    public HeartbeatManager getHeartbeatManager() {
-        return heartbeatManager;
     }
 
     public List<Event> getEvents() {

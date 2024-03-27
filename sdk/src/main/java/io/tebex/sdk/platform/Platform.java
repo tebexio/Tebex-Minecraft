@@ -397,6 +397,7 @@ public interface Platform {
         config.setUseServerFirstJoinedAt(configFile.getBoolean("analytics.use-server-playtime", false));
         config.setBedrockPrefix(configFile.getString("analytics.bedrock-prefix"));
         config.setAnalyticsSecretKey(configFile.getString("analytics.secret-key"));
+        config.setDeveloperMode(configFile.getBoolean("analytics.developer-mode", false));
 
         return config;
     }
