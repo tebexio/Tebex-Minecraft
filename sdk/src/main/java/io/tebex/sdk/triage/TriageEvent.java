@@ -31,7 +31,6 @@ public class TriageEvent {
     private String serverIp;
     @SerializedName(value = "error_message")
     private String errorMessage;
-    private String trace;
     private Map<String, String> metadata;
     @SerializedName(value = "store_name")
     private String storeName;
@@ -45,7 +44,7 @@ public class TriageEvent {
     public static TriageEvent fromPlatform(Platform platform) {
         TriageEvent event = new TriageEvent(platform);
 
-        event.gameId = platform.getTelemetry().getServerSoftware();
+        event.gameId = "Minecraft " + platform.getTelemetry().getServerSoftware();
         event.frameworkId = platform.getTelemetry().getServerSoftware()
                 + " " + platform.getTelemetry().getServerVersion()
                 + " " + platform.getTelemetry().getJavaVersion();
@@ -93,11 +92,6 @@ public class TriageEvent {
 
     public TriageEvent withErrorMessage(String value) {
         this.errorMessage = value;
-        return this;
-    }
-
-    public TriageEvent withTrace(String value) {
-        this.trace = trace;
         return this;
     }
 
