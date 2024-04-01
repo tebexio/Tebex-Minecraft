@@ -20,10 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -190,6 +187,10 @@ public interface Platform {
     }
 
     default void sendTriageEvent(String errorMessage) {
+        StringWriter traceWriter = new StringWriter();
+        new Exception("stack trace for error message").printStackTrace(new PrintWriter(traceWriter));
+        HashMap<String, String> metadata = new HashMap<>();
+
         TriageEvent.fromPlatform(this).withErrorMessage(errorMessage).send();
     }
 
@@ -197,9 +198,11 @@ public interface Platform {
         StringWriter traceWriter = new StringWriter();
         exception.printStackTrace(new PrintWriter(traceWriter));
 
+        HashMap<String, String> metadata = new HashMap<>();
+        metadata.put("trace", traceWriter.toString());
         TriageEvent event = TriageEvent.fromPlatform(this)
                 .withErrorMessage(exception.getMessage())
-                .withTrace(traceWriter.toString());
+                .withMetadata(metadata);
 
         event.send();
     }
