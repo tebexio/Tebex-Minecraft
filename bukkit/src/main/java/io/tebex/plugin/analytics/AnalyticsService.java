@@ -14,6 +14,7 @@ import io.tebex.sdk.analytics.obj.Event;
 import io.tebex.sdk.analytics.obj.PlayerEvent;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.store.obj.ServerEvent;
+import org.bukkit.event.HandlerList;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -24,6 +25,9 @@ import java.util.concurrent.ConcurrentMap;
 public class AnalyticsService implements ServiceManager {
     private final TebexPlugin platform;
     private final HeartbeatManager heartbeatManager;
+    private final JoinListener joinListener;
+    private final QuitListener quitListener;
+
     private SDK sdk;
     private final List<Event> events;
     private boolean setup;
@@ -33,15 +37,22 @@ public class AnalyticsService implements ServiceManager {
         this.heartbeatManager = new HeartbeatManager(platform);
         this.events = new ArrayList<>();
         sdk = new SDK(platform, platform.getPlatformConfig().getAnalyticsSecretKey());
+
+        this.joinListener = new JoinListener(platform);
+        this.quitListener = new QuitListener(platform);
     }
 
     @Override
     public void init() {
         new CommandManager(platform).register();
 
+        // Unregister prior events.
+        HandlerList.unregisterAll(joinListener);
+        HandlerList.unregisterAll(quitListener);
+
         // Register events.
-        platform.registerEvents(new JoinListener(platform));
-        platform.registerEvents(new QuitListener(platform));
+        platform.registerEvents(joinListener);
+        platform.registerEvents(quitListener);
     }
 
     @Override
