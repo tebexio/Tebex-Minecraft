@@ -333,7 +333,7 @@ public class SDK {
             return future;
         }
 
-        System.out.println("Sending events: " + GSON.toJson(events));
+        platform.debug("Sending events: " + GSON.toJson(events));
 
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/events")
