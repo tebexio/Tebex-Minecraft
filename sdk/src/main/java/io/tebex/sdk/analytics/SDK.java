@@ -73,7 +73,7 @@ public class SDK {
         }
     }
 
-    private void handleRequestErrors(HttpResponse req) {
+    private void handleResponseErrors(HttpResponse req) {
         if (req.getStatusCode() == 404) {
             throw new CompletionException(new ServerNotFoundException());
         } else if (req.getStatusCode() == 429) {
@@ -97,7 +97,7 @@ public class SDK {
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -134,7 +134,7 @@ public class SDK {
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -190,7 +190,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(player))
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -219,7 +219,7 @@ public class SDK {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/setup")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -252,7 +252,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -282,7 +282,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(platform.getTelemetry()))
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -313,7 +313,7 @@ public class SDK {
             final HttpResponse response = this.HTTP_CLIENT.get("/ip/" + ip)
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .onStatus(200, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if(response == null) {
@@ -340,7 +340,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(204, req -> {})
-                    .onRemaining(this::handleRequestErrors)
+                    .onRemaining(this::handleResponseErrors)
                     .execute();
 
             if (response == null) {
