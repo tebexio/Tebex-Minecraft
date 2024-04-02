@@ -80,6 +80,7 @@ public class AnalyticsService implements ServiceManager {
             }, Duration.ZERO, Duration.ofSeconds(30));
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
+
             this.setup = false;
             this.heartbeatManager.stop();
 

@@ -11,6 +11,7 @@ import io.tebex.sdk.analytics.response.PluginInformation;
 import io.tebex.sdk.analytics.response.ServerInformation;
 import io.tebex.sdk.exception.NotFoundException;
 import io.tebex.sdk.exception.RateLimitException;
+import io.tebex.sdk.exception.ResponseException;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
@@ -48,17 +49,11 @@ public class SDK {
         this.platform = platform;
         this.secretKey = secretKey;
 
-        String baseUrl = "https://analytics.tebex.io/api/v%d";
-
-        if(platform instanceof ServerPlatformConfig) {
-            ServerPlatformConfig serverPlatformConfig = (ServerPlatformConfig) platform;
-
-            if(serverPlatformConfig.isDeveloperMode()) {
-                baseUrl = "https://tebexanalytics.test/api/v%d";
-            }
+        if(System.getProperty("tebex.analytics.url") != null) {
+            platform.warning("Setting API URL to " + System.getProperty("tebex.analytics.url"));
         }
 
-        String url = String.format(baseUrl, API_VERSION);
+        String url = System.getProperty("tebex.analytics.url", String.format("https://analytics.tebex.io/api/v%d", API_VERSION));
         HttpClientBuilder httpClientBuilder = new HttpClientBuilder(url);
         this.HTTP_CLIENT = httpClientBuilder.build();
 
@@ -79,8 +74,17 @@ public class SDK {
         } else if (req.getStatusCode() == 429) {
             throw new CompletionException(new RateLimitException("You are being rate limited."));
         } else if (req.getStatusCode() != 200) {
-            platform.warning("Body: " + new String(req.getRawResponse(), StandardCharsets.UTF_8));
-            throw new CompletionException(new IOException("Unexpected status code (" + req.getStatusCode() + ")"));
+            JsonObject body = req.getResponseEntity(JsonObject.class);
+
+            if(body.has("message")) {
+                throw new CompletionException(new ResponseException("Unexpected status code " + req.getStatusCode() + " (" + body.get("message").getAsString() + ")"));
+            }
+
+            if(platform.getPlatformConfig().isVerbose()) {
+                platform.warning("Received response: " + new String(req.getRawResponse(), StandardCharsets.UTF_8));
+            }
+
+            throw new CompletionException(new ResponseException("Unexpected status code (" + req.getStatusCode() + ")"));
         }
     }
 
@@ -96,6 +100,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
                     .execute();
@@ -133,6 +138,7 @@ public class SDK {
                     .withHeader(SECRET_KEY_HEADER, secretKey)
                     .withHeader("User-Agent", "Tebex-SDK")
                     .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
                     .execute();
@@ -188,6 +194,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/sessions")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .withInput(() -> GSON.toJson(player))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
@@ -218,6 +227,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/server/setup")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
                     .execute();
@@ -250,6 +262,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/heartbeat")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .withInput(() -> GSON.toJson(body))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
@@ -280,6 +295,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/server/telemetry")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .withInput(() -> GSON.toJson(platform.getTelemetry()))
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
@@ -312,6 +330,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.get("/ip/" + ip)
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .onStatus(200, req -> {})
                     .onRemaining(this::handleResponseErrors)
                     .execute();
@@ -338,6 +359,9 @@ public class SDK {
         return CompletableFuture.supplyAsync(() -> {
             final HttpResponse response = this.HTTP_CLIENT.post("/events")
                     .withHeader(SECRET_KEY_HEADER, secretKey)
+                    .withHeader("User-Agent", "Tebex-SDK")
+                    .withHeader("Content-Type", "application/json")
+                    .withHeader("Accept", "application/json")
                     .withInput(() -> GSON.toJson(events))
                     .onStatus(204, req -> {})
                     .onRemaining(this::handleResponseErrors)
