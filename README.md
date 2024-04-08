@@ -1,9 +1,11 @@
 ![Logo](https://www.tebex.io/assets/img/logos/tebex.svg#gh-light-mode-only)
+
 ![Static Badge](https://img.shields.io/badge/spigot-1.8--1.20-brightgreen)
 ![Static Badge](https://img.shields.io/badge/fabric-1.16.5+-brightgreen)
 ![Static Badge](https://img.shields.io/badge/bungeecord-1.18+-brightgreen)
 ![Static Badge](https://img.shields.io/badge/waterfall-1.18+-brightgreen)
 ![Static Badge](https://img.shields.io/badge/velocity-1.16.5+-brightgreen)
+![Static Badge](https://img.shields.io/badge/folia-1.20+-brightgreen)
 
 ## What Is Tebex?
 Tebex is a game monetization engine featuring over 120 payment methods, chargeback protection, fraud protection, and 3-day payouts. Tebex allows you to sell items, subscriptions, and more from an in-game customized shop.

@@ -2,17 +2,17 @@ package io.tebex.plugin;
 
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.plugin.event.JoinListener;
+import io.tebex.plugin.listener.JoinListener;
 import io.tebex.plugin.manager.CommandManager;
-import io.tebex.sdk.SDK;
 import io.tebex.sdk.Tebex;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.Platform;
 import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.store.SDK;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.response.ServerInformation;
 import io.tebex.sdk.util.FileUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -22,14 +22,11 @@ import net.md_5.bungee.api.plugin.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class TebexPlugin extends Plugin implements Platform {
     private SDK sdk;
@@ -61,7 +58,7 @@ public class TebexPlugin extends Plugin implements Platform {
         new CommandManager(this).register();
 
         // Initialise SDK.
-        sdk = new SDK(this, config.getSecretKey());
+        sdk = new SDK(this, config.getStoreSecretKey());
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
@@ -74,11 +71,10 @@ public class TebexPlugin extends Plugin implements Platform {
         migrateConfig();
 
         // Initialise the platform.
-        init();
 
         getProxy().getScheduler().schedule(this, () -> {
-            getSDK().getServerInformation().thenAccept(information -> storeInformation = information);
-            getSDK().getListing().thenAccept(listing -> storeCategories = listing);
+            getStoreSDK().getServerInformation().thenAccept(information -> storeInformation = information);
+            getStoreSDK().getListing().thenAccept(listing -> storeCategories = listing);
         }, 0, 5, TimeUnit.MINUTES);
     }
 
@@ -119,7 +115,7 @@ public class TebexPlugin extends Plugin implements Platform {
 
                 config = loadProxyPlatformConfig(configYaml);
 
-                sdk = new SDK(this, config.getSecretKey());
+                sdk = new SDK(this, config.getStoreSecretKey());
 
                 info("Successfully migrated your config from BuycraftX.");
             }
@@ -170,7 +166,7 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public SDK getSDK() {
+    public SDK getStoreSDK() {
         return sdk;
     }
 
@@ -180,13 +176,8 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public boolean isSetup() {
+    public boolean isStoreSetup() {
         return setup;
-    }
-
-    @Override
-    public void setSetup(boolean setup) {
-        this.setup = setup;
     }
 
     @Override
@@ -194,7 +185,6 @@ public class TebexPlugin extends Plugin implements Platform {
         return false;
     }
 
-    @Override
     public void configure() {
         setup = true;
         performCheck();
@@ -289,18 +279,10 @@ public class TebexPlugin extends Plugin implements Platform {
     public PlatformTelemetry getTelemetry() {
         String serverVersion = getProxy().getVersion();
 
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
-        Matcher matcher = pattern.matcher(serverVersion);
-        if (matcher.find()) {
-            serverVersion = matcher.group(1);
-        }
-
         return new PlatformTelemetry(
                 getVersion(),
                 getProxy().getName(),
                 serverVersion,
-                System.getProperty("java.version"),
-                System.getProperty("os.arch"),
                 getProxy().getConfig().isOnlineMode()
         );
     }
@@ -319,7 +301,7 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public void setStoreInfo(ServerInformation info) {
+    public void setStoreInformation(ServerInformation info) {
         this.storeInformation = info;
     }
 

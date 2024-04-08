@@ -9,14 +9,14 @@ plugins {
 defaultTasks("shadowJar")
 
 group = "io.tebex"
-version = "2.0.4"
+version = "2.0.5-DEV"
 
 subprojects {
     plugins.apply("java")
     plugins.apply("com.github.johnrengelman.shadow")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(JavaVersion.current().toString()))
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -27,6 +27,12 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+            name = "sonatype-snapshots"
+        }
+        maven("https://mvn-repo.arim.space/lesser-gpl3/") {
+            name = "arim-repo"
+        }
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "spigotmc-repo"
         }

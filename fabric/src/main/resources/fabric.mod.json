@@ -6,6 +6,9 @@
   "description": "The Tebex adapter.",
   "authors": [],
   "contact": {},
+  "mixins": [
+    "tebex.mixins.json"
+  ],
   "license": "MIT",
   "environment": "server",
   "entrypoints": {

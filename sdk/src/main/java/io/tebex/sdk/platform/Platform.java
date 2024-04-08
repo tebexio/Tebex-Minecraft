@@ -1,17 +1,17 @@
 package io.tebex.sdk.platform;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import io.tebex.sdk.SDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
-import io.tebex.sdk.obj.Category;
-import io.tebex.sdk.obj.QueuedCommand;
-import io.tebex.sdk.obj.QueuedPlayer;
-import io.tebex.sdk.placeholder.PlaceholderManager;
 import io.tebex.sdk.platform.config.IPlatformConfig;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
-import io.tebex.sdk.request.response.ServerInformation;
-import io.tebex.sdk.triage.TriageEvent;
+import io.tebex.sdk.platform.service.PlayerCountService;
+import io.tebex.sdk.store.SDK;
+import io.tebex.sdk.store.obj.Category;
+import io.tebex.sdk.store.obj.QueuedCommand;
+import io.tebex.sdk.store.obj.QueuedPlayer;
+import io.tebex.sdk.store.placeholder.PlaceholderManager;
+import io.tebex.sdk.store.response.ServerInformation;
+import io.tebex.sdk.store.triage.TriageEvent;
 import io.tebex.sdk.util.StringUtil;
 import io.tebex.sdk.util.UUIDUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
 
@@ -51,11 +52,20 @@ public interface Platform {
     String getStoreType();
 
     /**
-     * Gets the SDK instance associated with this platform.
+     * Gets the Store SDK instance associated with this platform.
      *
      * @return The SDK instance.
      */
-    SDK getSDK();
+    SDK getStoreSDK();
+
+    /**
+     * Gets the Analytics SDK instance associated with this platform.
+     *
+     * @return The SDK instance.
+     */
+    default io.tebex.sdk.analytics.SDK getAnalyticsSDK() {
+        throw new UnsupportedOperationException("getAnalyticsSDK is not implemented");
+    }
 
     /**
      * Gets the directory where the plugin is running from.
@@ -69,12 +79,11 @@ public interface Platform {
      *
      * @return True if the platform is set up, false otherwise.
      */
-    boolean isSetup();
+    boolean isStoreSetup();
 
-    /**
-     * Sets whether the platform is set up and ready to use.
-     */
-    void setSetup(boolean setup);
+    default boolean isAnalyticsSetup() {
+        return false;
+    }
 
     /**
      * Checks if the platform is in online mode.
@@ -89,7 +98,7 @@ public interface Platform {
      * @return Whether the store is a Offline/Geyser type webstore
      */
     default boolean isGeyser() {
-        if (!isSetup()) return false;
+        if (!isStoreSetup()) return false;
 
         if (getStoreType() == null || getStoreType().isEmpty()) {
             return false;
@@ -101,42 +110,14 @@ public interface Platform {
     /**
      * Configures the platform for use.
      */
-    void configure();
+    default void configure() {
+
+    }
 
     /**
      * Halts the platform and stops any ongoing tasks.
      */
     void halt();
-
-    default void init() {
-        if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
-            getSDK().getServerInformation().thenAccept(serverInformation -> {
-                ServerInformation.Server server = serverInformation.getServer();
-                ServerInformation.Store store = serverInformation.getStore();
-
-                info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
-
-                setSetup(true);
-                configure();
-            }).exceptionally(ex -> {
-                Throwable cause = ex.getCause();
-                setSetup(false);
-
-                if (cause instanceof ServerNotFoundException) {
-                    warning("Failed to connect. Please double-check your server key or run the setup command again.");
-                    this.halt();
-                } else {
-                    warning("Failed to get server information: " + cause.getMessage());
-                    cause.printStackTrace();
-                }
-
-                return null;
-            });
-        } else {
-            log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
-            log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
-        }
-    }
 
     PlaceholderManager getPlaceholderManager();
 
@@ -160,12 +141,12 @@ public interface Platform {
     }
 
     default void performCheck(boolean runAfter) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         debug("Checking for due players..");
         getQueuedPlayers().clear();
 
-        getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
+        getStoreSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
             if (runAfter) {
                 int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
                 executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
@@ -205,17 +186,18 @@ public interface Platform {
     }
 
     default void handleOnlineCommands(QueuedPlayer player) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         debug("Processing online commands for player '" + player.getName() + "'...");
         Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
+
         if(!isPlayerOnline(playerId)) {
             debug("Player " + player.getName() + " has online commands but is not connected. Skipping.");
             getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects
             return;
         }
 
-        getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
+        getStoreSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
             if(onlineCommands.isEmpty()) {
                 debug("No commands found for " + player.getName() + ".");
                 return;
@@ -255,7 +237,7 @@ public interface Platform {
      * @param commands The commands to process.
      */
     default void processOnlineCommands(String playerName, Object playerId, List<QueuedCommand> commands) {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
         List<Integer> completedCommands = new ArrayList<>();
         boolean hasInventorySpace = true;
@@ -288,9 +270,9 @@ public interface Platform {
     }
 
     default void handleOfflineCommands() {
-        if(! isSetup()) return;
+        if(! isStoreSetup()) return;
 
-        getSDK().getOfflineCommands().thenAccept(offlineData -> {
+        getStoreSDK().getOfflineCommands().thenAccept(offlineData -> {
             if(offlineData.getCommands().isEmpty()) {
                 return;
             }
@@ -322,7 +304,7 @@ public interface Platform {
     }
 
     default void deleteCompletedCommands(List<Integer> completedCommands) {
-        getSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
+        getStoreSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
             warning("Failed to delete commands: " + ex.getMessage());
             ex.printStackTrace();
             sendTriageEvent(ex);
@@ -402,7 +384,8 @@ public interface Platform {
             return config;
         }
 
-        config.setSecretKey(configFile.getString("server.secret-key"));
+        /* Tebex Store */
+        config.setStoreSecretKey(configFile.getString("server.secret-key"));
         config.setBuyCommandName(configFile.getString("buy-command.name", "buy"));
         config.setBuyCommandEnabled(configFile.getBoolean("buy-command.enabled", true));
 
@@ -411,6 +394,14 @@ public interface Platform {
 
         config.setProxyMode(configFile.getBoolean("server.proxy", false));
         config.setAutoReportEnabled(configFile.getBoolean("auto-report-enabled", true));
+
+        /* Tebex Analytics */
+        config.setExcludedPlayers(configFile.getStringList("analytics.excluded-players").stream().map(UUID::fromString).collect(Collectors.toList()));
+        config.setUseServerFirstJoinedAt(configFile.getBoolean("analytics.use-server-playtime", false));
+        config.setBedrockPrefix(configFile.getString("analytics.bedrock-prefix"));
+        config.setAnalyticsSecretKey(configFile.getString("analytics.secret-key"));
+        config.setDeveloperMode(configFile.getBoolean("analytics.developer-mode", false));
+        config.setMultiInstance(configFile.getBoolean("analytics.multi-instance", false));
 
         return config;
     }
@@ -436,11 +427,22 @@ public interface Platform {
     }
 
     default void refreshListings() {
-        getSDK().getServerInformation().thenAccept(this::setStoreInfo);
-        getSDK().getListing().thenAccept(this::setStoreCategories);
+        getStoreSDK().getServerInformation()
+                .thenAccept(this::setStoreInformation)
+                .exceptionally(ex -> {
+                    warning("Failed to get server information: " + ex.getMessage());
+                    sendTriageEvent(ex);
+                    return null;
+                });
+        getStoreSDK().getListing()
+                .thenAccept(this::setStoreCategories).exceptionally(ex -> {
+            warning("Failed to get store categories: " + ex.getMessage());
+            sendTriageEvent(ex);
+            return null;
+        });
     }
 
-    void setStoreInfo(ServerInformation info);
+    void setStoreInformation(ServerInformation info);
 
     void setStoreCategories(List<Category> categories);
 
@@ -464,4 +466,33 @@ public interface Platform {
      * @return IP address of the server as a string
      */
     String getServerIp();
+
+    default PlayerCountService getPlayerCountService() {
+        throw new UnsupportedOperationException("getPlayerCountService() is not implemented");
+    }
+
+    default boolean isPlayerExcluded(UUID uniqueId) {
+        throw new UnsupportedOperationException("isPlayerExcluded(UUID) is not implemented");
+    }
+
+    default void printSetupMessage(boolean storeSetup, boolean analyticsSetup) {
+        String messagePart = !storeSetup && !analyticsSetup ? "Webstore and Analytics" : !storeSetup ? "Webstore" : !analyticsSetup ? "Analytics" : "";
+
+        info("Thanks for installing Tebex v" + getVersion() + " for " + getType().getName() + ".");
+
+        if (!storeSetup || !analyticsSetup) {
+            warning("It seems that you're using a fresh install, or haven't configured your " + messagePart + " secret keys yet!");
+            info(" ");
+
+            if (!storeSetup) {
+                info("Run 'tebex secret <key>' in the console to setup your Tebex Webstore.");
+            }
+            if (!analyticsSetup) {
+                info("Run 'analytics secret <key>' in the console to setup your Tebex Analytics.");
+            }
+
+            info(" ");
+            warning("We recommend running these commands from the console, to avoid accidentally sharing your secret keys in chat.");
+        }
+    }
 }

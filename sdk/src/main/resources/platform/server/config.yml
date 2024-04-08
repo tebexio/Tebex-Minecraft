@@ -16,6 +16,34 @@ auto-report-enabled: true
 # Debug Mode
 verbose: false
 
+# Settings for Tebex Analytics - https://analytics.tebex.io
+# Check out https://docs.tebex.io/analytics for more information.
+analytics:
+  # Excluded Players (UUID)
+  # Players listed here will not be tracked by Analytics.
+  excluded-players: [ ]
+
+  # Bedrock Username Prefix
+  # The prefix to distinguish between Java and Bedrock players.
+  #
+  # Note: It will use the prefix from the floodgate plugin
+  # when 'hooks.floodgate.enabled' is set to 'true'.
+  bedrock-prefix: "."
+
+  # Use Server Playtime
+  # Use the date the player joined your server as their first session,
+  # instead of when they first joined Analytics.
+  use-server-playtime: true
+
+  # Multi-Instance
+  # If you are running an enterprise server, you can set this to true.
+  # By enabling this, you'll be required to configure heartbeats yourself.
+  multi-instance: false
+
+  # Secret Key
+  # This is used to identify your server on Tebex Analytics.
+  secret-key: ''
+
 # GUI Settings
 gui:
   menu:

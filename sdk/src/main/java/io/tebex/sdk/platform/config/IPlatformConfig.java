@@ -7,7 +7,7 @@ import dev.dejvokep.boostedyaml.YamlDocument;
  */
 public interface IPlatformConfig {
     int getConfigVersion();
-    String getSecretKey();
+    String getStoreSecretKey();
     boolean isVerbose();
     YamlDocument getYamlDocument();
 }
