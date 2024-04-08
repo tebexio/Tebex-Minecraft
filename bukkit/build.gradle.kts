@@ -22,6 +22,8 @@ tasks.named("shadowJar", ShadowJar::class.java) {
     relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
     relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
     relocate("com.google.gson", "io.tebex.plugin.libs.gson")
+    relocate("dev.triumphteam.gui", "io.tebex.plugin.libs.triumphgui")
+
     minimize()
 }
 
