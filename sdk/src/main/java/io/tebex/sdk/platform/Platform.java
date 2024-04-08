@@ -146,9 +146,16 @@ public interface Platform {
         debug("Checking for due players..");
         getQueuedPlayers().clear();
 
-        getStoreSDK().getDuePlayers().thenAccept(duePlayersResponse -> {
-            if(runAfter) {
-                executeAsyncLater(this::performCheck, duePlayersResponse.getNextCheck(), TimeUnit.SECONDS);
+        getStoreSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
+            if (runAfter) {
+                int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
+                executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
+            }
+            if (ex != null) {
+                warning("Failed to get due players: " + ex.getMessage());
+                ex.printStackTrace();
+                sendTriageEvent(ex);
+                return;
             }
 
             List<QueuedPlayer> playerList = duePlayersResponse.getPlayers();
@@ -160,11 +167,6 @@ public interface Platform {
 
             if(! duePlayersResponse.canExecuteOffline()) return;
             handleOfflineCommands();
-        }).exceptionally(ex -> {
-            warning("Failed to perform check: " + ex.getMessage());
-            ex.printStackTrace();
-            sendTriageEvent(ex);
-            return null;
         });
     }
 

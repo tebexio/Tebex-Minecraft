@@ -6,8 +6,10 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.util.StringUtil;
+import net.kyori.adventure.text.Component;
 
 import java.io.IOException;
+import java.util.Set;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
@@ -18,6 +20,11 @@ public class DebugCommand extends SubCommand {
 
     @Override
     public void execute(CommandSource sender, String[] args) {
+        if (args.length != 1) { // require option
+            sender.sendMessage(getInvalidUsageMessage());
+            return;
+        }
+
         TebexPlugin platform = getPlatform();
 
         ProxyPlatformConfig config = platform.getPlatformConfig();
@@ -32,7 +39,7 @@ public class DebugCommand extends SubCommand {
             config.setVerbose(false);
             configFile.set("verbose", false);
         } else {
-            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
+            sender.sendMessage(getInvalidUsageMessage());
         }
 
         try {

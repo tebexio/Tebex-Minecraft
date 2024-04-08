@@ -18,7 +18,7 @@ public class BanCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (args.length < 1) { // require username at minimum
-            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage()));
+            sender.sendMessage(getInvalidUsageMessage());
             return;
         }
 
