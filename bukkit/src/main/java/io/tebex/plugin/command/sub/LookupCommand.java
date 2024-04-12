@@ -34,7 +34,7 @@ public class LookupCommand extends SubCommand {
             CompletableFuture<PlayerLookupInfo> future = platform.getSDK().getPlayerLookupInfo(username);
             lookupInfo = future.get();
         } catch (InterruptedException|ExecutionException e) {
-            sender.sendMessage("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage());
+            sender.sendMessage("§b[Tebex] §7" + e.getMessage());
             return;
         }
 

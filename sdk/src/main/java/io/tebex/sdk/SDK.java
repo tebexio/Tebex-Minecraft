@@ -733,7 +733,7 @@ public class SDK {
         }
 
         return request("/user/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
-            if(response.code() != 200 && response.code() != 404) {
+            if(response.code() != 200 && response.code() != 404 && response.code() != 400) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
                 platform.sendTriageEvent(e);
                 return null;
@@ -748,7 +748,11 @@ public class SDK {
                         return null;
                     }
 
-                    JsonObject jsonObject = GSON.fromJson(responseBody.string(), JsonObject.class);
+                    JsonObject jsonObject = GSON.fromJson(responseStr, JsonObject.class);
+                    if (jsonObject.has("error_message")) {
+                        throw new CompletionException(new IOException(jsonObject.get("error_message").getAsString()));
+                    }
+
                     return PlayerLookupInfo.fromJsonObject(jsonObject);
                 } else { // no response body
                     throw new CompletionException(new IOException("user not found"));

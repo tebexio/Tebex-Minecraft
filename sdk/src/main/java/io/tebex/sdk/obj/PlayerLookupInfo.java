@@ -119,20 +119,23 @@ public class PlayerLookupInfo {
             payments.add(payment);
         }
 
-        // Parse purchaseTotals map
-        JsonObject purchaseTotalsJson = jsonObject.get("purchaseTotals").getAsJsonObject();
-        Map<String, Double> purchaseTotals = new HashMap<>();
-        for (Map.Entry<String, JsonElement> entry : purchaseTotalsJson.entrySet()) {
-            purchaseTotals.put(entry.getKey(), entry.getValue().getAsDouble());
-        }
-
         // Construct and return the PlayerLookupInfo object
         PlayerLookupInfo playerLookupInfo = new PlayerLookupInfo();
         playerLookupInfo.player = player;
         playerLookupInfo.banCount = banCount;
         playerLookupInfo.chargebackRate = chargebackRate;
         playerLookupInfo.payments = payments;
-        playerLookupInfo.purchaseTotals = purchaseTotals;
+
+        // Parse purchaseTotals map
+        JsonElement purchaseTotalsJson = jsonObject.get("purchaseTotals");
+        if (purchaseTotalsJson.isJsonObject()) { // empty
+            JsonObject purchaseTotalsObj = purchaseTotalsJson.getAsJsonObject();
+            Map<String, Double> purchaseTotals = new HashMap<>();
+            for (Map.Entry<String, JsonElement> entry : purchaseTotalsObj.entrySet()) {
+                purchaseTotals.put(entry.getKey(), entry.getValue().getAsDouble());
+            }
+            playerLookupInfo.purchaseTotals = purchaseTotals;
+        }
 
         return playerLookupInfo;
     }
