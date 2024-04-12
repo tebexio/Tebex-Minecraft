@@ -125,7 +125,7 @@ public class TriageEvent {
                  .withBody(this.toJsonString(), "POST");
 
         // Store name is set automatically by fromPlatform
-        if (this.storeName.equals("")) {
+        if (this.storeName != null && this.storeName.equals("")) {
             _platform.debug("No store info while sending triage event, ignoring event");
             return;
         }

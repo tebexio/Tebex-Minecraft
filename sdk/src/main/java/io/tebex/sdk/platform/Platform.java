@@ -190,8 +190,8 @@ public interface Platform {
         StringWriter traceWriter = new StringWriter();
         new Exception("stack trace for error message").printStackTrace(new PrintWriter(traceWriter));
         HashMap<String, String> metadata = new HashMap<>();
-
-        TriageEvent.fromPlatform(this).withErrorMessage(errorMessage).send();
+        metadata.put("trace", traceWriter.toString());
+        TriageEvent.fromPlatform(this).withErrorMessage(errorMessage).withMetadata(metadata).send();
     }
 
     default void sendTriageEvent(Throwable exception) {
