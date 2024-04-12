@@ -18,7 +18,7 @@ public class ReportCommand extends SubCommand {
         ServerPlatformConfig config = platform.getPlatformConfig();
         YamlDocument configFile = config.getYamlDocument();
 
-        if (args.length != 1) {
+        if (args.length < 1) {
             sender.sendMessage("§b[Tebex] §7Invalid command usage. Use /tebex " + this.getName() + " " + getUsage());
             return;
         }
