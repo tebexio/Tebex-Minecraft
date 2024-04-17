@@ -1,16 +1,10 @@
 package io.tebex.plugin.command.sub;
 
 import com.mojang.brigadier.context.CommandContext;
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
-
-import java.io.IOException;
+import net.minecraft.text.Text;
 
 public class InfoCommand extends SubCommand {
     public InfoCommand(TebexPlugin platform) {
@@ -23,12 +17,12 @@ public class InfoCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (platform.isSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Information for this server:"), false);
-            source.sendFeedback(new LiteralText("§b[Tebex] §7" + platform.getStoreInformation().getServer().getName() + " for webstore " + platform.getStoreInformation().getStore().getName()), false);
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217()), false);
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Webstore domain " +  platform.getStoreInformation().getStore().getDomain()), false);
+            source.sendMessage(Text.of("§b[Tebex] §7Information for this server:"));
+            source.sendMessage(Text.of("§b[Tebex] §7" + platform.getStoreInformation().getServer().getName() + " for webstore " + platform.getStoreInformation().getStore().getName()));
+            source.sendMessage(Text.of("§b[Tebex] §7Server prices are in " +  platform.getStoreInformation().getStore().getCurrency().getIso4217()));
+            source.sendMessage(Text.of("§b[Tebex] §7Webstore domain " +  platform.getStoreInformation().getStore().getDomain()));
         } else {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
+            source.sendMessage(Text.of("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
         }
     }
 

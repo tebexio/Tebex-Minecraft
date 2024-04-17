@@ -4,7 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.concurrent.ExecutionException;
 
@@ -28,19 +28,19 @@ public class BanCommand extends SubCommand {
         } catch (IllegalArgumentException ignored) {}
 
         if (!platform.isSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
+            source.sendMessage(Text.of("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
         try {
             boolean success = platform.getSDK().createBan(playerName, ip, reason).get();
             if (success) {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Player banned successfully."), false);
+                source.sendMessage(Text.of("§b[Tebex] §7Player banned successfully."));
             } else {
-                source.sendFeedback(new LiteralText("§b[Tebex] §7Failed to ban player."), false);
+                source.sendMessage(Text.of("§b[Tebex] §7Failed to ban player."));
             }
         } catch (InterruptedException | ExecutionException e) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7Error while banning player: " + e.getMessage()), false);
+            source.sendMessage(Text.of("§b[Tebex] §7Error while banning player: " + e.getMessage()));
         }
     }
 
@@ -51,6 +51,6 @@ public class BanCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "<playerName> <opt:reason> <opt:ip>";
+        return "<playerName>";
     }
 }

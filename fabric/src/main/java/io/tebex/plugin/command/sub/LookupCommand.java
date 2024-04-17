@@ -5,7 +5,7 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.PlayerLookupInfo;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.concurrent.ExecutionException;
 
@@ -20,7 +20,7 @@ public class LookupCommand extends SubCommand {
         TebexPlugin platform = getPlatform();
 
         if (!platform.isSetup()) {
-            source.sendFeedback(new LiteralText("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."), false);
+            source.sendMessage(Text.of("§b[Tebex] §7This server is not connected to a webstore. Use /tebex secret to set your store key."));
             return;
         }
 
@@ -30,15 +30,15 @@ public class LookupCommand extends SubCommand {
         try {
             lookupInfo = platform.getSDK().getPlayerLookupInfo(username).get();
         } catch (InterruptedException|ExecutionException e) {
-            source.sendError(new LiteralText("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage()));
+            source.sendError(Text.of("§b[Tebex] §7Failed to complete player lookup. " + e.getMessage()));
             return;
         }
 
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername()), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId()), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Bans Total: " + lookupInfo.banCount), false);
-        source.sendFeedback(new LiteralText("§b[Tebex] §7Payments: " + lookupInfo.payments.size()), false);
+        source.sendMessage(Text.of("§b[Tebex] §7Username: " + lookupInfo.getLookupPlayer().getUsername()));
+        source.sendMessage(Text.of("§b[Tebex] §7Id: " + lookupInfo.getLookupPlayer().getId()));
+        source.sendMessage(Text.of("§b[Tebex] §7Chargeback Rate: " + lookupInfo.chargebackRate));
+        source.sendMessage(Text.of("§b[Tebex] §7Bans Total: " + lookupInfo.banCount));
+        source.sendMessage(Text.of("§b[Tebex] §7Payments: " + lookupInfo.payments.size()));
     }
 
     @Override

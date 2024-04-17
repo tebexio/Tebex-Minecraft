@@ -6,7 +6,7 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 public class ReportCommand extends SubCommand {
     public ReportCommand(TebexPlugin platform) {
@@ -23,11 +23,11 @@ public class ReportCommand extends SubCommand {
         String message = context.getArgument("message", String.class);
 
         if (message.isBlank()) {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7A message is required for your report."), false);
+            context.getSource().sendMessage(Text.of("§b[Tebex] §7A message is required for your report."));
         } else {
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Sending your report to Tebex..."), false);
+            context.getSource().sendMessage(Text.of("§b[Tebex] §7Sending your report to Tebex..."));
             platform.sendTriageEvent(new Error("User reported error in-game: " + message));
-            context.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Report sent successfully."), false);
+            context.getSource().sendMessage(Text.of("§b[Tebex] §7Report sent successfully."));
         }
     }
 

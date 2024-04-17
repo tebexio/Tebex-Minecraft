@@ -5,7 +5,7 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.obj.CommunityGoal;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -23,12 +23,12 @@ public class GoalsCommand extends SubCommand {
             List<CommunityGoal> goals = platform.getSDK().getCommunityGoals().get();
             for (CommunityGoal goal: goals) {
                 if (goal.getStatus() != CommunityGoal.Status.DISABLED) {
-                    sender.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Community Goals: "), false);
-                    sender.getSource().sendFeedback(new LiteralText(String.format("§b[Tebex] §7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus())), false);
+                    sender.getSource().sendMessage(Text.of("§b[Tebex] §7Community Goals: "));
+                    sender.getSource().sendMessage(Text.of(String.format("§b[Tebex] §7- %s (%.2f/%.2f) [%s]", goal.getName(), goal.getCurrent(), goal.getTarget(), goal.getStatus())));
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
-            sender.getSource().sendFeedback(new LiteralText("§b[Tebex] §7Unexpected response: " + e.getMessage()), false);
+            sender.getSource().sendMessage(Text.of("§b[Tebex] §7Unexpected response: " + e.getMessage()));
         }
     }
 

@@ -30,8 +30,8 @@ dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
     mappings("net.fabricmc:yarn:${yarnMappings}:v2")
 
-    modImplementation("eu.pb4:sgui:0.5.0")
-    include("eu.pb4:sgui:0.5.0")
+    modImplementation("eu.pb4:sgui:1.4.2+1.20.4")
+    include("eu.pb4:sgui:1.4.2+1.20.4")
 
     modImplementation("net.fabricmc:fabric-loader:${loaderVersion}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabricVersion}")

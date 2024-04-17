@@ -203,7 +203,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public void dispatchCommand(String command) {
-        server.getCommandManager().execute(server.getCommandSource(), command);
+        server.getCommandManager().execute(server.getCommandSource().getDispatcher().parse(command, server.getCommandSource()), command);
     }
 
     @Override
@@ -254,7 +254,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         ServerPlayerEntity player = getPlayer(playerId).orElse(null);
         if (player == null) return -1;
 
-        DefaultedList<ItemStack> inv = player.inventory.main;
+        DefaultedList<ItemStack> inv = player.getInventory().main;
         return (int) inv.stream()
                 .filter(obj -> obj == null || obj.isEmpty())
                 .count();

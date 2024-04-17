@@ -18,14 +18,14 @@ public class JoinListener {
     }
 
     private void onPlayerJoin(ServerPlayerEntity player) {
-        Object playerId = plugin.getPlayerId(player.getName().asString(), player.getUuid());
-        plugin.getServerEvents().add(new ServerEvent(player.getUuid().toString(), player.getName().asString(), player.getIp(), ServerEventType.JOIN, new Date().toString()));
+        Object playerId = plugin.getPlayerId(player.getName().getString(), player.getUuid());
+        plugin.getServerEvents().add(new ServerEvent(player.getUuid().toString(), player.getName().getString(), player.getIp(), ServerEventType.JOIN, new Date().toString()));
 
         if(! plugin.getQueuedPlayers().containsKey(playerId)) {
             return;
         }
 
-        plugin.handleOnlineCommands(new QueuedPlayer(plugin.getQueuedPlayers().get(playerId), player.getName().asString(), player.getUuid().toString()));
+        plugin.handleOnlineCommands(new QueuedPlayer(plugin.getQueuedPlayers().get(playerId), player.getName().getString(), player.getUuid().toString()));
     }
 }
 

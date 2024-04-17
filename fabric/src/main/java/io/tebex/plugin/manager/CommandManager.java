@@ -2,6 +2,7 @@ package io.tebex.plugin.manager;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.tebex.plugin.TebexPlugin;
@@ -9,7 +10,7 @@ import io.tebex.plugin.command.BuyCommand;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.plugin.command.sub.*;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.List;
 
@@ -41,8 +42,8 @@ public class CommandManager {
     public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("tebex").executes(context -> {
             final ServerCommandSource source = context.getSource();
-            source.sendFeedback(new LiteralText("§8[Tebex] §7Welcome to Tebex!"), false);
-            source.sendFeedback(new LiteralText("§8[Tebex] §7This server is running version §fv" + platform.getVersion() + "§7."), false);
+            source.sendMessage(Text.of("§8[Tebex] §7Welcome to Tebex!"));
+            source.sendMessage(Text.of("§8[Tebex] §7This server is running version §fv" + platform.getVersion() + "§7."));
 
             return 1;
         });
@@ -58,14 +59,59 @@ public class CommandManager {
                     command.execute(context);
                     return 1;
                 })));
-
-                return;
             }
 
-            baseCommand.then(subCommand.executes(context -> {
-                command.execute(context);
-                return 1;
-            }));
+            else if(command.getName().equalsIgnoreCase("debug")) {
+                baseCommand.then(subCommand.then(argument("trueOrFalse", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+            }
+
+            else if(command.getName().equalsIgnoreCase("ban")) {
+                baseCommand.then(subCommand.then(argument("playerName", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+            }
+
+            else if(command.getName().equalsIgnoreCase("checkout")) {
+                baseCommand.then(subCommand.then(argument("packageId", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+            }
+
+            else if(command.getName().equalsIgnoreCase("lookup")) {
+                baseCommand.then(subCommand.then(argument("username", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+            }
+
+            else if(command.getName().equalsIgnoreCase("report")) {
+                baseCommand.then(subCommand.then(argument("message", StringArgumentType.string()).executes(context -> {
+                    command.execute(context);
+                    return 1;
+                })));
+            }
+
+            else if(command.getName().equalsIgnoreCase("sendlink")) {
+                baseCommand.then(subCommand
+                        .then(argument("username", StringArgumentType.string())
+                        .then(argument("packageId", StringArgumentType.string()))
+                        .executes(context -> {
+                            command.execute(context);
+                            return 1;
+                        })));
+            }
+
+            else {
+                baseCommand.then(subCommand.executes(context -> {
+                    command.execute(context);
+                    return 1;
+                }));
+            }
         });
 
         dispatcher.register(baseCommand);

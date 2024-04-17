@@ -13,12 +13,11 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Style;
+import net.minecraft.text.*;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 import java.text.DecimalFormat;
 import java.util.Comparator;
@@ -54,13 +53,13 @@ public class BuyGUI {
     public void open(ServerPlayerEntity player) {
         List<Category> categories = platform.getStoreCategories();
         if (categories == null) {
-            player.sendMessage(new LiteralText("Failed to get listing. Please contact an administrator."), false);
+            player.sendMessage(Text.of("Failed to get listing. Please contact an administrator."), false);
             return;
         }
 
         int rows = config.getInt("gui.menu.home.rows") < 1 ? categories.size() / 9 + 1 : config.getInt("gui.menu.home.rows");
         SimpleGui listingGui = new SimpleGui(getRowType(rows), player, false);
-        listingGui.setTitle(new LiteralText(convertToLegacyString(config.getString("gui.menu.home.title", "Server Shop"))));
+        listingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.home.title", "Server Shop"))));
 
         categories.sort(Comparator.comparingInt(Category::getOrder));
 
@@ -77,7 +76,7 @@ public class BuyGUI {
         int rows = config.getInt("gui.menu.category.rows") < 1 ? category.getPackages().size() / 9 + 1 : config.getInt("gui.menu.category.rows");
 
         SimpleGui subListingGui = new SimpleGui(getRowType(rows), player, false);
-        subListingGui.setTitle(new LiteralText(convertToLegacyString(config.getString("gui.menu.category.title").replace("%category%", category.getName()))));
+        subListingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.category.title").replace("%category%", category.getName()))));
 
         category.getPackages().sort(Comparator.comparingInt(CategoryPackage::getOrder));
 
@@ -96,7 +95,7 @@ public class BuyGUI {
         } else if (category instanceof SubCategory) {
             SubCategory subCategory = (SubCategory) category;
 
-            subListingGui.setTitle(new LiteralText(convertToLegacyString(config.getString("gui.menu.sub-category.title"))
+            subListingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.sub-category.title"))
                     .replace("%category%", subCategory.getParent().getName())
                     .replace("%sub_category%", category.getName())));
 
@@ -111,10 +110,12 @@ public class BuyGUI {
             player.closeHandledScreen();
 
             // Create Checkout Url
-            platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName().asString()).thenAccept(checkout -> {
-                player.sendMessage(new LiteralText("§aYou can checkout here: " + checkout.getUrl()), false);
+            platform.getSDK().createCheckoutUrl(categoryPackage.getId(), player.getName().getString()).thenAccept(checkout -> {
+                player.sendMessage(Text.of("§aYou can checkout here: "), false);
+                player.sendMessage(MutableText.of(PlainTextContent.of("§a"+checkout.getUrl())).setStyle(Style.EMPTY.withClickEvent(
+                        new ClickEvent(ClickEvent.Action.OPEN_URL, checkout.getUrl()))), false);
             }).exceptionally(ex -> {
-                player.sendMessage(new LiteralText("§cFailed to create checkout URL. Please contact an administrator."), false);
+                player.sendMessage(Text.of("§cFailed to create checkout URL. Please contact an administrator."), false);
                 ex.printStackTrace();
                 platform.sendTriageEvent(ex);
                 return null;
@@ -128,14 +129,17 @@ public class BuyGUI {
         Section section = config.getSection("gui.item.category");
 
         String itemType = section.getString("material");
-        Item material = Registry.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
+        Item material = Registries.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
 
         String name = section.getString("name");
         List<String> lore = section.getStringList("lore");
 
+        MutableText guiName = MutableText.of(PlainTextContent.of(convertToLegacyString(name != null ? handlePlaceholders(category, name) : category.getName()))).setStyle(Style.EMPTY.withItalic(true));
+        List<Text> guiLore = lore.stream().map(line -> MutableText.of(PlainTextContent.of(convertToLegacyString(handlePlaceholders(category, line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList());
+
         return new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName(new LiteralText(convertToLegacyString(name != null ? handlePlaceholders(category, name) : category.getName())).setStyle(Style.EMPTY.withItalic(true)))
-                .setLore(lore.stream().map(line -> new LiteralText(convertToLegacyString(handlePlaceholders(category, line))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList()))
+                .setName(guiName)
+                .setLore(guiLore)
                 .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
                 .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
                 .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
@@ -150,14 +154,18 @@ public class BuyGUI {
         }
 
         String itemType = section.getString("material");
-        Item material = Registry.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
+        Item material = Registries.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
 
         String name = section.getString("name");
         List<String> lore = section.getStringList("lore");
 
+
+        MutableText guiName = MutableText.of(PlainTextContent.of(convertToLegacyString(name != null ? handlePlaceholders(categoryPackage, name) : categoryPackage.getName()))).setStyle(Style.EMPTY.withItalic(true));
+        List<Text> guiLore = lore.stream().map(line -> MutableText.of(PlainTextContent.of(convertToLegacyString(handlePlaceholders(categoryPackage, line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList());
+
         GuiElementBuilder guiElementBuilder = new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName(new LiteralText(convertToLegacyString(name != null ? handlePlaceholders(categoryPackage, name) : categoryPackage.getName())).setStyle(Style.EMPTY.withItalic(true)))
-                .setLore(lore.stream().map(line -> new LiteralText(convertToLegacyString(handlePlaceholders(categoryPackage, line))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList()))
+                .setName(guiName)
+                .setLore(guiLore)
                 .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
                 .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
                 .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
@@ -173,14 +181,14 @@ public class BuyGUI {
         Section section = config.getSection("gui.item.back");
 
         String itemType = section.getString("material");
-        Item material = Registry.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
+        Item material = Registries.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
 
         String name = section.getString("name");
         List<String> lore = section.getStringList("lore");
 
         return new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName(new LiteralText(convertToLegacyString(name != null ? name : "§fBack")))
-                .setLore(lore.stream().map(line -> new LiteralText(convertToLegacyString(line)).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList()))
+                .setName((MutableText)Text.of(convertToLegacyString(name != null ? name : "§fBack")))
+                .setLore(lore.stream().map(line -> ((MutableText)(Text.of(convertToLegacyString(line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList()))
                 .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
                 .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
                 .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
