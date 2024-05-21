@@ -53,9 +53,11 @@ public class StoreService implements ServiceManager {
         platform.registerEvents(new JoinListener(platform));
 
         // Register the custom /buy command
-        CommandMap commandMap = platform.getPaperLib().commandRegistration().getServerCommandMap();
-        String buyCommandName = platform.getPlatformConfig().getBuyCommandName();
-        commandMap.register(buyCommandName, new BuyCommand(buyCommandName, platform));
+        if (platform.getPlatformConfig().isBuyCommandEnabled()) {
+            CommandMap commandMap = platform.getPaperLib().commandRegistration().getServerCommandMap();
+            String buyCommandName = platform.getPlatformConfig().getBuyCommandName();
+            commandMap.register(buyCommandName, new BuyCommand(buyCommandName, platform));
+        }
 
         placeholderManager.register(new BukkitNamePlaceholder(placeholderManager));
         placeholderManager.register(new UuidPlaceholder(placeholderManager));
