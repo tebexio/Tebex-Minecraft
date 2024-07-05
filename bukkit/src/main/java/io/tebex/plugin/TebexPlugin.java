@@ -201,7 +201,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             }
 
             boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(! deletedLegacyPluginDir || !deletedLegacyPluginJar) {
+            if(! deletedLegacyPluginDir && ! deletedLegacyPluginJar) {
                 warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
