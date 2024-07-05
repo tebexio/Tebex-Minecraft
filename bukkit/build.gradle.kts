@@ -7,7 +7,9 @@ dependencies {
     implementation(project(":sdk"))
     implementation("it.unimi.dsi:fastutil:8.5.6")
     implementation("com.github.cryptomorin:XSeries:9.3.1") { isTransitive = false }
-    implementation("dev.triumphteam:triumph-gui:3.1.2")
+    implementation("dev.triumphteam:triumph-gui:3.1.10") {
+        exclude("com.google.gson")
+    }
 
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("dev.dejvokep:boosted-yaml:1.3")
@@ -20,12 +22,12 @@ tasks.named("shadowJar", ShadowJar::class.java) {
     relocate("it.unimi", "io.tebex.plugin.libs.fastutil")
     relocate("okhttp3", "io.tebex.plugin.libs.okhttp3")
     relocate("net.kyori", "io.tebex.plugin.libs.kyori")
+    relocate("dev.triumphteam", "io.tebex.plugin.libs.gui")
     relocate("okio", "io.tebex.plugin.libs.okio")
     relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
     relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
     relocate("kotlin", "io.tebex.plugin.libs.kotlin")
     relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
-    relocate("com.google.gson", "io.tebex.plugin.libs.gson")
     minimize()
 }
 
