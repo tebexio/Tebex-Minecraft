@@ -5,7 +5,6 @@ import io.tebex.plugin.TebexPlugin;
 import io.tebex.plugin.command.SubCommand;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.util.StringUtil;
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
