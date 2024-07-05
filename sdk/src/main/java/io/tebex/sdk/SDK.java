@@ -13,8 +13,10 @@ import io.tebex.sdk.request.response.DuePlayersResponse;
 import io.tebex.sdk.request.response.OfflineCommandsResponse;
 import io.tebex.sdk.request.response.PaginatedResponse;
 import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.triage.PluginEvent;
 import io.tebex.sdk.util.Pagination;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
@@ -90,8 +92,8 @@ public class SDK {
                         new ServerInformation.Server(server.get("id").getAsInt(), server.get("name").getAsString())
                 );
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store information.", e);
+                throw new CompletionException(new IOException("Unexpected response when getting store information. " + e.getMessage()));
             }
         });
     }
@@ -128,8 +130,8 @@ public class SDK {
 
                 return new DuePlayersResponse(meta.get("execute_offline").getAsBoolean(), meta.get("next_check").getAsInt(), meta.get("more").getAsBoolean(), players);
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting due players.", e);
+                throw new CompletionException(new IOException("Unexpected response when getting due players. " + e.getMessage()));
             }
         });
     }
@@ -180,8 +182,8 @@ public class SDK {
 
                 return new OfflineCommandsResponse(meta.get("limited").getAsBoolean(), offlineCommands);
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting offline commands.", e);
+                throw new CompletionException(new IOException("Unexpected response when getting offfline commands. " + e.getMessage()));
             }
         });
     }
@@ -231,8 +233,8 @@ public class SDK {
 
                 return queuedCommands;
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting online commands for player " + player.getName(), e);
+                throw new CompletionException(new IOException("Unexpected response when getting online commands for player  " + player.getName() + ". " + e.getMessage()));
             }
         });
     }
@@ -290,8 +292,8 @@ public class SDK {
                 JsonArray jsonObject = GSON.fromJson(response.body().string(), JsonArray.class);
                 return jsonObject.asList().stream().map(item -> CommunityGoal.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList());
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store community goals", e);
+                throw new CompletionException(new IOException("Unexpected response when getting store community goals. " + e.getMessage()));
             }
         });
     }
@@ -320,8 +322,8 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return CommunityGoal.fromJsonObject(jsonObject);
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store community goal " + communityGoalId, e);
+                throw new CompletionException(new IOException("Unexpected response when getting store community goal " + communityGoalId + ". " + e.getMessage()));
             }
         });
     }
@@ -354,8 +356,8 @@ public class SDK {
             try {
                 return GSON.fromJson(response.body().string(), CheckoutUrl.class);
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when creating checkout url for package " + packageId + " and player " + username, e);
+                throw new CompletionException(new IOException("Unexpected response when creating checkout url for package " + packageId + ". " + e.getMessage()));
             }
         });
     }
@@ -387,8 +389,8 @@ public class SDK {
                         jsonObject.getAsJsonArray("data").asList().stream().map(item -> Coupon.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList())
                 );
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store coupons", e);
+                throw new CompletionException(new IOException("Unexpected response when getting store coupons. " + e.getMessage()));
             }
         });
     }
@@ -417,8 +419,8 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return Coupon.fromJsonObject(jsonObject.get("data").getAsJsonObject());
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store coupon " + id, e);
+                throw new CompletionException(new IOException("Unexpected response when getting store coupon " + id + ". " + e.getMessage()));
             }
         });
     }
@@ -496,8 +498,8 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return Coupon.fromJsonObject(jsonObject.getAsJsonObject("data"));
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store coupons", e);
+                throw new CompletionException(new IOException("Unexpected response when getting store coupons. " + e.getMessage()));
             }
 
 
@@ -541,8 +543,8 @@ public class SDK {
                         .map(category -> Category.fromJsonObject(category.getAsJsonObject()))
                         .collect(Collectors.toList());
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                platform.error("Unexpected response when getting store listings.", e);
+                throw new CompletionException(new IOException("Unexpected response when getting listings"));
             }
         });
     }
@@ -571,7 +573,7 @@ public class SDK {
         });
     }
 
-    public CompletableFuture<Boolean> sendEvents(List<ServerEvent> events) {
+    public CompletableFuture<Boolean> sendJoinEvents(List<ServerEvent> events) {
         if (getSecretKey() == null) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.completeExceptionally(new ServerNotSetupException());
@@ -612,8 +614,7 @@ public class SDK {
             try {
                 return Package.fromJsonObject(GSON.fromJson(response.body().string(), JsonObject.class));
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                throw new CompletionException(new IOException("Unexpected response, unable to parse package info: " + e.getMessage()));
             }
         });
     }
@@ -641,8 +642,7 @@ public class SDK {
                 JsonArray jsonObject = GSON.fromJson(response.body().string(), JsonArray.class);
                 return jsonObject.asList().stream().map(item -> Package.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList());
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
-                throw new CompletionException(new IOException("Unexpected response"));
+                throw new CompletionException(new IOException("Unexpected response " + e.getMessage()));
             }
         });
     }
@@ -686,7 +686,7 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return jsonObject.get("success").getAsBoolean();
             } catch (IOException e) {
-                platform.sendTriageEvent(e);
+                platform.error("Failed to send startup analytics", e);
                 throw new CompletionException(new IOException("Unexpected response"));
             }
         });
@@ -711,7 +711,7 @@ public class SDK {
         return request("/bans").withSecretKey(secretKey).withBody(GSON.toJson(payload)).sendAsync().thenApply(response -> {
             if(response.code() != 200) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
-                platform.sendTriageEvent(e);
+                platform.warning("Failed to process ban for user '" + playerUUID + "'", "Double check that the player identifier is correct and try again.", e);
                 return false;
             }
 
@@ -735,7 +735,7 @@ public class SDK {
         return request("/user/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
             if(response.code() != 200 && response.code() != 404 && response.code() != 400) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
-                platform.sendTriageEvent(e);
+                platform.error("Unexpected failure while looking up player information", e);
                 return null;
             }
 
@@ -801,5 +801,43 @@ public class SDK {
      */
     public TebexRequest request(String url, boolean useBaseUrl) {
         return new TebexRequest(useBaseUrl ? "https://plugin.tebex.io" + url : url, HTTP_CLIENT);
+    }
+
+    public CompletableFuture<Boolean> sendPluginEvents() {
+        if (getSecretKey() == null) {
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(new ServerNotSetupException());
+            return future;
+        }
+
+        if (platform.PLUGIN_EVENTS.size() == 0) {
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.complete(true);
+            return future;
+        }
+
+        this.platform.debug("Sending " + platform.PLUGIN_EVENTS.size() + " plugin events...");
+        return platform.getSDK().request("https://plugin-logs.tebex.io/events", false).withBody(GSON.toJson(platform.PLUGIN_EVENTS), "POST").sendAsync().thenApply(logsResponse -> {
+            if (!logsResponse.isSuccessful()) {
+                platform.debug("Failed to send plugin event!");
+                ResponseBody responseBody = logsResponse.body();
+                if (responseBody != null) {
+                    try {
+                        platform.debug(responseBody.string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    platform.debug("Empty response when sending plugin event");
+                }
+            } else { // successfully submitted queued events, clear the events list
+                platform.PLUGIN_EVENTS.clear();
+            }
+            return logsResponse.isSuccessful();
+        }).exceptionally(e -> {
+            platform.debug("Failed to send plugin events due to exception. " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        });
     }
 }

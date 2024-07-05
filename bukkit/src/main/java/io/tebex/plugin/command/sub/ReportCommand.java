@@ -28,7 +28,7 @@ public class ReportCommand extends SubCommand {
             sender.sendMessage("§b[Tebex] §7A message is required for your report.");
         } else {
             sender.sendMessage("§b[Tebex] §7Sending your report to Tebex...");
-            platform.sendTriageEvent(new Error("User reported error in-game: " + message));
+            platform.error("User reported error in-game: " + message);
         }
     }
 

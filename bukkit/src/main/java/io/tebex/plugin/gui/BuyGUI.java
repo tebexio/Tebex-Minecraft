@@ -101,8 +101,6 @@ public class BuyGUI {
                 player.sendMessage(ChatColor.GREEN + "You can checkout here: " + checkout.getUrl());
             }).exceptionally(ex -> {
                 player.sendMessage(ChatColor.RED + "Failed to create checkout URL. Please contact an administrator.");
-                ex.printStackTrace();
-                platform.sendTriageEvent(ex);
                 return null;
             });
         })));
@@ -130,7 +128,7 @@ public class BuyGUI {
         ConfigurationSection section = config.getConfigurationSection("gui.item." + (categoryPackage.hasSale() ? "package-sale" : "package"));
 
         if(section == null) {
-            platform.getLogger().warning("Invalid configuration section for " + (categoryPackage.hasSale() ? "package-sale" : "package"));
+            platform.warning("Invalid configuration section for " + (categoryPackage.hasSale() ? "package-sale" : "package"), "Check that your definition for `" + categoryPackage.getName() + "` in config.yml is valid.");
             return null;
         }
 

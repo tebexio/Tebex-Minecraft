@@ -16,6 +16,7 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.util.CommandResult;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -64,7 +65,8 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
             configYaml = initPlatformConfig();
             config = loadServerPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load configuration: " + e.getMessage(),
+                    "Check that your configuration is valid and in the proper format and reload the plugin. You may delete `Tebex/config.yml` and a new configuration will be generated.");
             return;
         }
 
@@ -100,19 +102,21 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         executeAsync(new Runnable() {
             @Override
             public void run() {
-                info("Loading store information...");
-                getSDK().getServerInformation()
-                        .thenAccept(information -> storeInformation = information)
-                        .exceptionally(error -> {
-                            warning("Failed to load server information: " + error.getMessage());
-                            return null;
-                        });
-                getSDK().getListing()
-                        .thenAccept(listing -> storeCategories = listing)
-                        .exceptionally(error -> {
-                            warning("Failed to load store categories: " + error.getMessage());
-                            return null;
-                        });
+                if (!config.getSecretKey().isEmpty()) {
+                    info("Loading store information...");
+                    getSDK().getServerInformation()
+                            .thenAccept(information -> storeInformation = information)
+                            .exceptionally(error -> {
+                                warning("Failed to load server information: " + error.getMessage(), "Please check that your secret key is valid.");
+                                return null;
+                            });
+                    getSDK().getListing()
+                            .thenAccept(listing -> storeCategories = listing)
+                            .exceptionally(error -> {
+                                warning("Failed to load store categories: " + error.getMessage(), "Please check that your secret key is valid.");
+                                return null;
+                            });
+                }
             }
         });
 
@@ -122,16 +126,20 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
         }, 0, 30, TimeUnit.MINUTES);
 
         Multithreading.executeAsync(() -> {
+            getSDK().sendPluginEvents();
+        }, 0, 10, TimeUnit.MINUTES);
+
+        Multithreading.executeAsync(() -> {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
 
-            sdk.sendEvents(runEvents)
+            sdk.sendJoinEvents(runEvents)
                     .thenAccept(aVoid -> {
                         serverEvents.removeAll(runEvents);
-                        debug("Successfully sent analytics.");
+                        debug("Successfully sent join events");
                     })
                     .exceptionally(throwable -> {
-                        warning("Failed to send analytics: " + throwable.getMessage());
+                        error("Failed to send join events", throwable);
                         return null;
                     });
         }, 0, 1, TimeUnit.MINUTES);
@@ -202,8 +210,9 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     }
 
     @Override
-    public void dispatchCommand(String command) {
+    public CommandResult dispatchCommand(String command) {
         server.getCommandManager().execute(server.getCommandSource().getDispatcher().parse(command, server.getCommandSource()), command);
+        return CommandResult.from(true); // we assume success because the command manager does not report any result
     }
 
     @Override
