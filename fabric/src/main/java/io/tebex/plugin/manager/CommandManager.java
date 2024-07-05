@@ -48,8 +48,10 @@ public class CommandManager {
             return 1;
         });
 
-        BuyCommand buyCommand = new BuyCommand(platform);
-        dispatcher.register(literal(platform.getPlatformConfig().getBuyCommandName()).executes(buyCommand::execute));
+        if (platform.getPlatformConfig().isBuyCommandEnabled()) {
+            BuyCommand buyCommand = new BuyCommand(platform);
+            dispatcher.register(literal(platform.getPlatformConfig().getBuyCommandName()).executes(buyCommand::execute));
+        }
 
         commands.forEach(command -> {
             LiteralArgumentBuilder<ServerCommandSource> subCommand = literal(command.getName());

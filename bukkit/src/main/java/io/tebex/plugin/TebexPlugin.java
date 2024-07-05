@@ -130,7 +130,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-            commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
+            if (config.isBuyCommandEnabled()) {
+                commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
+            }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Failed to get the CommandMap", e);
         }
