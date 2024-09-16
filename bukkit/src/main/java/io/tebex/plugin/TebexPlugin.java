@@ -19,9 +19,11 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.util.CommandResult;
 import io.tebex.sdk.util.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -69,7 +71,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             configYaml = initPlatformConfig();
             config = loadServerPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load configuration: " + e.getMessage(),
+                    "Check that your configuration is valid and in the proper format and reload the plugin. You may delete `Tebex/config.yml` and a new configuration will be generated.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -99,18 +102,23 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
         getServer().getScheduler().runTaskTimerAsynchronously(this, this::refreshListings, 0, 20 * 60 * 5);
 
+        // every 10 minutes clear the plugin event queue
+        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            this.getSDK().sendPluginEvents();
+        }, 0, 60 * 20 * 10);
+
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
             List<ServerEvent> runEvents = Lists.newArrayList(serverEvents.subList(0, Math.min(serverEvents.size(), 750)));
             if (runEvents.isEmpty()) return;
             if (!this.isSetup()) return;
 
-            sdk.sendEvents(runEvents)
+            sdk.sendJoinEvents(runEvents)
                     .thenAccept(aVoid -> {
                         serverEvents.removeAll(runEvents);
-                        debug("Successfully sent analytics.");
+                        debug("Successfully sent join events.");
                     })
                     .exceptionally(throwable -> {
-                        debug("Failed to send analytics: " + throwable.getMessage());
+                        debug("Failed to send join events: " + throwable.getMessage());
                         return null;
                     });
         }, 0, 20 * 60);
@@ -122,7 +130,9 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-            commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
+            if (config.isBuyCommandEnabled()) {
+                commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
+            }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Failed to get the CommandMap", e);
         }
@@ -195,18 +205,16 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                         deletedLegacyPluginJar = file.delete();
                     }
                 } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-                    // Failed to get the plugin file via reflection.
-                    warning("Failed to delete the old BuycraftX files: " + e.getMessage());
+                    warning("Failed to disable legacy BuycraftX plugin: " + e.getMessage(), "Please remove it manually from your /plugins folder.");
                 }
             }
 
             boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(! deletedLegacyPluginDir || !deletedLegacyPluginJar) {
-                warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
+            if(!deletedLegacyPluginDir || !deletedLegacyPluginJar) {
+                warning("Failed to fully delete the BuycraftX files.", "Please delete them manually in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
-            warning("Failed to migrate config: " + e.getMessage());
-            e.printStackTrace();
+            warning("Failed to migrate BuycraftX configuration: " + e.getMessage(), "Please set your secret key with /tebex secret <key> to enable your store.");
         }
     }
 
@@ -294,10 +302,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     }
 
     @Override
-    public void dispatchCommand(String command) {
-        if (!isEnabled()) return;
-
-        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
+    public CommandResult dispatchCommand(String command) {
+        if (!isEnabled()) return CommandResult.from(false).withMessage("Store is not enabled.");
+        try {
+            boolean success = Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
+            return CommandResult.from(success);
+        } catch (CommandException bukkitCommandException) {
+            return CommandResult.from(false).withMessage(bukkitCommandException.getMessage()).withException(bukkitCommandException);
+        }
     }
 
     @Override

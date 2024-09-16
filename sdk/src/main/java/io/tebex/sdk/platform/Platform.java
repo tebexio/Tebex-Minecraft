@@ -3,6 +3,7 @@ package io.tebex.sdk.platform;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
+import io.tebex.sdk.exception.ServerNotSetupException;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.QueuedCommand;
 import io.tebex.sdk.obj.QueuedPlayer;
@@ -11,16 +12,18 @@ import io.tebex.sdk.platform.config.IPlatformConfig;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
-import io.tebex.sdk.triage.TriageEvent;
+import io.tebex.sdk.triage.EnumEventLevel;
+import io.tebex.sdk.triage.PluginEvent;
+import io.tebex.sdk.util.CommandResult;
 import io.tebex.sdk.util.StringUtil;
 import io.tebex.sdk.util.UUIDUtil;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -32,6 +35,8 @@ import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
  */
 public interface Platform {
     int MAX_COMMANDS_PER_BATCH = 3;
+
+    ArrayList<PluginEvent> PLUGIN_EVENTS = new ArrayList<>();
 
     /**
      * Gets the platform type.
@@ -120,18 +125,17 @@ public interface Platform {
                 setSetup(false);
 
                 if (cause instanceof ServerNotFoundException) {
-                    warning("Failed to connect. Please double-check your server key or run the setup command again.");
+                    warning("Failed to connect your server.", "Please double-check your server key or run the setup command again.");
                     this.halt();
                 } else {
-                    warning("Failed to get server information: " + cause.getMessage());
-                    cause.printStackTrace();
+                    warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the seutp command again.", ex);
                 }
 
                 return null;
             });
         } else {
-            log(Level.WARNING, "Welcome to Tebex! It seems like this is a new setup.");
-            log(Level.WARNING, "To get started, please use the 'tebex secret <key>' command in the console.");
+            info("Welcome to Tebex! It seems like this is a new setup.");
+            info("To get started, please use the 'tebex secret <key>' command in the console.");
         }
     }
 
@@ -141,9 +145,10 @@ public interface Platform {
 
     /**
      * Dispatches a command to the server.
+     *
      * @param command The command to dispatch.
      */
-    void dispatchCommand(String command);
+    CommandResult dispatchCommand(String command);
 
     void executeAsync(Runnable runnable);
     void executeAsyncLater(Runnable runnable, long time, TimeUnit unit);
@@ -159,7 +164,7 @@ public interface Platform {
     default void performCheck(boolean runAfter) {
         if(! isSetup()) return;
 
-        debug("Checking for due players..");
+        debug("Checking for due players...");
         getQueuedPlayers().clear();
 
         getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
@@ -168,9 +173,7 @@ public interface Platform {
                 executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
             }
             if (ex != null) {
-                warning("Failed to get due players: " + ex.getMessage());
-                ex.printStackTrace();
-                sendTriageEvent(ex);
+                warning("Failed to get due players" + ex.getMessage(), "We will try again at the next due player check.", ex);
                 return;
             }
 
@@ -186,26 +189,18 @@ public interface Platform {
         });
     }
 
-    default void sendTriageEvent(String errorMessage) {
-        StringWriter traceWriter = new StringWriter();
-        new Exception("stack trace for error message").printStackTrace(new PrintWriter(traceWriter));
-        HashMap<String, String> metadata = new HashMap<>();
-        metadata.put("trace", traceWriter.toString());
-        TriageEvent.fromPlatform(this).withErrorMessage(errorMessage).withMetadata(metadata).send();
-    }
-
-    default void sendTriageEvent(Throwable exception) {
-        StringWriter traceWriter = new StringWriter();
-        exception.printStackTrace(new PrintWriter(traceWriter));
-
-        HashMap<String, String> metadata = new HashMap<>();
-        metadata.put("trace", traceWriter.toString());
-        TriageEvent event = TriageEvent.fromPlatform(this)
-                .withErrorMessage(exception.getMessage())
-                .withMetadata(metadata);
-
-        event.send();
-    }
+//    default void sendTriageEvent(Throwable exception) {
+//        StringWriter traceWriter = new StringWriter();
+//        exception.printStackTrace(new PrintWriter(traceWriter));
+//
+//        HashMap<String, String> metadata = new HashMap<>();
+//        metadata.put("trace", traceWriter.toString());
+//        TriageEvent event = TriageEvent.fromPlatform(this)
+//                .withErrorMessage(exception.getMessage())
+//                .withMetadata(metadata);
+//
+//        event.send();
+//    }
 
     default void handleOnlineCommands(QueuedPlayer player) {
         if(! isSetup()) return;
@@ -227,9 +222,7 @@ public interface Platform {
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
             processOnlineCommands(player.getName(), playerId, onlineCommands);
         }).exceptionally(ex -> {
-            warning("Failed to get online commands for " + player.getName() + ": " + ex.getMessage());
-            ex.printStackTrace();
-            sendTriageEvent(ex);
+            warning("Failed to get online commands for " + player.getName() + ". " + ex.getMessage(), "We will try again at the next due player check.", ex);
             return null;
         });
     }
@@ -263,16 +256,40 @@ public interface Platform {
         List<Integer> completedCommands = new ArrayList<>();
         boolean hasInventorySpace = true;
         for (QueuedCommand command : commands) {
-            if(getFreeSlots(playerId) < command.getRequiredSlots()) {
-                debug(String.format("Skipping command '%s' for player '%s' due to no inventory space.", command.getParsedCommand(), playerName));
+            int freeSlots = getFreeSlots(playerId);
+            if(freeSlots < command.getRequiredSlots()) {
+                info(String.format("Skipping command '%s' for player '%s' due to no inventory space. Free slots: %d. Slots required: %d", command.getParsedCommand(), playerName, freeSlots, command.getRequiredSlots()));
                 hasInventorySpace = false;
                 continue;
             }
 
             executeBlocking(() -> {
-                info(String.format("Dispatching command '%s' for player '%s'.", command.getParsedCommand(), playerName));
-                dispatchCommand(command.getParsedCommand());
+                info(String.format("Dispatching command '%s' for player '%s'", command.getParsedCommand(), playerName));
+                CommandResult commandResult = dispatchCommand(command.getParsedCommand());
+
+                // report whether the command succeeded or failed
+                if (!commandResult.getIsSuccess()) {
+                    String extraInfo = "";
+                    Throwable commandException = commandResult.getException();
+                    if (commandResult.getMessage() != null && !commandResult.getMessage().isEmpty()) {
+                        extraInfo = commandResult.getMessage();
+                    }
+                    if (commandException != null) {
+                        extraInfo = commandResult.getException().getMessage();
+                    }
+
+                    String solution = "Check that the command syntax is correct.";
+                    if (command.getPayment() != 0) {
+                        solution += " Re-run this command at https://creator.tebex.io/payments/" + command.getPayment();
+                    }
+                    warning(String.format("Command `%s` failed to execute: %s", command.getParsedCommand(), extraInfo), solution);
+                }
             });
+            // At present all queued commands are reported as successful once delivery criteria are met, regardless if dispatching
+            // the command worked without errors. We *could* refactor this to only mark commands completed if they were successful, but
+            // platform-specific support for actually reporting if a command was successful and why or why not is dubious at best.
+            // This could also lead to a situation where massive stores have a continuously growing queue of bad commands, which would have to be manually invalidated and then re-sent.
+            // By marking all queued commands completed meeting in-game delivery criteria, this allows the store to visit a previously invalid command and re-run it directly from their store panel.
             completedCommands.add(command.getId());
 
             if(completedCommands.size() % MAX_COMMANDS_PER_BATCH == 0) {
@@ -302,7 +319,25 @@ public interface Platform {
             for (QueuedCommand command : offlineData.getCommands()) {
                 executeBlockingLater(() -> {
                     info(String.format("Dispatching offline command '%s' for player '%s'.", command.getParsedCommand(), command.getPlayer().getName()));
-                    dispatchCommand(command.getParsedCommand());
+                    CommandResult offlineCommandResult = dispatchCommand(command.getParsedCommand());
+
+                    // report whether the offline command succeeded or failed
+                    if (!offlineCommandResult.getIsSuccess()) {
+                        String extraInfo = "";
+                        Throwable commandException = offlineCommandResult.getException();
+                        if (!offlineCommandResult.getMessage().isEmpty()) {
+                            extraInfo = offlineCommandResult.getMessage();
+                        }
+                        if (commandException != null) {
+                            extraInfo = offlineCommandResult.getException().getMessage();
+                        }
+
+                        String solution = "Check that the command syntax is correct.";
+                        if (command.getPayment() != 0) {
+                            solution += " Re-run this command at https://creator.tebex.io/payments/" + command.getPayment();
+                        }
+                        warning(String.format("Command `%s` failed to execute: %s", command.getParsedCommand(), extraInfo), solution);
+                    }
                 }, command.getDelay(), TimeUnit.SECONDS);
                 completedCommands.add(command.getId());
 
@@ -317,18 +352,14 @@ public interface Platform {
                 completedCommands.clear();
             }
         }).exceptionally(ex -> {
-            warning("Failed to get offline commands: " + ex.getMessage());
-            ex.printStackTrace();
-            sendTriageEvent(ex);
+            warning("Failed to retrieve offline commands - some commands may not have been processed. " + ex.getMessage(), "We will try again at the next due player check.", ex);
             return null;
         });
     }
 
     default void deleteCompletedCommands(List<Integer> completedCommands) {
         getSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
-            warning("Failed to delete commands: " + ex.getMessage());
-            ex.printStackTrace();
-            sendTriageEvent(ex);
+            error("Failed to delete commands: " + ex.getMessage(), ex);
             return null;
         });
 
@@ -368,12 +399,45 @@ public interface Platform {
     }
 
     /**
-     * Logs a warning message to the console.
+     * Logs a warning message to the console. A "warning" is due to a problem that either the user can solve, or a
+     * problem that can resolve itself later. All warnings must have solutions provided.
      *
+     * ex.)
      * @param message The message to log.
+     * @param solution User-friendly description of how to resolve the problem.
      */
-    default void warning(String message) {
+    default void warning(String message, String solution) {
         log(Level.WARNING, message);
+        log(Level.WARNING, "- " + solution);
+
+        if (getPlatformConfig().isAutoReportEnabled()) {
+            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.WARNING, message));
+        }
+    }
+
+    default void warning(String message, String solution, Throwable t) {
+        log(Level.WARNING, message);
+        log(Level.WARNING, "- " + solution);
+
+        if (getPlatformConfig().isAutoReportEnabled()) {
+            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.WARNING, message).withTrace(t));
+        }
+    }
+
+    default void error(String message) {
+        log(Level.SEVERE, message);
+        if (getPlatformConfig().isAutoReportEnabled()) {
+            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.ERROR, message));
+        }
+    }
+
+    default void error(String message, Throwable t) {
+        log(Level.SEVERE, message);
+        if (getPlatformConfig().isAutoReportEnabled()) {
+            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.ERROR, message).withTrace(t));
+        } else { // trace is printed when added above, but would be skipped if auto report was disabled. print it here
+            t.printStackTrace();
+        }
     }
 
     /**

@@ -42,7 +42,7 @@ public final class ResourceUtil {
                 // Copies the file from the resources' folder to the plugin folder
                 Files.copy(getFile(type, fileName).toPath(), file.toPath());
             } catch (IOException e) {
-                platform.log(Level.SEVERE, String.format("Failed to copy %s to plugin folder", fileName));
+                platform.error(String.format("Failed to copy %s to plugin folder. You may need to move this file manually.", fileName), e);
             }
         }
 

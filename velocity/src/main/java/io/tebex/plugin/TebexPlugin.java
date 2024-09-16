@@ -22,6 +22,7 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.util.CommandResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class TebexPlugin implements Platform {
             configYaml = initPlatformConfig();
             config = loadProxyPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load TEbex config: " + e.getMessage(), "Check permissions and formatting on your Tebex configuration file. You may reset the configuration by deleting it and restarting.");
 //            proxy.getPluginManager().unregisterListeners(this);
             return;
         }
@@ -159,10 +160,10 @@ public class TebexPlugin implements Platform {
 
             final boolean deletedLegacyPluginDir = Files.deleteIfExists(oldPluginDir);
             if (legacyPluginEnabled || !deletedLegacyPluginDir) {
-                warning("Please manually delete the BuycraftX files in your /plugins folder to avoid conflicts.");
+                warning("We were unable to completely remove the legacy BuycraftX plugin.","Please manually delete the BuycraftX files in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
-            warning("Failed to migrate config: " + e.getMessage());
+            warning("Failed to migrate BuycraftX configuration: " + e.getMessage(), "Please enter your store's secret key using `/tebex secret <key>` to connect your store.");
             e.printStackTrace();
         }
     }
@@ -221,8 +222,9 @@ public class TebexPlugin implements Platform {
     }
 
     @Override
-    public void dispatchCommand(String command) {
+    public CommandResult dispatchCommand(String command) {
         proxy.getCommandManager().executeAsync(proxy.getConsoleCommandSource(), command);
+        return CommandResult.from(true); // no additional information from commandManager so we assume success
     }
 
     @Override

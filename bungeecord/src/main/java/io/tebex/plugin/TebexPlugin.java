@@ -13,6 +13,7 @@ import io.tebex.sdk.platform.PlatformTelemetry;
 import io.tebex.sdk.platform.PlatformType;
 import io.tebex.sdk.platform.config.ProxyPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
+import io.tebex.sdk.util.CommandResult;
 import io.tebex.sdk.util.FileUtils;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -22,7 +23,6 @@ import net.md_5.bungee.api.plugin.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.*;
@@ -52,7 +52,8 @@ public class TebexPlugin extends Plugin implements Platform {
             configYaml = initPlatformConfig();
             config = loadProxyPlatformConfig(configYaml);
         } catch (IOException e) {
-            log(Level.WARNING, "Failed to load config: " + e.getMessage());
+            warning("Failed to load configuration: " + e.getMessage(),
+                    "Check that your configuration is valid and in the proper format and reload the plugin. You may delete `Tebex/config.yml` and a new configuration will be generated.");
             getProxy().getPluginManager().unregisterListeners(this);
             return;
         }
@@ -130,6 +131,7 @@ public class TebexPlugin extends Plugin implements Platform {
             boolean deletedLegacyPluginJar = false;
 
             if (legacyPluginEnabled) {
+                info("BuycraftX is enabled. We will now attempt to disable and uninstall it.");
                 try {
                     Plugin legacyPlugin = pluginManager.getPlugin("BuycraftX");
 
@@ -145,7 +147,7 @@ public class TebexPlugin extends Plugin implements Platform {
                     }
                 } catch (Exception e) {
                     // Failed to get the plugin file via reflection.
-                    getLogger().warning("Failed to delete the old BuycraftX files: " + e.getMessage());
+                    warning("Failed to delete the old BuycraftX files: " + e.getMessage(), "Please delete them manually in your /plugins folder to avoid conflicts.");
                 }
             }
 
@@ -153,14 +155,11 @@ public class TebexPlugin extends Plugin implements Platform {
             executeAsyncLater(() -> {
                 boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
                 if(! deletedLegacyPluginDir || !finalDeletedLegacyPluginJar) {
-                    warning("Failed to delete the old BuycraftX files. Please delete them manually in your /plugins folder to avoid conflicts.");
+                    warning("We could not completely uninstall BuycraftX.", "Please delete any remaining BuycraftX files manually in your /plugins folder to avoid conflicts.");
                 }
-
-                warning("Please restart this proxy to complete the migration.");
             }, 1L, TimeUnit.SECONDS);
         } catch (IOException e) {
-            warning("Failed to migrate config: " + e.getMessage());
-            e.printStackTrace();
+            warning("Failed to migrate BuycraftX config: " + e.getMessage(), "Please set your secret key using `/tebex secret <key>` to connect your store.");
         }
     }
 
@@ -217,8 +216,8 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
-    public void dispatchCommand(String command) {
-        getProxy().getPluginManager().dispatchCommand(getProxy().getConsole(), command);
+    public CommandResult dispatchCommand(String command) {
+        return CommandResult.from(getProxy().getPluginManager().dispatchCommand(getProxy().getConsole(), command));
     }
 
     @Override

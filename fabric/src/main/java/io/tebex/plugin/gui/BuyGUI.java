@@ -54,6 +54,7 @@ public class BuyGUI {
         List<Category> categories = platform.getStoreCategories();
         if (categories == null) {
             player.sendMessage(Text.of("Failed to get listing. Please contact an administrator."), false);
+            platform.warning("Player " + player.getName() + " used buy command, but no listings are active in your store.","Ensure your store is set up and has at least one active listing. Use /tebex reload to load new listings.");
             return;
         }
 
@@ -116,8 +117,7 @@ public class BuyGUI {
                         new ClickEvent(ClickEvent.Action.OPEN_URL, checkout.getUrl()))), false);
             }).exceptionally(ex -> {
                 player.sendMessage(Text.of("§cFailed to create checkout URL. Please contact an administrator."), false);
-                ex.printStackTrace();
-                platform.sendTriageEvent(ex);
+                platform.error("Failed to create checkout URL for a user.", ex);
                 return null;
             });
         })));
@@ -149,7 +149,7 @@ public class BuyGUI {
         Section section = config.getSection("gui.item." + (categoryPackage.hasSale() ? "package-sale" : "package"));
 
         if (section == null) {
-            platform.warning("Invalid configuration section for " + (categoryPackage.hasSale() ? "package-sale" : "package"));
+            platform.warning("Invalid configuration section for " + (categoryPackage.hasSale() ? "package-sale" : "package"), "Check that your package definition for `" + categoryPackage.getName() + "` in config.yml is valid.");
             return null;
         }
 

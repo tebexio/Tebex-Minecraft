@@ -12,6 +12,8 @@ public class ProxyPlatformConfig implements IPlatformConfig {
     private boolean verbose;
     private String secretKey;
 
+    private boolean autoReportEnabled;
+
     /**
      * Creates a PlatformConfig instance with the provided configuration version.
      *
@@ -33,6 +35,8 @@ public class ProxyPlatformConfig implements IPlatformConfig {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
+    public void setAutoReportEnabled(boolean autoReportEnabled) { this.autoReportEnabled = autoReportEnabled; }
 
     /**
      * Sets the YAML document for this configuration.
@@ -62,6 +66,8 @@ public class ProxyPlatformConfig implements IPlatformConfig {
     public String getSecretKey() {
         return secretKey;
     }
+
+    public boolean isAutoReportEnabled() { return autoReportEnabled; }
 
     @Override
     public boolean isVerbose() {
