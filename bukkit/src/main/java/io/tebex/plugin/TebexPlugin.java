@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.command.BuyCommand;
+import io.tebex.plugin.event.InventoryClickListener;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.gui.BuyGUI;
 import io.tebex.plugin.manager.CommandManager;
@@ -99,6 +100,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         init();
 
         registerEvents(new JoinListener(this));
+        registerEvents(new InventoryClickListener());
 
         getServer().getScheduler().runTaskTimerAsynchronously(this, this::refreshListings, 0, 20 * 60 * 5);
 

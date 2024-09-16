@@ -21,4 +21,8 @@ public class TebexGuiItem {
     public String toString() {
         return this.stack.toString();
     }
+
+    public TebexGuiAction<InventoryClickEvent> getAction() {
+        return action;
+    }
 }

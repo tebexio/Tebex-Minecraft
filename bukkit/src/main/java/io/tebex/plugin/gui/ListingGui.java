@@ -17,7 +17,7 @@ public class ListingGui implements InventoryHolder {
     private Inventory inventory;
 
     private String title;
-    private int rows = 4;
+    private int rows = 3;
     private ArrayList<String> lore;
     private HashMap<Integer, TebexGuiItem> items;
 
@@ -56,7 +56,15 @@ public class ListingGui implements InventoryHolder {
     }
 
     public void addItem(TebexGuiItem guiItem) {
-        this.items.put(this.items.size(), guiItem);
+        int nextSlot = 0;
+        while (items.containsKey(nextSlot) && nextSlot < rows * 9) {
+            nextSlot++;
+        }
+        this.items.put(nextSlot, guiItem);
+    }
+
+    public void addItem(int index, TebexGuiItem guiItem) {
+        this.items.put(index, guiItem);
     }
 
     public void open(Player player)
@@ -78,8 +86,6 @@ public class ListingGui implements InventoryHolder {
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_UNBREAKABLE);
             stack.setItemMeta(meta);
 
-            Tebex.get().debug("SET " + guiItems.getKey() + "|" + guiItem.toString() + " | meta: " + meta.toString());
-
             this.inventory.setItem(guiItems.getKey(), stack);
         }
 
@@ -92,5 +98,9 @@ public class ListingGui implements InventoryHolder {
 
     public void updateTitle(String replace) {
         this.title = replace;
+    }
+
+    public TebexGuiItem getItemInSlot(int slot) {
+        return this.items.get(slot);
     }
 }

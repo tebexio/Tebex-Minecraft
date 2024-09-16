@@ -68,10 +68,13 @@ public class BuyGUI {
                     openCategoryMenu(player, subCategory);
                 })));
 
-                subListingGui.setItem(subListingGui.getRows() * 9 - 5, getBackItemBuilder().asGuiItem(action -> {
+                TebexGuiItem backItem = getBackItemBuilder().asGuiItem(action -> {
                     action.setCancelled(true);
                     open(player);
-                }));
+                });
+                int backItemSlot = subListingGui.getRows() * 9 - 5;
+                subListingGui.addItem(backItemSlot, backItem);
+                //subListingGui.setItem(backItemSlot, backItem);
             }
         } else if(category instanceof SubCategory) {
             SubCategory subCategory = (SubCategory) category;
@@ -81,10 +84,14 @@ public class BuyGUI {
                     .replace("%sub_category%", category.getName())
             );
 
-            subListingGui.setItem(subListingGui.getRows() * 9 - 5, getBackItemBuilder().asGuiItem(action -> {
+            TebexGuiItem backItem = getBackItemBuilder().asGuiItem(action -> {
                 action.setCancelled(true);
                 openCategoryMenu(player, subCategory.getParent());
-            }));
+            });
+            int backItemSlot = subListingGui.getRows() * 9 - 5;
+
+            subListingGui.addItem(backItemSlot, backItem);
+            //subListingGui.setItem(subListingGui.getRows() * 9 - 5,backItem);
         }
 
         category.getPackages().forEach(categoryPackage -> subListingGui.addItem(getPackageItemBuilder(categoryPackage).asGuiItem(action -> {
