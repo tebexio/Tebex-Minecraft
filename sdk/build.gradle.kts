@@ -17,10 +17,10 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("dev.dejvokep:boosted-yaml:1.3")
     implementation("com.google.code.gson:gson:2.10.1")
-    compileOnly("com.google.guava:guava:30.1.1-jre")
+    compileOnly("com.google.guava:guava:33.3.1-jre")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
