@@ -14,5 +14,5 @@ plugins {
 
 rootProject.name = "TebexPlugin"
 
-listOf("sdk", "bukkit", "bungeecord", "velocity", "fabric").forEach(::include)
+listOf("sdk", "bukkit", "bungeecord", "velocity", "fabric-1.20.4").forEach(::include)
 
