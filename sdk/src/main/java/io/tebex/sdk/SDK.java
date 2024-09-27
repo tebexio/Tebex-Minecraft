@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
  * The main SDK class for interacting with the Tebex API.
  */
 public class SDK {
+    private Platform platform;
+    private String secretKey;
+
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -39,10 +42,10 @@ public class SDK {
             .create();
     private final OkHttpClient HTTP_CLIENT = new OkHttpClient().newBuilder().retryOnConnectionFailure(true)
             .addInterceptor(new LoggingInterceptor())
+            .addNetworkInterceptor(chain -> {
+                return chain.proceed(chain.request().newBuilder().header("User-Agent", "Minecraft-" + platform.getTelemetry().getServerVersion() + "/Tebex-" + platform.getVersion()).build());
+            })
             .build();
-
-    private final Platform platform;
-    private String secretKey;
 
     /**
      * Constructs a new SDK instance with the specified platform and secret key.
