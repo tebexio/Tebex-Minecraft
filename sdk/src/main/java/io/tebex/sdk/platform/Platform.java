@@ -128,7 +128,7 @@ public interface Platform {
                     warning("Failed to connect your server.", "Please double-check your server key or run the setup command again.");
                     this.halt();
                 } else {
-                    warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the seutp command again.", ex);
+                    warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the setup command again.", ex);
                 }
 
                 return null;
