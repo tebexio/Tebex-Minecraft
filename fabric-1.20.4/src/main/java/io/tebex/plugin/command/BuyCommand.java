@@ -20,6 +20,7 @@ public class BuyCommand {
             ServerPlayerEntity player = source.getPlayer();
             new BuyGUI(plugin).open(player);
         } catch (Exception e) {
+            e.printStackTrace();
             source.sendMessage(Text.of("§b[Tebex] §7You must be a player to run this command!"));
         }
 

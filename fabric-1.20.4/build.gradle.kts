@@ -15,23 +15,20 @@ var loaderVersion = properties["loader_version"] as String
 var fabricVersion = properties["fabric_version"] as String
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(16))
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
     shadow(project(":sdk"))
-    shadow("it.unimi.dsi:fastutil:8.5.6")
+
     shadow("com.github.cryptomorin:XSeries:9.3.1") {
         isTransitive = false
     }
 
     minecraft("com.mojang:minecraft:${minecraftVersion}")
     mappings("net.fabricmc:yarn:${yarnMappings}:v2")
-
-    modImplementation("eu.pb4:sgui:1.4.2+1.20.4")
-    include("eu.pb4:sgui:1.4.2+1.20.4")
 
     modImplementation("net.fabricmc:fabric-loader:${loaderVersion}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabricVersion}")
@@ -43,13 +40,11 @@ dependencies {
 tasks.named("shadowJar", ShadowJar::class.java) {
     configurations = listOf(project.configurations.shadow.get())
 
-    relocate("it.unimi", "io.tebex.plugin.libs.fastutil")
     relocate("okhttp3", "io.tebex.plugin.libs.okhttp3")
     relocate("okio", "io.tebex.plugin.libs.okio")
     relocate("dev.dejvokep.boostedyaml", "io.tebex.plugin.libs.boostedyaml")
     relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
     relocate("kotlin", "io.tebex.plugin.libs.kotlin")
-    relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
     relocate("com.google.gson", "io.tebex.plugin.libs.gson")
     minimize()
 

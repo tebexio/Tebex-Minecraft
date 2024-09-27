@@ -2,18 +2,17 @@ package io.tebex.plugin.gui;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import io.tebex.plugin.TebexPlugin;
+import io.tebex.plugin.util.ItemUtil;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.CategoryPackage;
 import io.tebex.sdk.obj.ICategory;
 import io.tebex.sdk.obj.SubCategory;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
@@ -33,8 +32,8 @@ public class BuyGUI {
         this.config = platform.getPlatformConfig().getYamlDocument();
     }
 
-    private ScreenHandlerType<?> getRowType(final int rows) {
-        ScreenHandlerType<?> type;
+    private ScreenHandlerType<GenericContainerScreenHandler> getScreenHandlerType(final int rows) {
+        ScreenHandlerType<GenericContainerScreenHandler> type;
         switch (rows) {
             case 1 -> type = ScreenHandlerType.GENERIC_9X1;
             case 2 -> type = ScreenHandlerType.GENERIC_9X2;
@@ -59,12 +58,12 @@ public class BuyGUI {
         }
 
         int rows = config.getInt("gui.menu.home.rows") < 1 ? categories.size() / 9 + 1 : config.getInt("gui.menu.home.rows");
-        SimpleGui listingGui = new SimpleGui(getRowType(rows), player, false);
-        listingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.home.title", "Server Shop"))));
+        ListingGui listingGui = new ListingGui(rows, getScreenHandlerType(rows), player);
+        listingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.home.title", "Server Shop"))).getString());
 
         categories.sort(Comparator.comparingInt(Category::getOrder));
 
-        categories.forEach(category -> listingGui.addSlot(getCategoryItemBuilder(category).setCallback((index, clickType, actionType) -> {
+        categories.forEach(category -> listingGui.addItem(getCategoryItemBuilder(category).asGuiItem(action -> {
                     listingGui.close();
                     openCategoryMenu(player, category);
                 }
@@ -76,38 +75,43 @@ public class BuyGUI {
     private void openCategoryMenu(ServerPlayerEntity player, ICategory category) {
         int rows = config.getInt("gui.menu.category.rows") < 1 ? category.getPackages().size() / 9 + 1 : config.getInt("gui.menu.category.rows");
 
-        SimpleGui subListingGui = new SimpleGui(getRowType(rows), player, false);
-        subListingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.category.title").replace("%category%", category.getName()))));
+        ListingGui subListingGui = new ListingGui(rows, getScreenHandlerType(rows), player);
+        subListingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.category.title").replace("%category%", category.getName()))).getString());
 
         category.getPackages().sort(Comparator.comparingInt(CategoryPackage::getOrder));
 
         if (category instanceof Category cat) {
             if (cat.getSubCategories() != null) {
-                cat.getSubCategories().forEach(subCategory -> subListingGui.addSlot(getCategoryItemBuilder(subCategory).setCallback((index, clickType, actionType) -> {
+                cat.getSubCategories().forEach(subCategory -> subListingGui.addItem(getCategoryItemBuilder(subCategory).asGuiItem(action -> {
                     openCategoryMenu(player, subCategory);
                 })));
 
-                subListingGui.setSlot((rows*9) - 5, getBackItemBuilder()
-                        .setCallback((index, clickType, actionType) -> {
-                            open(player);
-                        })
-                );
+                TebexGuiItem backItem = getBackItemBuilder().asGuiItem(action -> {
+                    action.setCancelled(true);
+                    open(player);
+                });
+                int backItemSlot = subListingGui.getRows() * 9 - 5;
+                subListingGui.addItem(backItemSlot, backItem);
+                //subListingGui.setItem(backItemSlot, backItem);
             }
         } else if (category instanceof SubCategory) {
             SubCategory subCategory = (SubCategory) category;
 
             subListingGui.setTitle(Text.of(convertToLegacyString(config.getString("gui.menu.sub-category.title"))
                     .replace("%category%", subCategory.getParent().getName())
-                    .replace("%sub_category%", category.getName())));
+                    .replace("%sub_category%", category.getName())).getString());
 
-            subListingGui.setSlot((rows*9) - 5, getBackItemBuilder()
-                    .setCallback((index, clickType, actionType) -> {
-                        openCategoryMenu(player, subCategory.getParent());
-                    })
-            );
+            TebexGuiItem backItem = getBackItemBuilder().asGuiItem(action -> {
+                action.setCancelled(true);
+                openCategoryMenu(player, subCategory.getParent());
+            });
+            int backItemSlot = subListingGui.getRows() * 9 - 5;
+
+            subListingGui.addItem(backItemSlot, backItem);
+            //subListingGui.setItem(subListingGui.getRows() * 9 - 5,backItem);
         }
 
-        category.getPackages().forEach(categoryPackage -> subListingGui.addSlot(getPackageItemBuilder(categoryPackage).setCallback((index, clickType, actionType) -> {
+        category.getPackages().forEach(categoryPackage -> subListingGui.addItem(getPackageItemBuilder(categoryPackage).asGuiItem(action -> {
             player.closeHandledScreen();
 
             // Create Checkout Url
@@ -125,27 +129,24 @@ public class BuyGUI {
         subListingGui.open();
     }
 
-    private GuiElementBuilder getCategoryItemBuilder(ICategory category) {
+    private TebexItemBuilder getCategoryItemBuilder(ICategory category) {
         Section section = config.getSection("gui.item.category");
 
         String itemType = section.getString("material");
-        Item material = Registries.ITEM.get(Identifier.tryParse(itemType.toLowerCase()));
+
+        Item defaultItem = ItemUtil.fromString(itemType).isPresent() ? ItemUtil.fromString(itemType).get() : null;
+        Item item = ItemUtil.fromString(category.getGuiItem()).isPresent() ? ItemUtil.fromString(category.getGuiItem()).get() : defaultItem;
 
         String name = section.getString("name");
         List<String> lore = section.getStringList("lore");
 
-        MutableText guiName = MutableText.of(PlainTextContent.of(convertToLegacyString(name != null ? handlePlaceholders(category, name) : category.getName()))).setStyle(Style.EMPTY.withItalic(true));
-        List<Text> guiLore = lore.stream().map(line -> MutableText.of(PlainTextContent.of(convertToLegacyString(handlePlaceholders(category, line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList());
-
-        return new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName(guiName)
-                .setLore(guiLore)
-                .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
-                .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
-                .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
+        return TebexItemBuilder.from(item != null ? item : Items.BOOK)
+                .hideFlags(ItemStack.TooltipSection.ENCHANTMENTS, ItemStack.TooltipSection.MODIFIERS, ItemStack.TooltipSection.UNBREAKABLE)
+                .name(name != null ? remapLegacyFormatSeparator(italicize(handlePlaceholders(category, name))) : remapLegacyFormatSeparator(category.getName()))
+                .lore(lore.stream().map(line ->  remapLegacyFormatSeparator(italicize(handlePlaceholders(category, line)))).collect(Collectors.toList()));
     }
 
-    private GuiElementBuilder getPackageItemBuilder(CategoryPackage categoryPackage) {
+    private TebexItemBuilder getPackageItemBuilder(CategoryPackage categoryPackage) {
         Section section = config.getSection("gui.item." + (categoryPackage.hasSale() ? "package-sale" : "package"));
 
         if (section == null) {
@@ -161,23 +162,21 @@ public class BuyGUI {
 
 
         MutableText guiName = MutableText.of(PlainTextContent.of(convertToLegacyString(name != null ? handlePlaceholders(categoryPackage, name) : categoryPackage.getName()))).setStyle(Style.EMPTY.withItalic(true));
-        List<Text> guiLore = lore.stream().map(line -> MutableText.of(PlainTextContent.of(convertToLegacyString(handlePlaceholders(categoryPackage, line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList());
+        List<String> guiLore = lore.stream().map(line -> MutableText.of(PlainTextContent.of(convertToLegacyString(handlePlaceholders(categoryPackage, line)))).setStyle(Style.EMPTY.withItalic(true)).getString()).collect(Collectors.toList());
 
-        GuiElementBuilder guiElementBuilder = new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName(guiName)
-                .setLore(guiLore)
-                .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
-                .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
-                .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
+        TebexItemBuilder guiElementBuilder = TebexItemBuilder.from(material.asItem() != null ? material : Items.BOOK)
+                .hideFlags(ItemStack.TooltipSection.ENCHANTMENTS, ItemStack.TooltipSection.UNBREAKABLE, ItemStack.TooltipSection.ADDITIONAL)
+                .name(guiName.getString())
+                .lore(guiLore);
 
         if (categoryPackage.hasSale()) {
-            guiElementBuilder.enchant(Enchantment.byRawId(0), 1);
+            guiElementBuilder.enchant();
         }
 
         return guiElementBuilder;
     }
 
-    private GuiElementBuilder getBackItemBuilder() {
+    private TebexItemBuilder getBackItemBuilder() {
         Section section = config.getSection("gui.item.back");
 
         String itemType = section.getString("material");
@@ -186,12 +185,10 @@ public class BuyGUI {
         String name = section.getString("name");
         List<String> lore = section.getStringList("lore");
 
-        return new GuiElementBuilder(material.asItem() != null ? material : Items.BOOK)
-                .setName((MutableText)Text.of(convertToLegacyString(name != null ? name : "§fBack")))
-                .setLore(lore.stream().map(line -> ((MutableText)(Text.of(convertToLegacyString(line)))).setStyle(Style.EMPTY.withItalic(true))).collect(Collectors.toList()))
-                .hideFlag(ItemStack.TooltipSection.ENCHANTMENTS)
-                .hideFlag(ItemStack.TooltipSection.UNBREAKABLE)
-                .hideFlag(ItemStack.TooltipSection.ADDITIONAL);
+        return TebexItemBuilder.from(material.asItem() != null ? material : Items.BOOK)
+                .hideFlags(ItemStack.TooltipSection.ENCHANTMENTS, ItemStack.TooltipSection.UNBREAKABLE, ItemStack.TooltipSection.ADDITIONAL)
+                .name(Text.of(convertToLegacyString(name != null ? name : "§fBack")).getString())
+                .lore(lore.stream().map(line -> ((MutableText)(Text.of(convertToLegacyString(line)))).setStyle(Style.EMPTY.withItalic(true)).getString()).collect(Collectors.toList()));
     }
 
     private String handlePlaceholders(Object obj, String str) {
@@ -214,5 +211,13 @@ public class BuyGUI {
         }
 
         return str;
+    }
+
+    private String italicize(String input) {
+        return "§o" + input + "§r";
+    }
+
+    private String remapLegacyFormatSeparator(String input) {
+        return input.replaceAll("&", "§");
     }
 }
