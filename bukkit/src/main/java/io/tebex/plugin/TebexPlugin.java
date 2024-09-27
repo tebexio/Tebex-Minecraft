@@ -125,19 +125,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                     });
         }, 0, 20 * 60);
 
-        // Register the custom /buy command
-        try {
-            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-
-            if (config.isBuyCommandEnabled()) {
-                commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to get the CommandMap", e);
-        }
+        registerBuyCommand();
     }
 
     public List<Category> getStoreCategories() {
@@ -296,6 +284,21 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     @Override
     public void halt() {
         setup = false;
+    }
+
+    public void registerBuyCommand() {
+        try {
+            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+
+            bukkitCommandMap.setAccessible(true);
+            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+
+            if (config.isBuyCommandEnabled()) {
+                commandMap.register(getPlatformConfig().getBuyCommandName(), new BuyCommand(getPlatformConfig().getBuyCommandName(), this));
+            }
+        } catch (Throwable e) {
+            error("Failed to register buy command: " + e.getMessage(), e);
+        }
     }
 
     @Override
