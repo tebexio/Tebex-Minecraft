@@ -10,3 +10,5 @@ ignore/
 **/.DS_Store
 docs
 test/**
+fabric-1.21
+fabric-1.21.1
