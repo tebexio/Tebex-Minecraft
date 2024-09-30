@@ -42,6 +42,7 @@ public class SecretCommand extends SubCommand {
 
             source.sendMessage(Text.of("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."));
             platform.configure();
+            platform.refreshListings();
         }).exceptionally(ex -> {
             Throwable cause = ex.getCause();
 
