@@ -95,7 +95,7 @@ public class SDK {
                         new ServerInformation.Server(server.get("id").getAsInt(), server.get("name").getAsString())
                 );
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store information.", e);
+                platform.error("Unexpected response when getting store information: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting store information. " + e.getMessage()));
             }
         });
@@ -133,7 +133,7 @@ public class SDK {
 
                 return new DuePlayersResponse(meta.get("execute_offline").getAsBoolean(), meta.get("next_check").getAsInt(), meta.get("more").getAsBoolean(), players);
             } catch (IOException e) {
-                platform.error("Unexpected response when getting due players.", e);
+                platform.error("Unexpected response when getting due players: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting due players. " + e.getMessage()));
             }
         });
@@ -185,7 +185,7 @@ public class SDK {
 
                 return new OfflineCommandsResponse(meta.get("limited").getAsBoolean(), offlineCommands);
             } catch (IOException e) {
-                platform.error("Unexpected response when getting offline commands.", e);
+                platform.error("Unexpected response when getting offline commands: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting offfline commands. " + e.getMessage()));
             }
         });
@@ -236,7 +236,7 @@ public class SDK {
 
                 return queuedCommands;
             } catch (IOException e) {
-                platform.error("Unexpected response when getting online commands for player " + player.getName(), e);
+                platform.error("Unexpected response when getting online commands for player: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting online commands for player  " + player.getName() + ". " + e.getMessage()));
             }
         });
@@ -295,7 +295,7 @@ public class SDK {
                 JsonArray jsonObject = GSON.fromJson(response.body().string(), JsonArray.class);
                 return jsonObject.asList().stream().map(item -> CommunityGoal.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList());
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store community goals", e);
+                platform.error("Unexpected response when getting store community goals: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting store community goals. " + e.getMessage()));
             }
         });
@@ -392,7 +392,7 @@ public class SDK {
                         jsonObject.getAsJsonArray("data").asList().stream().map(item -> Coupon.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList())
                 );
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store coupons", e);
+                platform.error("Unexpected response when getting store coupons: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting store coupons. " + e.getMessage()));
             }
         });
@@ -422,7 +422,7 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return Coupon.fromJsonObject(jsonObject.get("data").getAsJsonObject());
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store coupon " + id, e);
+                platform.error("Unexpected response when getting store coupon " + id + ": " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting store coupon " + id + ". " + e.getMessage()));
             }
         });
@@ -501,11 +501,9 @@ public class SDK {
                 JsonObject jsonObject = GSON.fromJson(response.body().string(), JsonObject.class);
                 return Coupon.fromJsonObject(jsonObject.getAsJsonObject("data"));
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store coupons", e);
+                platform.error("Unexpected response when getting store coupons: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting store coupons. " + e.getMessage()));
             }
-
-
         });
     }
 
@@ -546,7 +544,7 @@ public class SDK {
                         .map(category -> Category.fromJsonObject(category.getAsJsonObject()))
                         .collect(Collectors.toList());
             } catch (IOException e) {
-                platform.error("Unexpected response when getting store listings.", e);
+                platform.error("Unexpected response when getting store listings: " + e.getMessage(), e);
                 throw new CompletionException(new IOException("Unexpected response when getting listings"));
             }
         });

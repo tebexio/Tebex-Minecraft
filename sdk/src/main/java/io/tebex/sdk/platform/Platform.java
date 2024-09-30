@@ -125,7 +125,7 @@ public interface Platform {
                 setSetup(false);
 
                 if (cause instanceof ServerNotFoundException) {
-                    warning("Failed to connect your server.", "Please double-check your server key or run the setup command again.");
+                    warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
                     this.halt();
                 } else {
                     warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the setup command again.", ex);
@@ -168,13 +168,20 @@ public interface Platform {
         getQueuedPlayers().clear();
 
         getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
+            if (ex != null) {
+                if (ex.getMessage().contains("429")) { // handling for rate limits
+                    warning("Failed to get due players: Rate Limit", "We will try again after 5 minutes.", ex);
+                    executeAsyncLater(this::performCheck, 5, TimeUnit.MINUTES);
+                } else { // unexpected status code
+                    executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
+                    warning("Failed to get due players: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+                }
+                return;
+            }
+
             if (runAfter) {
                 int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
                 executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
-            }
-            if (ex != null) {
-                warning("Failed to get due players" + ex.getMessage(), "We will try again at the next due player check.", ex);
-                return;
             }
 
             List<QueuedPlayer> playerList = duePlayersResponse.getPlayers();
@@ -222,7 +229,7 @@ public interface Platform {
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
             processOnlineCommands(player.getName(), playerId, onlineCommands);
         }).exceptionally(ex -> {
-            warning("Failed to get online commands for " + player.getName() + ". " + ex.getMessage(), "We will try again at the next due player check.", ex);
+            warning("Failed to get online commands: " + ex.getMessage(), "We will try again at the next due player check.", ex);
             return null;
         });
     }
@@ -278,11 +285,15 @@ public interface Platform {
                         extraInfo = commandResult.getException().getMessage();
                     }
 
-                    String solution = "Check that the command syntax is correct.";
+                    if (extraInfo.isEmpty()) {
+                        extraInfo = "No further information";
+                    }
+
+                    String solution = String.format("Manually try `%s` for player %s. Check that the command syntax is correct.", command.getParsedCommand(), playerName);
                     if (command.getPayment() != 0) {
                         solution += " Re-run this command at https://creator.tebex.io/payments/" + command.getPayment();
                     }
-                    warning(String.format("Command `%s` failed to execute: %s", command.getParsedCommand(), extraInfo), solution);
+                    warning("Command failed to execute: " + extraInfo, solution);
                 }
             });
             // At present all queued commands are reported as successful once delivery criteria are met, regardless if dispatching

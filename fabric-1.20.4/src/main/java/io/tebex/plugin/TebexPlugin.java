@@ -146,7 +146,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
                         debug("Successfully sent join events");
                     })
                     .exceptionally(throwable -> {
-                        error("Failed to send join events", throwable);
+                        error("Failed to send join events: " + throwable.getMessage(), throwable);
                         return null;
                     });
         }, 0, 1, TimeUnit.MINUTES);
