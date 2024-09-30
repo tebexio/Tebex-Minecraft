@@ -836,34 +836,64 @@ public class SDK {
             return future;
         }
 
-        if (platform.PLUGIN_EVENTS.size() == 0) {
+        if (platform.PLUGIN_EVENTS.isEmpty()) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
             future.complete(true);
             return future;
         }
 
-        this.platform.debug("Sending " + platform.PLUGIN_EVENTS.size() + " plugin events...");
-        return platform.getSDK().request("https://plugin-logs.tebex.io/events", false).withBody(GSON.toJson(platform.PLUGIN_EVENTS), "POST").sendAsync().thenApply(logsResponse -> {
-            if (!logsResponse.isSuccessful()) {
-                platform.debug("Failed to send plugin event!");
-                ResponseBody responseBody = logsResponse.body();
-                if (responseBody != null) {
-                    try {
-                        platform.debug(responseBody.string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        platform.debug("Sending " + platform.PLUGIN_EVENTS.size() + " plugin events...");
+        return _batchPluginEvents(platform.PLUGIN_EVENTS, 0, 100);
+    }
+
+    private CompletableFuture<Boolean> _batchPluginEvents(List<PluginEvent> events, int offset, int batchSize) {
+        List<PluginEvent> batch = events.subList(offset, Math.min(offset + batchSize, events.size()));
+
+        return platform.getSDK().request("https://plugin-logs.tebex.io/events", false)
+                .withBody(GSON.toJson(batch), "POST")
+                .sendAsync()
+                .thenCompose(logsResponse -> {
+                    if (!logsResponse.isSuccessful()) {
+                        platform.debug("Failed to send plugin events!");
+                        if (logsResponse.code() == 413) {
+                            platform.debug("Request entity too large for plugin events, reducing batch size.");
+                            int newBatchSize = batchSize / 2;
+                            if (newBatchSize < 1) {
+                                this.platform.error("Server events batch size is too small", new IOException("Batch size too small"));
+                                return CompletableFuture.completedFuture(false);
+                            }
+                            return _batchPluginEvents(events, offset, newBatchSize);
+                        } else {
+                            ResponseBody responseBody = logsResponse.body();
+                            if (responseBody != null) {
+                                try {
+                                    platform.debug(responseBody.string());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                platform.debug("Empty response when sending plugin event");
+                            }
+                        }
+                    } else {
+                        platform.debug("Successfully sent plugin events.");
                     }
-                } else {
-                    platform.debug("Empty response when sending plugin event");
-                }
-            } else { // successfully submitted queued events, clear the events list
-                platform.PLUGIN_EVENTS.clear();
-            }
-            return logsResponse.isSuccessful();
-        }).exceptionally(e -> {
-            platform.debug("Failed to send plugin events due to exception. " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        });
+
+                    // If successfully sent, clear events that were sent
+                    if (logsResponse.isSuccessful()) {
+                        if (offset + batchSize >= events.size()) {
+                            platform.PLUGIN_EVENTS.clear();
+                            return CompletableFuture.completedFuture(true);
+                        } else {
+                            return _batchPluginEvents(events, offset + batchSize, batchSize); // Proceed with the next batch
+                        }
+                    } else {
+                        return CompletableFuture.completedFuture(false);
+                    }
+                }).exceptionally(e -> {
+                    platform.debug("Failed to send plugin events due to exception. " + e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                });
     }
 }
