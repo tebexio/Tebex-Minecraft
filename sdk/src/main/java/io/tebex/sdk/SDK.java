@@ -583,15 +583,38 @@ public class SDK {
             return future;
         }
 
-        return request("/events").withBody(GSON.toJson(events)).withSecretKey(secretKey).sendAsync().thenApply(response -> {
-            if (response.code() == 404) {
-                throw new CompletionException(new ServerNotFoundException());
-            } else if (response.code() != 204) {
-                throw new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
-            }
+        return _batchServerEvents(events, 0, 100);
+    }
 
-            return true;
-        });
+    private CompletableFuture<Boolean> _batchServerEvents(List<ServerEvent> events, int offset, int batchSize) {
+        List<ServerEvent> batch = events.subList(offset, Math.min(offset + batchSize, events.size()));
+
+        return request("/events")
+                .withBody(GSON.toJson(batch))
+                .withSecretKey(secretKey)
+                .sendAsync()
+                .thenCompose(response -> {
+                    if (response.code() == 404) {
+                        throw new CompletionException(new ServerNotFoundException());
+                    } else if (response.code() == 413) {  // "Request Entity Too Large"
+                        int newBatchSize = batchSize / 2;
+                        if (newBatchSize < 1) {
+                            this.platform.error("Server events batch size is too small", new IOException("Batch size too small"));
+                            return CompletableFuture.completedFuture(false);
+                        }
+                        return _batchServerEvents(events, offset, newBatchSize); // Retry with smaller batch size
+                    } else if (response.code() != 204) {
+                        this.platform.error("Unexpected status code when sending server events", new IOException("Unexpected status code (" + response.code() + ")"));
+                        return CompletableFuture.completedFuture(false);
+                    }
+
+                    // If we have more events available, send the next batch
+                    if (offset + batchSize < events.size()) {
+                        return _batchServerEvents(events, offset + batchSize, batchSize);
+                    } else { // No more events, all batches sent
+                        return CompletableFuture.completedFuture(true);
+                    }
+                });
     }
 
     /**
