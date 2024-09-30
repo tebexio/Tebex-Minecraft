@@ -5,8 +5,8 @@ version = rootProject.version
 
 plugins {
     java
-    id("com.github.johnrengelman.shadow")
-    id("fabric-loom")
+    id("com.gradleup.shadow")
+    id("fabric-loom") version "1.7-SNAPSHOT" apply(true)
 }
 
 var minecraftVersion = properties["minecraft_version"] as String
