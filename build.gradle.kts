@@ -49,7 +49,7 @@ subprojects {
     }
 
     tasks.named("processResources", Copy::class.java) {
-        val props = mapOf("version" to rootProject.version)
+        val props = mapOf("version" to rootProject.version, "@VERSION@" to rootProject.version)
         inputs.properties(props)
         filteringCharset = "UTF-8"
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -70,7 +70,6 @@ fabric1204Project.configure<JavaPluginExtension> {
         }
     }
 }
-
 
 val fabric1211Project = project(":fabric-1.21.1")
 fabric1211Project.configure<JavaPluginExtension> {
