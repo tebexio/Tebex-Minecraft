@@ -19,5 +19,6 @@ tasks.named("shadowJar", ShadowJar::class.java) {
     relocate("org.jetbrains.annotations", "io.tebex.plugin.libs.jetbrains")
     relocate("kotlin", "io.tebex.plugin.libs.kotlin")
     relocate("com.google.gson", "io.tebex.plugin.libs.gson")
+    relocate("com.cryptomorin.xseries", "io.tebex.plugin.libs.xseries")
     minimize()
 }
