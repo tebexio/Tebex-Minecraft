@@ -415,4 +415,14 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
     public String getServerIp() {
         return Bukkit.getIp();
     }
+
+    @Override
+    public ServerInformation.Server getStoreServer() {
+        return storeInformation.getServer();
+    }
+
+    @Override
+    public ServerInformation.Store getStore() {
+        return storeInformation.getStore();
+    }
 }

@@ -3,7 +3,6 @@ package io.tebex.sdk.platform;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
 import io.tebex.sdk.exception.ServerNotFoundException;
-import io.tebex.sdk.exception.ServerNotSetupException;
 import io.tebex.sdk.obj.Category;
 import io.tebex.sdk.obj.QueuedCommand;
 import io.tebex.sdk.obj.QueuedPlayer;
@@ -17,13 +16,11 @@ import io.tebex.sdk.triage.PluginEvent;
 import io.tebex.sdk.util.CommandResult;
 import io.tebex.sdk.util.StringUtil;
 import io.tebex.sdk.util.UUIDUtil;
-import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -422,7 +419,11 @@ public interface Platform {
         log(Level.WARNING, "- " + solution);
 
         if (getPlatformConfig().isAutoReportEnabled()) {
-            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.WARNING, message));
+            PluginEvent event = new PluginEvent(this, EnumEventLevel.WARNING, message);
+            if (isSetup()) {
+                event = event.onStore(getStore()).onServer(getStoreServer());
+            }
+            PLUGIN_EVENTS.add(event);
         }
     }
 
@@ -431,21 +432,33 @@ public interface Platform {
         log(Level.WARNING, "- " + solution);
 
         if (getPlatformConfig().isAutoReportEnabled()) {
-            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.WARNING, message).withTrace(t));
+            PluginEvent event = new PluginEvent(this, EnumEventLevel.WARNING, message).withTrace(t);
+            if (isSetup()) {
+                event = event.onStore(getStore()).onServer(getStoreServer());
+            }
+            PLUGIN_EVENTS.add(event);
         }
     }
 
     default void error(String message) {
         log(Level.SEVERE, message);
         if (getPlatformConfig().isAutoReportEnabled()) {
-            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.ERROR, message));
+            PluginEvent event = new PluginEvent(this, EnumEventLevel.ERROR, message);
+            if (isSetup()) {
+                event = event.onStore(getStore()).onServer(getStoreServer());
+            }
+            PLUGIN_EVENTS.add(event);
         }
     }
 
     default void error(String message, Throwable t) {
         log(Level.SEVERE, message);
         if (getPlatformConfig().isAutoReportEnabled()) {
-            PLUGIN_EVENTS.add(new PluginEvent(this, EnumEventLevel.ERROR, message).withTrace(t));
+            PluginEvent event = new PluginEvent(this, EnumEventLevel.ERROR, message).withTrace(t);
+            if (isSetup()) {
+                event = event.onStore(getStore()).onServer(getStoreServer());
+            }
+            PLUGIN_EVENTS.add(event);
         } else { // trace is printed when added above, but would be skipped if auto report was disabled. print it here
             t.printStackTrace();
         }
@@ -542,4 +555,8 @@ public interface Platform {
      * @return IP address of the server as a string
      */
     String getServerIp();
+
+    ServerInformation.Server getStoreServer();
+
+    ServerInformation.Store getStore();
 }

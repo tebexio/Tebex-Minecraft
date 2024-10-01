@@ -318,6 +318,16 @@ public class TebexPlugin extends Plugin implements Platform {
     }
 
     @Override
+    public ServerInformation.Server getStoreServer() {
+        return storeInformation.getServer();
+    }
+
+    @Override
+    public ServerInformation.Store getStore() {
+        return storeInformation.getStore();
+    }
+
+    @Override
     public void setStoreInfo(ServerInformation info) {
         this.storeInformation = info;
     }

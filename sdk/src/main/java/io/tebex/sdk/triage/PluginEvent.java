@@ -62,9 +62,11 @@ public class PluginEvent {
     }
 
     public PluginEvent onStore(ServerInformation.Store store) {
+        this.storeId = String.valueOf(store.getId());
         return this;
     }
     public PluginEvent onServer(ServerInformation.Server server) {
+        this.serverId = String.valueOf(server.getId());
         return this;
     }
     public PluginEvent withTrace(String trace) {
