@@ -169,9 +169,12 @@ public interface Platform {
                 if (ex.getMessage().contains("429")) { // handling for rate limits
                     warning("Failed to get due players: Rate Limit", "We will try again after 5 minutes.", ex);
                     executeAsyncLater(this::performCheck, 5, TimeUnit.MINUTES);
+                } else if (ex.getMessage().contains("403")) {
+                    warning("Failed to get due players: Forbidden", "Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.", ex);
+                    executeAsyncLater(this::performCheck, 30, TimeUnit.MINUTES);
                 } else { // unexpected status code
-                    executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
                     warning("Failed to get due players: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+                    executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
                 }
                 return;
             }

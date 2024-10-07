@@ -2,6 +2,7 @@ package io.tebex.plugin;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mojang.brigadier.ParseResults;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
 import io.tebex.plugin.gui.TebexBuyScreenHandler;
@@ -47,7 +48,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     // Fabric Related
     private static final String MOD_ID = "tebex";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    private final String MOD_VERSION = "@VERSION@";
+    private final String MOD_VERSION = "2.1.0";
     private final File MOD_PATH = new File("./mods/" + MOD_ID);
     private MinecraftServer server;
 
@@ -218,8 +219,13 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
     @Override
     public CommandResult dispatchCommand(String command) {
-        server.getCommandManager().execute(server.getCommandSource().getDispatcher().parse(command, server.getCommandSource()), command);
-        return CommandResult.from(true); // we assume success because the command manager does not report any result
+        int result = server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), command);
+
+        if (result > 0) { // positive integer from command manager indicates success
+            return CommandResult.from(true);
+        } else { // 0 or negative int indicates an unspecified failure
+            return CommandResult.from(false);
+        }
     }
 
     @Override

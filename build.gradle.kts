@@ -8,7 +8,7 @@ plugins {
 defaultTasks("shadowJar")
 
 group = "io.tebex"
-version = "2.1.0-DEV"
+version = "2.1.0"
 
 subprojects {
     plugins.apply("java")
@@ -62,6 +62,17 @@ subprojects {
 
 val fabric1204Project = project(":fabric-1.20.4")
 fabric1204Project.configure<JavaPluginExtension> {
+    sourceSets {
+        getByName("main") {
+            java {
+                srcDir("src/main/kotlin")
+            }
+        }
+    }
+}
+
+val fabric1201Project = project(":fabric-1.20.1")
+fabric1201Project.configure<JavaPluginExtension> {
     sourceSets {
         getByName("main") {
             java {
