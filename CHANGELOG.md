@@ -1,3 +1,45 @@
+2.1.0
+=====
+This version resolves the majority of cross-version and inter-plugin issues experienced on the current Bukkit variant.
+
+- Bukkit/Spigot/Paper support: 1.8.8+
+- BungeeCord support: 1.18+
+- Velocity support: API 3.3.0 and above
+- Fabric support: 1.20.1, 1.20.4, 1.21.1
+
+## Fixes
+- `java.lang.NoSuchMethodError: com.google.gson.JsonArray.add` on certain Minecraft versions fixed
+- Join event queue could become too large and indefinitely fail to send
+- Triumph dependency made redundant (Bukkit)
+- sgui dependency made redundant (Fabric)
+- `tebex reload` now appropriately reloads the buy command
+- `com.google.gson` is now relocated to avoid version conflicts
+- `com.cryptomorin.xseries` is now relocated to avoid conflicts
+- Improved tracking of warning and error events relating to processing player commands
+- An appropriate `User-Agent` is now set for Tebex API requests
+- Store listings are always appropriately refreshed after setting a secret key
+- Updated all remaining dependencies
+
+2.0.6
+=====
+## Features
+- Improved warning and error logs. All warnings will suggest solutions. Revised which errors and data are sent automatically to Tebex.
+
+## Fixes
+- `/buy` command no longer causes the crashing/errors affecting **1.20.6** and **1.21**
+- `isBuyCommandEnabled` setting was ignored in previous versions and now works properly
+
+2.0.5
+=====
+- Checks for commands would not be rescheduled if an error occurred, preventing commands from being checked until server restart
+- Commands that required slots and delays incorrectly used the delay value as the number of slots required
+- Improvements to error reporting system
+- `/tebex report` did not allow for multiple words
+- `/tebex lookup` no longer causes an error if the player had no purchases, and has more descriptive error messaging
+- Version did not not appear correctly in Velocity
+- Version did not appear correctly in Fabric
+- Index out of bounds if /tebex debug is used without an arg on Velocity
+
 2.0.4
 =====
 
