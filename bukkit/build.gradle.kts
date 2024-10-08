@@ -13,7 +13,7 @@ dependencies {
 
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("dev.dejvokep:boosted-yaml:1.3")
-    compileOnly("me.clip:placeholderapi:2.11.3")
+    compileOnly("me.clip:placeholderapi:2.11.6")
 }
 
 tasks.named("shadowJar", ShadowJar::class.java) {
@@ -29,6 +29,7 @@ tasks.named("shadowJar", ShadowJar::class.java) {
     relocate("kotlin", "io.tebex.plugin.libs.kotlin")
     relocate("com.github.benmanes.caffeine", "io.tebex.plugin.libs.caffeine")
     relocate("com.cryptomorin.xseries", "io.tebex.plugin.libs.xseries")
+    relocate("com.google.gson", "io.tebex.plugin.libs.gson")
     minimize()
 }
 

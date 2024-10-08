@@ -36,6 +36,7 @@ tasks {
         relocate("dev.dejvokep.boostedyaml", "net.analyse.plugin.libs.boostedyaml") // Relocate boostedyaml
         relocate("org.jetbrains.annotations", "net.analyse.plugin.libs.jetbrains") // Relocate jetbrains
         relocate("kotlin", "net.analyse.plugin.libs.kotlin") // Relocate jetbrains
+        relocate("com.google.gson", "io.tebex.plugin.libs.gson") // Relocate gson
         minimize()
     }
 }
