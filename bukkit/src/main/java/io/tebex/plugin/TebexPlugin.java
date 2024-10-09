@@ -272,7 +272,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
 
     @Override
     public boolean isOnlineMode() {
-        return getServer().getOnlineMode() && ! config.isProxyMode();
+        return getServer().getOnlineMode() || config.isProxyMode();
     }
 
     @Override
