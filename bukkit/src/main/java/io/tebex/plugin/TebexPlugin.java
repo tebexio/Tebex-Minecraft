@@ -147,7 +147,7 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
         File oldConfigFile = new File(oldPluginDir, "config.properties");
         if(!oldConfigFile.exists()) return;
 
-        info("You're running the legacy BuycraftX plugin. Attempting to migrate..");
+        info("Detected legacy BuycraftX configuration. Attempting to migrate...");
 
         try {
             // Load old properties
@@ -178,10 +178,8 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                 info("Successfully migrated your config from BuycraftX.");
             }
 
-            // If BuycraftX is installed, delete it.
+            // If BuycraftX is installed, delete the plugin JAR.
             boolean legacyPluginEnabled = Bukkit.getPluginManager().isPluginEnabled("BuycraftX");
-            boolean deletedLegacyPluginJar = false;
-
             if(legacyPluginEnabled) {
                 try {
                     JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin("BuycraftX");
@@ -192,17 +190,15 @@ public final class TebexPlugin extends JavaPlugin implements Platform {
                         File file = (File) getFileMethod.invoke(plugin);
 
                         Bukkit.getPluginManager().disablePlugin(plugin);
-                        deletedLegacyPluginJar = file.delete();
+                        boolean deletedLegacyPluginJar = file.delete();
+                        if(!deletedLegacyPluginJar) {
+                            info("Failed to fully delete the legacy BuycraftX plugin.");
+                            info("Please delete it manually in your /plugins folder to avoid conflicts.");
+                        }
                     }
                 } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                     warning("Failed to disable legacy BuycraftX plugin: " + e.getMessage(), "Please remove it manually from your /plugins folder.");
                 }
-            }
-
-            boolean deletedLegacyPluginDir = FileUtils.deleteDirectory(oldPluginDir);
-            if(!deletedLegacyPluginDir || !deletedLegacyPluginJar) {
-                info("Failed to fully delete the BuycraftX files.");
-                info("Please delete them manually in your /plugins folder to avoid conflicts.");
             }
         } catch (IOException e) {
             warning("Failed to migrate BuycraftX configuration: " + e.getMessage(), "Please set your secret key with /tebex secret <key> to enable your store.");
