@@ -39,10 +39,10 @@ public class TebexItemBuilder {
 
         NbtList loreList = new NbtList();
         lore.forEach(loreEntry -> {
-            loreList.add(NbtString.of(loreEntry));
+            loreList.add(NbtString.of(Text.Serializer.toJson(Text.of(loreEntry))));
         });
         displayTag.put(ItemStack.LORE_KEY, loreList);
-        displayTag.putString("Name", this.displayName);
+        displayTag.putString("Name", Text.Serializer.toJson(Text.of(this.displayName)));
         for (ItemStack.TooltipSection tooltipSection : hideFlags) {
             stack.addHideFlag(tooltipSection);
         }
