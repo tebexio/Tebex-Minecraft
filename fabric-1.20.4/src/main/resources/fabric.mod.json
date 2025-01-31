@@ -16,6 +16,7 @@
   "depends": {
     "fabricloader": ">=0.14.9",
     "fabric": "*",
-    "minecraft": ">=1.20"
+    "minecraft": ">=1.20",
+    "luckperms": "*"
   }
 }

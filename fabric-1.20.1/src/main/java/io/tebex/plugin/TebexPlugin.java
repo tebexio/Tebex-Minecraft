@@ -2,10 +2,8 @@ package io.tebex.plugin;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mojang.brigadier.ParseResults;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.event.JoinListener;
-import io.tebex.plugin.gui.TebexBuyScreenHandler;
 import io.tebex.plugin.manager.CommandManager;
 import io.tebex.plugin.util.Multithreading;
 import io.tebex.sdk.SDK;
@@ -20,17 +18,14 @@ import io.tebex.sdk.platform.config.ServerPlatformConfig;
 import io.tebex.sdk.request.response.ServerInformation;
 import io.tebex.sdk.util.CommandResult;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,6 +46,7 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     private final String MOD_VERSION = "2.1.0";
     private final File MOD_PATH = new File("./mods/" + MOD_ID);
     private MinecraftServer server;
+    private static LuckPerms luckPermsAPI;
 
     private SDK sdk;
     private ServerPlatformConfig config;
@@ -80,11 +76,12 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             this.server = server;
+            luckPermsAPI = LuckPermsProvider.get();
             onEnable();
         });
 
         // Initialise Managers.
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> new CommandManager(this).register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> new CommandManager(this).register(dispatcher));
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> Multithreading.shutdown());
     }
@@ -353,5 +350,10 @@ public class TebexPlugin implements Platform, DedicatedServerModInitializer {
     @Override
     public void setStoreCategories(List<Category> categories) {
         this.storeCategories = categories;
+    }
+
+    public static boolean hasPermission(ServerCommandSource source, String permission) {
+        if (source.getPlayer() == null) return true;
+        return luckPermsAPI.getPlayerAdapter(ServerPlayerEntity.class).getPermissionData(source.getPlayer()).checkPermission(permission).asBoolean();
     }
 }

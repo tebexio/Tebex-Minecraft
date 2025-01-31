@@ -2,7 +2,6 @@ package io.tebex.plugin.manager;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.tebex.plugin.TebexPlugin;
@@ -40,13 +39,15 @@ public class CommandManager {
     }
 
     public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("tebex").executes(context -> {
-            final ServerCommandSource source = context.getSource();
-            source.sendMessage(Text.of("§8[Tebex] §7Welcome to Tebex!"));
-            source.sendMessage(Text.of("§8[Tebex] §7This server is running version §fv" + platform.getVersion() + "§7."));
+        LiteralArgumentBuilder<ServerCommandSource> baseCommand = literal("tebex")
+                .requires(source -> TebexPlugin.hasPermission(source, "tebex.base"))
+                .executes(context -> {
+                    final ServerCommandSource source = context.getSource();
+                    source.sendMessage(Text.of("§8[Tebex] §7Welcome to Tebex!"));
+                    source.sendMessage(Text.of("§8[Tebex] §7This server is running version §fv" + platform.getVersion() + "§7."));
 
-            return 1;
-        });
+                    return 1;
+                });
 
         if (platform.getPlatformConfig().isBuyCommandEnabled()) {
             BuyCommand buyCommand = new BuyCommand(platform);
@@ -54,9 +55,10 @@ public class CommandManager {
         }
 
         commands.forEach(command -> {
-            LiteralArgumentBuilder<ServerCommandSource> subCommand = literal(command.getName());
+            LiteralArgumentBuilder<ServerCommandSource> subCommand = literal(command.getName())
+                    .requires(source -> TebexPlugin.hasPermission(source, command.getPermission()));
 
-            if(command.getName().equalsIgnoreCase("secret")) {
+            if (command.getName().equalsIgnoreCase("secret")) {
                 baseCommand.then(subCommand.then(argument("key", StringArgumentType.string()).executes(context -> {
                     command.execute(context);
                     return 1;
@@ -101,11 +103,11 @@ public class CommandManager {
             else if(command.getName().equalsIgnoreCase("sendlink")) {
                 baseCommand.then(subCommand
                         .then(argument("username", StringArgumentType.string())
-                        .then(argument("packageId", StringArgumentType.string()))
-                        .executes(context -> {
-                            command.execute(context);
-                            return 1;
-                        })));
+                                .then(argument("packageId", StringArgumentType.string()))
+                                .executes(context -> {
+                                    command.execute(context);
+                                    return 1;
+                                })));
             }
 
             else {
