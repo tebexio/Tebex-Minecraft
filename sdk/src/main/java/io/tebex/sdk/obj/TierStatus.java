@@ -4,19 +4,19 @@ import com.google.gson.JsonObject;
 
 public class TierStatus {
     private final int id;
-    private final String name;
+    private final String description;
 
-    public TierStatus(int id, String name) {
+    public TierStatus(int id, String description) {
         this.id = id;
-        this.name = name;
+        this.description = description;
     }
 
     public int getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getDescription() {
+        return description;
     }
 
     public static TierStatus fromJsonObject(JsonObject jsonObject) {
