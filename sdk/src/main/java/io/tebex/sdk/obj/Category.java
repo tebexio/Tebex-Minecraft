@@ -14,8 +14,14 @@ public class Category implements ICategory {
     private final boolean onlySubcategories;
     private List<SubCategory> subCategories;
     private final List<CategoryPackage> categoryPackages;
+    private final boolean tiered;
 
-    public Category(int id, int order, String name, String guiItem, boolean onlySubcategories, List<CategoryPackage> categoryPackages) {
+    /**
+     * If this is a tiered category and the usernameId is provided, this will be the active tier information for this category.
+     */
+    private final Tier activeTier;
+
+    public Category(int id, int order, String name, String guiItem, boolean onlySubcategories, List<CategoryPackage> categoryPackages, boolean tiered, Tier activeTier) {
         this.id = id;
         this.order = order;
         this.name = name;
@@ -23,6 +29,8 @@ public class Category implements ICategory {
         this.onlySubcategories = onlySubcategories;
         this.subCategories = new ArrayList<>();
         this.categoryPackages = categoryPackages;
+        this.tiered = tiered;
+        this.activeTier = activeTier;
     }
 
     @Override
@@ -68,7 +76,9 @@ public class Category implements ICategory {
                 jsonObject.get("name").getAsString(),
                 jsonObject.get("gui_item").getAsString(),
                 jsonObject.has("only_subcategories") && jsonObject.get("only_subcategories").getAsBoolean(),
-                jsonObject.getAsJsonArray("packages").asList().stream().map(item -> CategoryPackage.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList())
+                jsonObject.getAsJsonArray("packages").asList().stream().map(item -> CategoryPackage.fromJsonObject(item.getAsJsonObject())).collect(Collectors.toList()),
+                jsonObject.get("tiered").getAsBoolean(),
+                Tier.fromJsonObject(jsonObject.get("active_tier").getAsJsonObject())
         );
 
         category.setSubCategories(jsonObject.getAsJsonArray("subcategories").asList().stream().map(item -> SubCategory.fromJsonObject(item.getAsJsonObject(), category)).collect(Collectors.toList()));

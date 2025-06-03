@@ -34,8 +34,9 @@ public class Package {
     private final boolean limitExpires;
     private final boolean inheritCommands;
     private final boolean variableGiftcard;
+    private final float proratePrice;
 
-        public Package(int id, String name, String image, double price, int expiryLength, String expiryPeriod, String type, Category category, int globalLimit, String globalLimitPeriod, int userLimit, String userLimitPeriod, List<Server> servers, List<Integer> requiredPackages, boolean requireAny, boolean createGiftcard, boolean showUtil, String itemId, boolean disabled, boolean disableQuantity, boolean customPrice, boolean chooseServer, boolean limitExpires, boolean inheritCommands, boolean variableGiftcard) {
+        public Package(int id, String name, String image, double price, int expiryLength, String expiryPeriod, String type, Category category, int globalLimit, String globalLimitPeriod, int userLimit, String userLimitPeriod, List<Server> servers, List<Integer> requiredPackages, boolean requireAny, boolean createGiftcard, boolean showUtil, String itemId, boolean disabled, boolean disableQuantity, boolean customPrice, boolean chooseServer, boolean limitExpires, boolean inheritCommands, boolean variableGiftcard, float proratePrice) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -61,6 +62,7 @@ public class Package {
         this.limitExpires = limitExpires;
         this.inheritCommands = inheritCommands;
         this.variableGiftcard = variableGiftcard;
+        this.proratePrice = proratePrice;
     }
 
     public int getId() {
@@ -258,7 +260,8 @@ public class Package {
                 jsonObject.get("choose_server").getAsBoolean(),
                 jsonObject.get("limit_expires").getAsBoolean(),
                 jsonObject.get("inherit_commands").getAsBoolean(),
-                jsonObject.get("variable_giftcard").getAsBoolean()
+                jsonObject.get("variable_giftcard").getAsBoolean(),
+                jsonObject.get("prorate_price").getAsFloat()
         );
     }
 
