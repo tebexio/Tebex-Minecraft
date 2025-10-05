@@ -113,6 +113,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
             debug("Skipped performCheck: debounced (next allowed in " + (nextAllowed - now) + "ms).");
             return;
         }
+
         nextAllowedCheckMillis.set(now + MIN_CHECK_INTERVAL_MILLIS);
         checkCommandQueue(true);
     }
@@ -412,7 +413,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
     public final void error(String message, Throwable t) {
         log(Level.SEVERE, message);
-        createPluginEvent(EnumEventLevel.ERROR, message);
+        createPluginEvent(EnumEventLevel.ERROR, message, t);
     }
 
     /**
