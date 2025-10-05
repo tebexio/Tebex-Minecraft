@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
@@ -29,6 +31,10 @@ import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
  */
 public abstract class BasePluginPlatform implements PluginPlatform {
     public final int MAX_COMMANDS_PER_BATCH = 3;
+
+    private final AtomicBoolean checkRunning = new AtomicBoolean(false);
+    private final AtomicLong nextAllowedCheckMillis = new AtomicLong(0L);
+    private static final long MIN_CHECK_INTERVAL_MILLIS = 750L;
 
     protected SDK sdk;
     protected ServerPlatformConfig config;
@@ -101,6 +107,13 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     }
 
     public final void performCheck() {
+        long now = System.currentTimeMillis();
+        long nextAllowed = nextAllowedCheckMillis.get();
+        if (now < nextAllowed) {
+            debug("Skipped performCheck: debounced (next allowed in " + (nextAllowed - now) + "ms).");
+            return;
+        }
+        nextAllowedCheckMillis.set(now + MIN_CHECK_INTERVAL_MILLIS);
         checkCommandQueue(true);
     }
 
@@ -113,49 +126,63 @@ public abstract class BasePluginPlatform implements PluginPlatform {
             return forceCheckOutput;
         }
 
+        if (!checkRunning.compareAndSet(false, true)) {
+            debug("A due-player check is already running; skipping...");
+            forceCheckOutput.complete(new String[0]);
+            return forceCheckOutput;
+        }
+
         debug("Checking for due players...");
         getQueuedPlayers().clear();
 
         getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
-            ArrayList<String> output = new ArrayList<>();
-            if (ex != null) {
-                if (ex.getMessage().contains("429")) { // handling for rate limits
-                    warning("Failed to get due players: Rate Limit", "We will try again after 5 minutes.", ex);
-                    output.add("Failed to get due players: Rate Limit. We will try again after 5 minutes.");
-                    executeAsyncLater(this::performCheck, 5, TimeUnit.MINUTES);
-                } else if (ex.getMessage().contains("403")) {
-                    warning("Failed to get due players: Forbidden", "Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.", ex);
-                    output.add("Failed to get due players: Forbidden. Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.");
-                    executeAsyncLater(this::performCheck, 30, TimeUnit.MINUTES);
-                } else { // unexpected status code
-                    warning("Failed to get due players: " + ex.getMessage(), "We will try again at the next due player check.", ex);
-                    output.add("Failed to get due players: '" + ex.getMessage() + "'. We will try again at the next due player check.");
-                    executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
+            try {
+                ArrayList<String> output = new ArrayList<>();
+                if (ex != null) {
+                    if (ex.getMessage().contains("429")) { // handling for rate limits
+                        warning("Failed to get due players: Rate Limit", "We will try again after 5 minutes.", ex);
+                        output.add("Failed to get due players: Rate Limit. We will try again after 5 minutes.");
+                        executeAsyncLater(this::performCheck, 5, TimeUnit.MINUTES);
+                    } else if (ex.getMessage().contains("403")) {
+                        warning("Failed to get due players: Forbidden", "Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.", ex);
+                        output.add("Failed to get due players: Forbidden. Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.");
+                        executeAsyncLater(this::performCheck, 30, TimeUnit.MINUTES);
+                    } else { // unexpected status code
+                        warning("Failed to get due players: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+                        output.add("Failed to get due players: '" + ex.getMessage() + "'. We will try again at the next due player check.");
+                        executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
+                    }
+                    forceCheckOutput.complete(output.toArray(new String[0]));
+                    return;
                 }
-                forceCheckOutput.complete((String[]) output.toArray());
-                return;
-            }
 
-            if (useRemoteNextCheck) {
-                int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
-                executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
-            }
+                if (useRemoteNextCheck) {
+                    int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
+                    nextAllowedCheckMillis.set(System.currentTimeMillis() + (nextCheck * 1000L) - 50L);
+                    executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
+                }
 
-            List<QueuedPlayer> playerList = duePlayersResponse.getPlayers();
-            if(! playerList.isEmpty()) {
-                String listMessage = "Found " + playerList.size() + " " + StringUtil.pluralise(playerList.size(), "player", "players") + " with pending commands.";
+                List<QueuedPlayer> playerList = duePlayersResponse.getPlayers();
+                if (!playerList.isEmpty()) {
+                    String listMessage = "Found " + playerList.size() + " " + StringUtil.pluralise(playerList.size(), "player", "players") + " with pending commands.";
 
-                for (QueuedPlayer queuedPlayer : playerList) {
-                    try {
-                        handleOnlineCommands(queuedPlayer);
-                    } catch (Exception e) {
-                        error("Failed to handle online commands for player '" + queuedPlayer.getName() + "': " + e.getMessage(), e);
+                    for (QueuedPlayer queuedPlayer : playerList) {
+                        try {
+                            handleOnlineCommands(queuedPlayer);
+                        } catch (Exception e) {
+                            error("Failed to handle online commands for player '" + queuedPlayer.getName() + "': " + e.getMessage(), e);
+                        }
                     }
                 }
-            }
 
-            if(! duePlayersResponse.isExecuteOffline()) return;
-            handleOfflineCommands();
+                if (duePlayersResponse.isExecuteOffline()) {
+                    handleOfflineCommands();
+                }
+
+                forceCheckOutput.complete(new String[0]);
+            } finally {
+                checkRunning.set(false);
+            }
         });
 
         return forceCheckOutput;
@@ -385,7 +412,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
     public final void error(String message, Throwable t) {
         log(Level.SEVERE, message);
-        createPluginEvent(EnumEventLevel.ERROR, message, t);
+        createPluginEvent(EnumEventLevel.ERROR, message);
     }
 
     /**

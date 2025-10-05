@@ -4,6 +4,7 @@ import io.tebex.sdk.obj.QueuedPlayer;
 import io.tebex.sdk.placeholder.Placeholder;
 import io.tebex.sdk.placeholder.PlaceholderManager;
 import io.tebex.sdk.util.UUIDUtil;
+import java.util.UUID;
 
 public class UuidPlaceholder implements Placeholder {
     private final PlaceholderManager placeholderManager;
@@ -14,9 +15,16 @@ public class UuidPlaceholder implements Placeholder {
 
     @Override
     public String handle(QueuedPlayer player, String command) {
-        if (player.getUuid() == null) {
-            return placeholderManager.getUsernameRegex().matcher(command).replaceAll(player.getName());
+        String mojangId = player.getUuid();
+        if (mojangId == null || mojangId.isEmpty() || mojangId.equalsIgnoreCase("null")) {
+            return placeholderManager.getUniqueIdRegex().matcher(command).replaceAll(player.getName());
         }
-        return placeholderManager.getUsernameRegex().matcher(command).replaceAll(UUIDUtil.mojangIdToJavaId(player.getUuid()).toString());
+
+        UUID uuid = UUIDUtil.mojangIdToJavaId(mojangId);
+        if (uuid == null) {
+            return placeholderManager.getUniqueIdRegex().matcher(command).replaceAll(player.getName());
+        }
+
+        return placeholderManager.getUniqueIdRegex().matcher(command).replaceAll(uuid.toString());
     }
 }
