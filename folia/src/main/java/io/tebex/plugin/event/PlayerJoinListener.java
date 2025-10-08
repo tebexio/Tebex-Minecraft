@@ -22,10 +22,11 @@ public class PlayerJoinListener implements Listener {
         Object playerId = platform.getPlayerId(player.getName(), player.getUniqueId());
         platform.getJoinEvents().add(new ServerEvent(player.getUniqueId().toString(), player.getName(), player.getAddress().getAddress().getHostAddress(), EnumServerEventType.JOIN));
 
-        if(! platform.getQueuedPlayers().containsKey(playerId)) {
+        Integer queuedId = platform.getQueuedPlayers().get(playerId);
+        if (queuedId == null) {
             return;
         }
 
-        platform.handleOnlineCommands(new QueuedPlayer(platform.getQueuedPlayers().get(playerId), player.getName(), player.getUniqueId().toString()));
+        platform.handleOnlineCommands(new QueuedPlayer(queuedId, player.getName(), player.getUniqueId().toString()));
     }
 }

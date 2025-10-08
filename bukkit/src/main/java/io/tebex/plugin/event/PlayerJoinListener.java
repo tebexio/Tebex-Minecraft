@@ -19,10 +19,11 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         Object playerId = platform.getPlayerId(player.getName(), player.getUniqueId());
 
-        if(! platform.getQueuedPlayers().containsKey(playerId)) {
+        Integer queuedId = platform.getQueuedPlayers().get(playerId);
+        if (queuedId == null) {
             return;
         }
 
-        platform.handleOnlineCommands(new QueuedPlayer(platform.getQueuedPlayers().get(playerId), player.getName(), player.getUniqueId().toString()));
+        platform.handleOnlineCommands(new QueuedPlayer(queuedId, player.getName(), player.getUniqueId().toString()));
     }
 }
