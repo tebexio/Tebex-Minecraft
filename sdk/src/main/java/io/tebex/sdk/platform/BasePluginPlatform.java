@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -43,6 +44,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     protected List<ServerEvent> serverEvents = new ArrayList<>();
 
     private final ArrayList<PluginEvent> PLUGIN_EVENTS = new ArrayList<>();
+    private final Set<Integer> processingCommandIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
      * Checks if the configured store is Geyser/Offline
@@ -114,7 +116,6 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         }
 
         debug("Checking for due players...");
-        getQueuedPlayers().clear();
 
         getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
             ArrayList<String> output = new ArrayList<>();
@@ -132,7 +133,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
                     output.add("Failed to get due players: '" + ex.getMessage() + "'. We will try again at the next due player check.");
                     executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
                 }
-                forceCheckOutput.complete((String[]) output.toArray());
+                forceCheckOutput.complete(output.toArray(new String[0]));
                 return;
             }
 
@@ -216,6 +217,10 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         List<Integer> completedCommands = new ArrayList<>();
         boolean hasInventorySpace = true;
         for (QueuedCommand command : commands) {
+            if (!processingCommandIds.add(command.getId())) {
+                continue;
+            }
+
             int freeSlots = getFreeSlots(playerId);
             if(freeSlots < command.getRequiredSlots()) {
                 info(String.format("Skipping command '%s' for player '%s' due to no inventory space. Free slots: %d. Slots required: %d", command.getParsedCommand(), playerName, freeSlots, command.getRequiredSlots()));
@@ -287,6 +292,15 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
             List<Integer> completedCommands = new ArrayList<>();
             for (QueuedCommand command : offlineData.getCommands()) {
+                if (!processingCommandIds.add(command.getId())) {
+                    continue;
+                }
+
+                Object pid = getPlayerId(command.getPlayer().getName(), UUIDUtil.mojangIdToJavaId(command.getPlayer().getUuid()));
+                if (isPlayerOnline(pid)) {
+                    continue;
+                }
+
                 final Runnable commandRunnable = () -> {
                     info(String.format("Dispatching offline command '%s' for player '%s'.", command.getParsedCommand(), command.getPlayer().getName()));
                     CommandResult offlineCommandResult = dispatchCommand(command.getParsedCommand());
@@ -334,7 +348,11 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     }
 
     public final void deleteCompletedCommands(List<Integer> completedCommands) {
-        getSDK().deleteCommands(completedCommands).thenRun(completedCommands::clear).exceptionally(ex -> {
+        List<Integer> toRemove = new ArrayList<>(completedCommands);
+        getSDK().deleteCommands(completedCommands).thenRun(() -> {
+            toRemove.forEach(processingCommandIds::remove);
+            completedCommands.clear();
+        }).exceptionally(ex -> {
             error("Failed to delete commands: " + ex.getMessage(), ex);
             return null;
         });
@@ -615,7 +633,6 @@ public abstract class BasePluginPlatform implements PluginPlatform {
             error("Failed to save configuration: " + e.getMessage(), e);
         }
     }
-
 
     public void clearSelectedPluginEvents(List<ServerEvent> events) {
         serverEvents.removeAll(events);
