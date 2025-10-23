@@ -225,6 +225,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
             if(freeSlots < command.getRequiredSlots()) {
                 info(String.format("Skipping command '%s' for player '%s' due to no inventory space. Free slots: %d. Slots required: %d", command.getParsedCommand(), playerName, freeSlots, command.getRequiredSlots()));
                 hasInventorySpace = false;
+                processingCommandIds.remove(command.getId());
                 continue;
             }
 
@@ -298,6 +299,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
                 Object pid = getPlayerId(command.getPlayer().getName(), UUIDUtil.mojangIdToJavaId(command.getPlayer().getUuid()));
                 if (isPlayerOnline(pid)) {
+                    processingCommandIds.remove(command.getId());
                     continue;
                 }
 
