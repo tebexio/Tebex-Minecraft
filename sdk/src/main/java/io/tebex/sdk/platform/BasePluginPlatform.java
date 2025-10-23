@@ -45,6 +45,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
     private final ArrayList<PluginEvent> PLUGIN_EVENTS = new ArrayList<>();
     private final Set<Integer> processingCommandIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<Integer> processingPlayerIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
      * Checks if the configured store is Geyser/Offline
@@ -165,24 +166,33 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     public final void handleOnlineCommands(QueuedPlayer player) {
         if(! isSetup()) return;
 
+        if (!processingPlayerIds.add(player.getId())) {
+            debug("Already processing commands for player '" + player.getName() + "'. Skipping duplicate request.");
+            return;
+        }
+
         debug("Processing online commands for player '" + player.getName() + "'...");
         Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
         if(!isPlayerOnline(playerId)) {
             debug("Player " + player.getName() + " has online commands but is not connected. Skipping.");
             getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects
+            processingPlayerIds.remove(player.getId());
             return;
         }
 
         getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
             if(onlineCommands.isEmpty()) {
                 debug("No commands found for " + player.getName() + ".");
+                processingPlayerIds.remove(player.getId());
                 return;
             }
 
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
             processOnlineCommands(player.getName(), playerId, onlineCommands);
+            processingPlayerIds.remove(player.getId());
         }).exceptionally(ex -> {
             warning("Failed to get online commands: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+            processingPlayerIds.remove(player.getId());
             return null;
         });
     }
