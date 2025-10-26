@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -41,7 +42,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
     protected ServerInformation storeInformation;
     protected List<Category> storeCategories = new ArrayList<>();
-    protected List<ServerEvent> serverEvents = new ArrayList<>();
+    protected List<ServerEvent> serverEvents = new CopyOnWriteArrayList<>();
 
     private final ArrayList<PluginEvent> PLUGIN_EVENTS = new ArrayList<>();
     private final Set<Integer> processingCommandIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -67,7 +68,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         storeCategories = new ArrayList<>();
-        serverEvents = new ArrayList<>();
+        serverEvents = new CopyOnWriteArrayList<>();
         placeholderManager.register(new UuidPlaceholder(placeholderManager));
 
         if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
