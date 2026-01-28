@@ -26,14 +26,14 @@ version = "2.3.2"
 tasks.register("processSources", Copy::class.java) {
     val props = mapOf("@VERSION@" to rootProject.version)
     from("src/main/java")
-    into("${layout.buildDirectory}/processedSources") // Destination for processed sources
+    into(layout.buildDirectory.dir("processedSources")) // Destination for processed sources
     filteringCharset = "UTF-8"
     expand(props)
 }
 
 tasks.withType<JavaCompile> {
     dependsOn("processSources")
-    source = fileTree("${layout.buildDirectory}/processedSources")
+    source = fileTree(layout.buildDirectory.dir("processedSources"))
 }
 
 subprojects {
@@ -56,6 +56,9 @@ subprojects {
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "spigotmc-repo"
+        }
+        maven("https://hub.spigotmc.org/nexus/content/groups/public/") {
+            name = "spigotmc-public"
         }
         maven("https://oss.sonatype.org/content/groups/public/") {
             name = "sonatype"
