@@ -64,6 +64,7 @@ public class BungeePluginPlatform extends BasePluginPlatform {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getPlayer(Object uuidOrUsername) {
         if(uuidOrUsername == null) return null;
 

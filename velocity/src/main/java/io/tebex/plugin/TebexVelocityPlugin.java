@@ -3,6 +3,7 @@ package io.tebex.plugin;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
@@ -20,6 +21,8 @@ import net.kyori.adventure.text.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.slf4j.Logger;
@@ -39,6 +42,7 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
     private final ProxyServer proxy;
     private final Logger logger;
     private final Path dataDirectory;
+    private ExecutorService executor;
 
     @Inject
     public TebexVelocityPlugin(ProxyServer proxy, Logger logger, @DataDirectory Path dataDirectory) {
@@ -53,6 +57,7 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
 
     @Subscribe
     public void onEnable(ProxyInitializeEvent event) {
+        this.executor = Executors.newCachedThreadPool();
         Tebex.init(this);
 
         loadPlatformConfig(); // load config file for the platform
@@ -72,6 +77,13 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
 //                .repeat(5, TimeUnit.MINUTES)
 //                .delay(0, TimeUnit.MINUTES)
 //                .schedule();
+    }
+
+    @Subscribe
+    public void onDisable(ProxyShutdownEvent event) {
+        if (executor != null) {
+            executor.shutdown();
+        }
     }
 
     @Override
@@ -97,9 +109,13 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
 
     @Override
     public void executeAsync(Runnable runnable) {
-        proxy.getScheduler()
-                .buildTask(this, runnable)
-                .schedule();
+        if (executor != null && !executor.isShutdown()) {
+            executor.submit(runnable);
+        } else {
+            proxy.getScheduler()
+                    .buildTask(this, runnable)
+                    .schedule();
+        }
     }
 
     @Override
