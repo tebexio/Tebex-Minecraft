@@ -3,11 +3,19 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 group = rootProject.group
 version = rootProject.version
 
+repositories {
+    maven {
+        name = "william278"
+        url = uri("https://repo.william278.net/releases")
+    }
+}
+
 dependencies {
     implementation(project(":sdk"))
     implementation("com.github.cryptomorin:XSeries:9.3.1") { isTransitive = false }
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     compileOnly("dev.dejvokep:boosted-yaml:1.3")
+    compileOnly("net.william278.husksync:husksync-bukkit:3.8.7+1.21.4")
 }
 
 tasks.named("shadowJar", ShadowJar::class.java) {

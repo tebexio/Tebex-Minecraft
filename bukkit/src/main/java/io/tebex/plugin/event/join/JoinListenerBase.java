@@ -1,22 +1,19 @@
-package io.tebex.plugin.event;
+package io.tebex.plugin.event.join;
 
-import io.tebex.plugin.FoliaPluginPlatform;
+import io.tebex.plugin.BukkitPluginPlatform;
 import io.tebex.sdk.obj.QueuedPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 
-public class PlayerJoinListener implements Listener {
-    private final FoliaPluginPlatform platform;
+public abstract class JoinListenerBase implements Listener {
 
-    public PlayerJoinListener(FoliaPluginPlatform platform) {
+    private final BukkitPluginPlatform platform;
+
+    public JoinListenerBase(BukkitPluginPlatform platform) {
         this.platform = platform;
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+    protected void handlePlayerJoin(Player player) {
         Object playerId = platform.getPlayerId(player.getName(), player.getUniqueId());
         platform.createJoinEvent(player.getUniqueId().toString(), player.getName(), player.getAddress().getAddress().getHostAddress());
 

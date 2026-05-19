@@ -4,6 +4,7 @@ main: io.tebex.plugin.TebexBukkitPlugin
 api-version: 1.13
 softdepend:
   - BuycraftX
+  - HuskSync
 commands:
   tebex:
     description: The main command

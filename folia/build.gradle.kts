@@ -8,6 +8,10 @@ repositories {
     maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
     maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/") }
+    maven {
+        name = "william278"
+        url = uri("https://repo.william278.net/releases")
+    }
 }
 
 dependencies {
@@ -15,6 +19,7 @@ dependencies {
     implementation("com.github.cryptomorin:XSeries:9.3.1") { isTransitive = false }
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("dev.dejvokep:boosted-yaml:1.3")
+    compileOnly("net.william278.husksync:husksync-bukkit:3.8.7+1.21.4")
 }
 
 tasks.named("shadowJar", ShadowJar::class.java) {

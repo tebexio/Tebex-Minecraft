@@ -5,7 +5,8 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.command.BuyCommand;
 import io.tebex.plugin.command.TebexCommandExecutor;
 import io.tebex.plugin.event.InventoryClickListener;
-import io.tebex.plugin.event.PlayerJoinListener;
+import io.tebex.plugin.event.join.HuskSyncPlayerJoinListener;
+import io.tebex.plugin.event.join.PlayerJoinListener;
 import io.tebex.plugin.placeholder.BukkitNamePlaceholder;
 import io.tebex.sdk.Tebex;
 import io.tebex.sdk.obj.ServerEvent;
@@ -61,7 +62,13 @@ public final class TebexFoliaPlugin extends JavaPlugin {
         pluginCommand.setTabCompleter(tebexCommands);
 
         registerBuyCommandIfEnabled();
-        registerEvents(new PlayerJoinListener(platform));
+
+        if (getServer().getPluginManager().isPluginEnabled("HuskSync")) {
+            registerEvents(new HuskSyncPlayerJoinListener(platform));
+        } else {
+            registerEvents(new PlayerJoinListener(platform));
+        }
+
         registerEvents(new InventoryClickListener());
 
         PlaceholderManager placeholderManager = platform.getPlaceholderManager();
