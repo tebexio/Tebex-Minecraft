@@ -776,7 +776,8 @@ public class SDK {
             return null;
         }
 
-        return request("/user/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
+        String encodedUsername = username.replace(" ", "%20");
+        return request("/user/" + encodedUsername).withSecretKey(secretKey).sendAsync().thenApply(response -> {
             if(response.code() != 200 && response.code() != 404 && response.code() != 400) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
                 platform.error("Unexpected failure while looking up player information", e);

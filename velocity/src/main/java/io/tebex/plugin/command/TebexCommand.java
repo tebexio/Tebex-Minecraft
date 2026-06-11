@@ -5,6 +5,7 @@ import io.tebex.plugin.manager.CommandManager;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.CommandSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class TebexCommand implements SimpleCommand {
             return;
         }
 
-        subCommand.execute(sender, Arrays.copyOfRange(args, 1, args.length));
+        subCommand.execute(sender, parseQuotedArguments(Arrays.copyOfRange(args, 1, args.length)));
     }
 
     @Override
@@ -68,5 +69,44 @@ public class TebexCommand implements SimpleCommand {
             .filter(command -> source.hasPermission(command.getPermission()))
             .map(SubCommand::getName)
             .collect(Collectors.toList());
+    }
+
+    private String[] parseQuotedArguments(String[] arguments) {
+        List<String> parsedArguments = new ArrayList<>();
+        StringBuilder quotedArgument = new StringBuilder();
+        boolean inQuote = false;
+
+        for (String argument : arguments) {
+            if (!inQuote && argument.startsWith("\"")) {
+                inQuote = true;
+                quotedArgument.append(argument.substring(1));
+                if (argument.endsWith("\"") && argument.length() > 1) {
+                    inQuote = false;
+                    quotedArgument.setLength(quotedArgument.length() - 1);
+                    parsedArguments.add(quotedArgument.toString());
+                    quotedArgument.setLength(0);
+                }
+                continue;
+            }
+
+            if (inQuote) {
+                quotedArgument.append(" ").append(argument);
+                if (argument.endsWith("\"")) {
+                    inQuote = false;
+                    quotedArgument.setLength(quotedArgument.length() - 1);
+                    parsedArguments.add(quotedArgument.toString());
+                    quotedArgument.setLength(0);
+                }
+                continue;
+            }
+
+            parsedArguments.add(argument);
+        }
+
+        if (inQuote) {
+            parsedArguments.add(quotedArgument.toString());
+        }
+
+        return parsedArguments.toArray(new String[0]);
     }
 }

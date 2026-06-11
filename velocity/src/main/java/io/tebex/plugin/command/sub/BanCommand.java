@@ -4,6 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexVelocityPlugin;
 import io.tebex.plugin.command.SubCommand;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
@@ -26,11 +27,12 @@ public class BanCommand extends SubCommand {
         String reason = "";
         String ip = "";
 
-        if (args.length > 1) { // second param provided
+        if (args.length > 2) { // reason and ip provided
+            playerName = String.join(" ", Arrays.copyOfRange(args, 0, args.length - 2));
+            reason = args[args.length - 2];
+            ip = args[args.length - 1];
+        } else if (args.length > 1) { // second param provided
             reason = args[1];
-        }
-        if (args.length > 2) { // third param provided
-            ip = args[2];
         }
 
         if (!platform.isSetup()) {
