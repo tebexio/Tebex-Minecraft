@@ -19,7 +19,7 @@ fun gitCommitHash(): String {
 plugins {
     java
     id("com.gradleup.shadow")
-    id("net.fabricmc.fabric-loom") version "1.15.5" apply(true)
+    id("net.fabricmc.fabric-loom") version "1.17.11" apply(true)
 }
 
 val minecraftVersion = properties["minecraft_version"] as String

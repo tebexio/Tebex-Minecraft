@@ -175,8 +175,8 @@ project(":folia") {
     }
 }
 
-val fabric261Project = project(":fabric-26.1")
-fabric261Project.configure<JavaPluginExtension> {
+val fabric262Project = project(":fabric-26.2")
+fabric262Project.configure<JavaPluginExtension> {
     sourceSets {
         getByName("main") {
             java {
