@@ -126,9 +126,10 @@ public class TebexCommands {
         TebexCommands.platform = platform;
 
         register("ban","<playerName> <reason> <ip>", "Bans a user from the webstore.", (ctx) -> {
-            String name = ctx.getArguments()[0]; // player may be offline, so don't rely on target username which requires successful getPlayer() call
-            String reason = ctx.getArguments()[1];
-            String ip = ctx.getArguments()[2];
+            String[] arguments = ctx.getArguments();
+            String name = CommandArguments.join(arguments, 0, arguments.length - 2); // player may be offline, so don't rely on target username which requires successful getPlayer() call
+            String reason = arguments[arguments.length - 2];
+            String ip = arguments[arguments.length - 1];
 
             CompletableFuture<String[]> response = new CompletableFuture<>();
             platform.getSDK().createBan(name, ip, reason).thenAccept((success) -> {
@@ -246,7 +247,7 @@ public class TebexCommands {
         register("lookup", "<username>", "Gets user transaction info from your webstore.", (ctx) -> {
             CompletableFuture<String[]> response = new CompletableFuture<>();
 
-            String username = ctx.getArguments()[0]; // Use provided username as player is not required to be online / no instance required
+            String username = CommandArguments.join(ctx.getArguments(), 0); // Use provided username as player is not required to be online / no instance required
             platform.getSDK().getPlayerLookupInfo(username).thenAccept((lookupInfo) -> {
                 ArrayList<String> lookupResponse = new ArrayList<>();
                 lookupResponse.add(Responder.formatFancy(ctx, "Username: {0}", lookupInfo.getPlayer().getUsername()));
@@ -308,7 +309,7 @@ public class TebexCommands {
         register("sendlink", "<packageId> <username>", "Sends a purchase link to a player.", (ctx) -> {
             CompletableFuture<String[]> response = new CompletableFuture<>();
             String packageId = ctx.getArguments()[0];
-            String username = ctx.getArguments()[1];
+            String username = CommandArguments.join(ctx.getArguments(), 1);
             int intPackageId = -1;
 
             try {
@@ -318,14 +319,14 @@ public class TebexCommands {
                 return response;
             }
 
-            if (ctx.getTargetUsername().isEmpty()) { // target will be empty if player was offline / no entity found
+            if (platform.getPlayer(username) == null) {
                 response.complete(new String[]{Responder.formatError(ctx, username + " must be online to receive a package link.")});
                 return response;
             }
 
-            platform.getSDK().createCheckoutUrl(intPackageId, ctx.getTargetUsername()).thenAccept(checkoutUrl -> {
-                platform.sendCheckoutLink(ctx.getTargetUsername(), checkoutUrl.getUrl());
-                response.complete(new String[]{Responder.formatSuccess(ctx, "Checkout link sent to " + ctx.getTargetUsername())});
+            platform.getSDK().createCheckoutUrl(intPackageId, username).thenAccept(checkoutUrl -> {
+                platform.sendCheckoutLink(username, checkoutUrl.getUrl());
+                response.complete(new String[]{Responder.formatSuccess(ctx, "Checkout link sent to " + username)});
             }).exceptionally(e -> {
                 response.complete(new String[]{Responder.formatError(ctx, "Failed to send checkout link: " + e.getMessage())});
                 return null;

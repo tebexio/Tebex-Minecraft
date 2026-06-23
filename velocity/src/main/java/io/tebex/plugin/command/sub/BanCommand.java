@@ -3,6 +3,7 @@ package io.tebex.plugin.command.sub;
 import com.velocitypowered.api.command.CommandSource;
 import io.tebex.plugin.TebexVelocityPlugin;
 import io.tebex.plugin.command.SubCommand;
+import io.tebex.sdk.commands.CommandArguments;
 
 import java.util.concurrent.ExecutionException;
 
@@ -22,15 +23,15 @@ public class BanCommand extends SubCommand {
             return;
         }
 
-        String playerName = args[0];
+        String playerName = CommandArguments.join(args, 0, Math.max(1, args.length - 2));
         String reason = "";
         String ip = "";
 
-        if (args.length > 1) { // second param provided
+        if (args.length > 2) { // reason and ip provided
+            reason = args[args.length - 2];
+            ip = args[args.length - 1];
+        } else if (args.length > 1) { // second param provided
             reason = args[1];
-        }
-        if (args.length > 2) { // third param provided
-            ip = args[2];
         }
 
         if (!platform.isSetup()) {
