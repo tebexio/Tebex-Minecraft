@@ -175,12 +175,17 @@ project(":folia") {
     }
 }
 
-val fabric261Project = project(":fabric-26.1")
-fabric261Project.configure<JavaPluginExtension> {
-    sourceSets {
-        getByName("main") {
-            java {
-                srcDir("src/main/kotlin")
+listOf(
+    "fabric-26.1",
+    "fabric-26.2"
+).forEach { projectName ->
+    val fabricProject = project(":$projectName")
+    fabricProject.configure<JavaPluginExtension> {
+        sourceSets {
+            getByName("main") {
+                java {
+                    srcDir("src/main/kotlin")
+                }
             }
         }
     }

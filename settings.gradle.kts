@@ -33,6 +33,7 @@ listOf(
     "velocity",
     "folia",
     "fabric-26.1",
+    "fabric-26.2",
     "forge-1.20.1",
     "forge-1.21.1",
     "neoforge-1.20.2",
