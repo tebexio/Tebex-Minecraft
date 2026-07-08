@@ -21,6 +21,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -776,7 +778,7 @@ public class SDK {
             return null;
         }
 
-        return request("/user/" + username).withSecretKey(secretKey).sendAsync().thenApply(response -> {
+        return request("/user/" + encodePathSegment(username)).withSecretKey(secretKey).sendAsync().thenApply(response -> {
             if(response.code() != 200 && response.code() != 404 && response.code() != 400) {
                 CompletionException e = new CompletionException(new IOException("Unexpected status code (" + response.code() + ")"));
                 platform.error("Unexpected failure while looking up player information", e);
@@ -806,6 +808,14 @@ public class SDK {
                 throw new CompletionException(e);
             }
         });
+    }
+
+    private String encodePathSegment(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new CompletionException(e);
+        }
     }
 
     /**
