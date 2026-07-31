@@ -23,6 +23,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.slf4j.Logger;
@@ -43,13 +44,15 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
     private final Logger logger;
     private final Path dataDirectory;
 
+    private CompletableFuture<?> commandChain = CompletableFuture.completedFuture(null);
+
     @Inject
     public TebexVelocityPlugin(ProxyServer proxy, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxy = proxy;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
     }
-    
+
     public ProxyServer getProxy() {
         return proxy;
     }
@@ -117,9 +120,12 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
     }
 
     @Override
-    public CommandResult dispatchCommand(String command) {
-        proxy.getCommandManager().executeAsync(proxy.getConsoleCommandSource(), command);
-        return CommandResult.from(true); // no additional information from commandManager so we assume success
+    public synchronized CommandResult dispatchCommand(String command) {
+        commandChain = commandChain
+                .handle((ignored, throwable) -> null)
+                .thenCompose(ignored -> proxy.getCommandManager().executeAsync(proxy.getConsoleCommandSource(), command));
+
+        return CommandResult.from(true);
     }
 
     @Override
