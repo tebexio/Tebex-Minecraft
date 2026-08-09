@@ -123,7 +123,18 @@ public class TebexVelocityPlugin extends BasePluginPlatform {
     public synchronized CommandResult dispatchCommand(String command) {
         commandChain = commandChain
                 .handle((ignored, throwable) -> null)
-                .thenCompose(ignored -> proxy.getCommandManager().executeAsync(proxy.getConsoleCommandSource(), command));
+                .thenCompose(ignored ->
+                        proxy.getCommandManager()
+                                .executeAsync(proxy.getConsoleCommandSource(), command)
+                                .whenComplete((result, throwable) -> {
+                                    if (throwable != null) {
+                                        error(
+                                                String.format("Failed to execute Tebex command: %s", command),
+                                                throwable
+                                        );
+                                    }
+                                })
+                );
 
         return CommandResult.from(true);
     }
