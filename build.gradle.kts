@@ -28,7 +28,7 @@ plugins {
 defaultTasks("collectBuilds")
 
 group = "io.tebex"
-version = "2.4.2"
+version = "2.4.5"
 
 val collectBuilds = tasks.register("collectBuilds", Sync::class.java) {
     group = "build"
@@ -203,7 +203,6 @@ project(":forge-26.1") {
 
 listOf(
     "forge-1.20.1",
-    "neoforge-1.20.2"
 ).forEach { projectName ->
     project(":$projectName") {
         java {
