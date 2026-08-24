@@ -1,0 +1,73 @@
+name: Build
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.changelog/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.changelog/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build all platforms
+    # Pinned to x64 so the JAVA_HOME_<version>_X64 variables below resolve.
+    runs-on: ubuntu-24.04
+
+    env:
+      # Points Gradle's toolchain resolution at the JDKs setup-java installed,
+      # so it doesn't re-download them via the foojay resolver on every run.
+      TOOLCHAINS: >-
+        -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDKs
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # Every toolchain the subprojects ask for. The last entry wins JAVA_HOME
+          # and therefore runs Gradle itself, so keep 21 last.
+          java-version: |
+            8
+            25
+            17
+            21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Read project version
+        id: version
+        run: |
+          version=$(sed -n 's/^version *= *"\(.*\)"/\1/p' build.gradle.kts | head -1)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Building Tebex $version"
+
+      - name: Show detected toolchains
+        run: ./gradlew -q javaToolchains $TOOLCHAINS
+
+      - name: Build artifacts
+        run: ./gradlew collectBuilds --stacktrace $TOOLCHAINS
+
+      - name: List artifacts
+        run: ls -lh builds/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tebex-${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: builds/*.jar
+          if-no-files-found: error
+          retention-days: 30
