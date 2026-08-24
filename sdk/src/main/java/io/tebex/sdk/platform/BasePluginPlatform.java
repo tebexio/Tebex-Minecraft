@@ -348,6 +348,39 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     }
 
     /**
+     * Checks that a queued command is safe to dispatch, reporting blank commands as errors.
+     * <p>
+     * A blank command cannot be executed by any platform's command dispatcher, so it is reported to the console and
+     * the plugin logs instead of being dispatched. It is deliberately left in the queue, meaning it is reported again
+     * on each queue check until the package is corrected in the webstore.
+     *
+     * @param command The queued command.
+     * @param parsedCommand The command after its placeholders have been parsed.
+     * @param playerName The name of the player the command belongs to.
+     * @return true if the command should be dispatched.
+     */
+    private boolean isDispatchable(QueuedCommand command, String parsedCommand, String playerName) {
+        if (parsedCommand != null && !parsedCommand.trim().isEmpty()) return true;
+
+        StringBuilder message = new StringBuilder(String.format(
+                "Command #%d for player '%s' is blank and cannot be executed. Check the commands configured on this package in your webstore.",
+                command.getId(), playerName
+        ));
+
+        if (command.getPackageId() != null && command.getPackageId() != 0) {
+            message.append(" Package: ").append(command.getPackageId()).append('.');
+        }
+
+        if (command.getPayment() != null && command.getPayment() != 0) {
+            message.append(" Payment: https://creator.tebex.io/payments/").append(command.getPayment());
+        }
+
+        error(message.toString());
+
+        return false;
+    }
+
+    /**
      * Processes the online commands for a player.
      *
      * @param player The queued player.
@@ -361,6 +394,8 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         boolean hasInventorySpace = true;
         for (QueuedCommand command : commands) {
             String parsedCommand = command.getParsedCommand(this);
+            if(! isDispatchable(command, parsedCommand, playerName)) continue;
+
             int freeSlots = getFreeSlots(playerId);
             if(freeSlots < command.getRequiredSlots()) {
                 info(String.format("Skipping command '%s' for player '%s' due to no inventory space. Free slots: %d. Slots required: %d", parsedCommand, playerName, freeSlots, command.getRequiredSlots()));
@@ -425,6 +460,8 @@ public abstract class BasePluginPlatform implements PluginPlatform {
 
             for (QueuedCommand command : offlineData.getCommands()) {
                 String parsedCommand = command.getParsedCommand(this);
+                if(! isDispatchable(command, parsedCommand, command.getPlayer().getName())) continue;
+
                 final Runnable commandRunnable = () -> {
                     info(String.format("Dispatching offline command '%s' for player '%s'.", parsedCommand, command.getPlayer().getName()));
                     CommandResult offlineCommandResult = dispatchCommand(parsedCommand);
