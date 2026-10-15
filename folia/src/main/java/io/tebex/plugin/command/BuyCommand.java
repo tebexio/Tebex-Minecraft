@@ -1,34 +1,30 @@
 package io.tebex.plugin.command;
 
-import io.tebex.plugin.FoliaPluginPlatform;
+import io.tebex.plugin.FoliaPlatform;
 import io.tebex.plugin.gui.BuyGUI;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 public class BuyCommand extends Command {
-    private final FoliaPluginPlatform platform;
+  private final FoliaPlatform platform;
 
-    public BuyCommand(String command, FoliaPluginPlatform platform) {
-        super(command);
-        this.platform = platform;
+  public BuyCommand(String command, FoliaPlatform platform) {
+    super(command);
+    this.platform = platform;
+  }
+
+  @Override
+  public boolean execute(CommandSender sender, String label, String[] args) {
+    String denied =
+        platform.runtime().buyAccessError(sender instanceof Player ? sender.getName() : null);
+    if (denied != null) {
+      sender.sendMessage(ChatColor.RED + denied);
+      return true;
     }
 
-    @Override
-    public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
-        if(! platform.isSetup()) {
-            sender.sendMessage(ChatColor.RED + "Tebex is not setup yet!");
-            return true;
-        }
-
-        if (sender instanceof Player) {
-            new BuyGUI(platform).open((Player) sender);
-            return true;
-        }
-
-        sender.sendMessage(ChatColor.RED + "The buy command cannot be used from the console.");
-        return false;
-    }
+    new BuyGUI(platform).open((Player) sender);
+    return true;
+  }
 }

@@ -2,6 +2,7 @@
 .idea/
 ignore/
 builds/
+build/
 **/build
 **/*.iml
 **/*.jar
@@ -9,6 +10,4 @@ builds/
 **/*.zip
 .DS_Store
 **/.DS_Store
-docs
 test/**
-fabric-1.21

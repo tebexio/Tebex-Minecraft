@@ -9,3 +9,7 @@ commands:
     description: The main command
     aliases:
       - buycraft
+permissions:
+  tebex.buy:
+    description: Allows players to open the Tebex buy GUI.
+    default: true

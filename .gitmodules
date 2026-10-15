@@ -1,0 +1,3 @@
+[submodule "tebex-java-sdk"]
+	path = tebex-java-sdk
+	url = https://github.com/tebexio/tebex-java-sdk.git

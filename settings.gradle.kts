@@ -25,19 +25,24 @@ plugins {
 }
 
 rootProject.name = "TebexPlugin"
+// Substitute published SDK coordinates with the pinned, unchanged submodule.
+includeBuild("tebex-java-sdk")
 
 listOf(
-    "sdk",
+    "tebex-minecraft-runtime",
     "bukkit",
     "bungeecord",
     "velocity",
     "folia",
-    "fabric-26.1",
-    "fabric-26.2",
-    "forge-1.20.1",
-    "forge-1.21.1",
-    "neoforge-1.20.2",
-    "neoforge-1.21.1",
-    "neoforge-26.1",
-    "forge-26.1"
 ).forEach(::include)
+
+mapOf(
+    "fabric" to listOf("fabric-26.1", "fabric-26.2"),
+    "forge" to listOf("forge-1.20.1", "forge-1.21.1", "forge-26.1", "forge-26.2", "forge-26.3"),
+    "neoforge" to listOf("neoforge-1.20.2", "neoforge-1.21.1", "neoforge-26.1", "neoforge-26.2"),
+).forEach { (family, variants) ->
+    variants.forEach { variant ->
+        include(variant)
+        project(":$variant").projectDir = file("$family/$variant")
+    }
+}

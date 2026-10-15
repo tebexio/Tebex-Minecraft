@@ -1,72 +1,59 @@
 package io.tebex.plugin.command;
 
-import com.google.common.collect.ImmutableList;
-import io.tebex.plugin.manager.CommandManager;
-import com.velocitypowered.api.command.SimpleCommand;
-import com.velocitypowered.api.command.CommandSource;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
-public class TebexCommand implements SimpleCommand {
-    private final CommandManager commandManager;
+import com.velocitypowered.api.command.SimpleCommand;
+import com.velocitypowered.api.proxy.Player;
+import io.tebex.minecraft.commands.Context;
+import io.tebex.plugin.VelocityPlatform;
+import java.util.*;
+import java.util.stream.Collectors;
 
-    public TebexCommand(CommandManager commandManager) {
-        this.commandManager = commandManager;
-    }
+public final class TebexCommand implements SimpleCommand {
+  private final VelocityPlatform platform;
 
-    @Override
-    public void execute(Invocation invocation) {
-        CommandSource sender = invocation.source();
-        String[] args = invocation.arguments();
+  public TebexCommand(CommandManager manager) {
+    platform = manager.getPlatform();
+  }
 
-        if(args.length == 0) {
-            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7Welcome to Tebex!"));
-            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7This server is running version §fv" + commandManager.getPlatform().getPluginVersion() + "§7."));
-            return;
-        }
+  public void execute(Invocation invocation) {
+    String[] args =
+        invocation.arguments().length == 0 ? new String[] {"help"} : invocation.arguments();
+    Player player = invocation.source() instanceof Player ? (Player) invocation.source() : null;
+    Context ctx =
+        Context.from(
+            player == null,
+            player == null ? "" : player.getUsername(),
+            player == null ? null : player.getUniqueId(),
+            "tebex " + args[0],
+            "",
+            null,
+            args);
+    platform
+        .runtime()
+        .getCommands()
+        .process(
+            ctx,
+            future ->
+                future.thenAccept(
+                    lines -> {
+                      if (!platform.runtime().isStopped())
+                        for (String line : lines)
+                          invocation.source().sendMessage(legacySection().deserialize(line));
+                    }));
+  }
 
-        Map<String, SubCommand> commands = commandManager.getCommands();
-        if(! commands.containsKey(args[0].toLowerCase())) {
-            sender.sendMessage(legacySection().deserialize("§8[Tebex] §7Unknown command."));
-            return;
-        }
-
-        final SubCommand subCommand = commands.get(args[0].toLowerCase());
-        if (! sender.hasPermission(subCommand.getPermission())) {
-            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7You do not have access to that command."));
-            return;
-        }
-
-        subCommand.execute(sender, Arrays.copyOfRange(args, 1, args.length));
-    }
-
-    @Override
-    public List<String> suggest(Invocation invocation) {
-        String[] args = invocation.arguments();
-
-        if(args.length <= 1) {
-            return this.suggestions(invocation.source());
-        }
-
-        return ImmutableList.of();
-    }
-
-    @Override
-    public boolean hasPermission(Invocation invocation) {
-        return !this.suggestions(invocation.source()).isEmpty();
-    }
-
-    private List<String> suggestions(CommandSource source) {
-        return commandManager.getCommands()
-            .values()
-            .stream()
-            .filter(command -> source.hasPermission(command.getPermission()))
-            .map(SubCommand::getName)
-            .collect(Collectors.toList());
-    }
+  public List<String> suggest(Invocation invocation) {
+    String[] args = invocation.arguments();
+    if (args.length > 1) return Collections.emptyList();
+    String prefix = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
+    return platform.runtime().getCommands().getCommands().values().stream()
+        .filter(
+            c ->
+                invocation.source().hasPermission(c.getPermission())
+                    || invocation.source().hasPermission("tebex.admin"))
+        .map(c -> c.getCommandName())
+        .filter(name -> name.startsWith(prefix))
+        .collect(Collectors.toList());
+  }
 }
