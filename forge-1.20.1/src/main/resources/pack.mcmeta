@@ -1,10 +1,6 @@
 {
   "pack": {
     "description": "Tebex Forge resources",
-    "max_format": 101,
-    "min_format": [
-      101,
-      1
-    ]
+    "pack_format": 15
   }
 }
