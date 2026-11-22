@@ -24,19 +24,24 @@ public class MaterialUtil {
 
         Optional<Material> matchedMaterial = matchBukkitMaterial(input);
         if (matchedMaterial.isPresent()) {
-            return matchedMaterial;
+            return matchedMaterial.flatMap(MaterialUtil::asItem);
         }
 
         matchedMaterial = matchLegacyId(input);
         if (matchedMaterial.isPresent()) {
-            return matchedMaterial;
+            return matchedMaterial.flatMap(MaterialUtil::asItem);
         }
 
         if (canUseXSeriesVersionParser()) {
-            return matchXSeries(input);
+            return matchXSeries(input).flatMap(MaterialUtil::asItem);
         }
 
         return Optional.empty();
+    }
+
+    private static Optional<Material> asItem(Material material) {
+        Material resolved = material.isLegacy() ? Material.getMaterial(material.name(), true) : material;
+        return resolved != null && !resolved.isAir() && resolved.isItem() ? Optional.of(resolved) : Optional.empty();
     }
 
     private static Optional<Material> matchBukkitMaterial(String material) {

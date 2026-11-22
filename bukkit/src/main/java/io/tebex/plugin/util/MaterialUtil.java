@@ -24,16 +24,16 @@ public class MaterialUtil {
 
         Optional<Material> matchedMaterial = matchBukkitMaterial(input);
         if (matchedMaterial.isPresent()) {
-            return matchedMaterial;
+            return matchedMaterial.flatMap(MaterialUtil::asItem);
         }
 
         matchedMaterial = matchLegacyId(input);
         if (matchedMaterial.isPresent()) {
-            return matchedMaterial;
+            return matchedMaterial.flatMap(MaterialUtil::asItem);
         }
 
         if (canUseXSeriesVersionParser()) {
-            return matchXSeries(input);
+            return matchXSeries(input).flatMap(MaterialUtil::asItem);
         }
 
         return Optional.empty();
@@ -95,6 +95,29 @@ public class MaterialUtil {
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
+    }
+
+    private static Optional<Material> asItem(Material material) {
+        try {
+            // Resolve legacy enum constants before checking whether they have an item form.
+            if (material.name().startsWith("LEGACY_")) {
+                material = (Material) Material.class.getMethod("getMaterial", String.class, boolean.class).invoke(null, material.name(), true);
+            }
+
+            if (material == null || material == Material.AIR || "CAVE_AIR".equals(material.name()) || "VOID_AIR".equals(material.name())) {
+                return Optional.empty();
+            }
+
+            if (!Boolean.TRUE.equals(Material.class.getMethod("isItem").invoke(material))) {
+                return Optional.empty();
+            }
+        } catch (NoSuchMethodException ignored) {
+
+        } catch (ReflectiveOperationException ignored) {
+            return Optional.empty();
+        }
+
+        return Optional.of(material);
     }
 
     private static Material matchMaterial(String material) {
