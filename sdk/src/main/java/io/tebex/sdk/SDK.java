@@ -76,13 +76,27 @@ public class SDK {
         }
     }
 
+    public CompletableFuture<ServerInformation> getServerInformation() {
+        return getServerInformation(secretKey);
+    }
+
     /**
      * Retrieves information about the server.
      *
+     * @param key key to test
+     *
      * @return A CompletableFuture that contains the ServerInformation object.
      */
-    public CompletableFuture<ServerInformation> getServerInformation() {
-        return request("/information").withSecretKey(secretKey).sendAsync().thenApply(response -> {
+    public CompletableFuture<ServerInformation> getServerInformation(String key) {
+        try {
+            TebexRequest.validateSecretKey(key);
+        } catch (IllegalArgumentException e) {
+            CompletableFuture<ServerInformation> failure = new CompletableFuture<>();
+            failure.completeExceptionally(e);
+            return failure;
+        }
+
+        return request("/information").withSecretKey(key).sendAsync().thenApply(response -> {
             if(response.code() == 404 || response.code() == 403) {
                 throw new CompletionException(new ServerNotFoundException());
             } else if(response.code() != 200) {

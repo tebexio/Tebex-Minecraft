@@ -3,6 +3,7 @@ package io.tebex.sdk.platform;
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
+import io.tebex.sdk.exception.InvalidSecretKeyException;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.obj.*;
 import io.tebex.sdk.placeholder.PlaceholderManager;
@@ -20,11 +21,9 @@ import org.geysermc.floodgate.util.LinkedPlayer;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
@@ -33,13 +32,21 @@ import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
  * BasePlatform class represents the foundational platform for basic Tebex functionality.
  */
 public abstract class BasePluginPlatform implements PluginPlatform {
+
     public final int MAX_COMMANDS_PER_BATCH = 3;
+
+    private final long INITIAL_STORE_RETRY_SECONDS = 15;
+    private final long MAX_STORE_RETRY_SECONDS = 300;
+    private final long COMMAND_SCHEDULED = -1;
+    private final long COMMAND_NEEDS_DELETE = -2;
+    private final long COMMAND_DELETING = -3;
+    private final long DELETED_COMMAND_RETENTION_MILLIS = TimeUnit.MINUTES.toMillis(5);
 
     protected SDK sdk;
     protected ServerPlatformConfig config;
     protected YamlDocument configYaml;
 
-    protected boolean setup;
+    protected volatile boolean setup;
     protected PlaceholderManager placeholderManager;
     protected Map<Object, Integer> queuedPlayers;
 
@@ -51,6 +58,9 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     private final AtomicBoolean commandCheckInProgress = new AtomicBoolean(false);
     private final AtomicBoolean floodgateWarningLogged = new AtomicBoolean(false);
     private final Map<String, UUID> resolvedFloodgateIds = Maps.newConcurrentMap();
+    private final Map<String, Map<Integer, Long>> commandStatesByKey = Maps.newConcurrentMap();
+    private final AtomicBoolean queueCheckScheduled = new AtomicBoolean(false);
+    private long storeInitGeneration;
 
     /**
      * Checks if the configured store is Geyser/Offline
@@ -68,8 +78,12 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         return storeType.toLowerCase(Locale.ROOT).contains("geyser");
     }
 
-    public final void initStore() {
-        sdk = new SDK(this, config.getSecretKey());
+    public final synchronized void initStore() {
+        long generation = ++storeInitGeneration;
+        String secretKey = config.getSecretKey();
+
+        setSetup(false);
+        sdk = new SDK(this, secretKey);
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         resolvedFloodgateIds.clear();
@@ -77,37 +91,57 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         serverEvents = Collections.synchronizedList(new ArrayList<>());
         placeholderManager.register(new UuidPlaceholder(placeholderManager));
 
-        if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
-            getSDK().getServerInformation().thenAccept(serverInformation -> {
-                ServerInformation.Server server = serverInformation.getServer();
-                ServerInformation.Store store = serverInformation.getStore();
-
-                info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
-                createPluginEvent(EnumEventLevel.INFO, "Server init");
-                setStoreInfo(serverInformation);
-                setSetup(true);
-                configure();
-                refreshListings();
-
-                // Start the initial check, which is rescheduled per each remote next check
-                checkCommandQueue(true);
-            }).exceptionally(ex -> {
-                Throwable cause = ex.getCause();
-                setSetup(false);
-
-                if (cause instanceof ServerNotFoundException) {
-                    warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
-                    this.halt();
-                } else {
-                    warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the setup command again.", ex);
-                }
-
-                return null;
-            });
-        } else {
+        if (secretKey == null || secretKey.isEmpty()) {
             info("Welcome to Tebex! It seems like this is a new setup.");
             info("To get started, please use the 'tebex secret <key>' command in the console.");
+            return;
         }
+
+        connectStore(generation, secretKey, INITIAL_STORE_RETRY_SECONDS);
+    }
+
+    private synchronized void connectStore(long generation, String secretKey, long retrySeconds) {
+        if (generation != storeInitGeneration || !secretKey.equals(sdk.getSecretKey())) {
+            return;
+        }
+
+        sdk.getServerInformation().whenComplete((serverInformation, error) ->
+                completeStoreInit(generation, secretKey, retrySeconds, serverInformation, error));
+    }
+
+    private synchronized void completeStoreInit(long generation, String secretKey, long retrySeconds, ServerInformation serverInformation, Throwable error) {
+
+        // Ignore responses from a setup attempt superseded by a new one or by halt().
+        if (generation != storeInitGeneration || !secretKey.equals(sdk.getSecretKey())) return;
+
+        if (error != null) {
+            Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause() : error;
+            if (cause instanceof ServerNotFoundException) {
+                warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
+                halt();
+            } else if (cause instanceof InvalidSecretKeyException) {
+                warning(cause.getMessage(), "Check the key in your configuration or run the setup command again.");
+            } else if (cause instanceof IOException) {
+                warning("Failed to retrieve server information. " + cause.getMessage(), "Retrying in " + retrySeconds + " seconds.", error);
+
+                long nextDelay = Math.min(retrySeconds * 2, MAX_STORE_RETRY_SECONDS);
+                executeAsyncLater(() -> connectStore(generation, secretKey, nextDelay), retrySeconds, TimeUnit.SECONDS);
+            } else {
+                warning("Failed to retrieve server information. " + cause.getMessage(), "Run the setup command again to retry.", error);
+            }
+            return;
+        }
+
+        ServerInformation.Server server = serverInformation.getServer();
+        ServerInformation.Store store = serverInformation.getStore();
+
+        info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
+        createPluginEvent(EnumEventLevel.INFO, "Server init");
+        setStoreInfo(serverInformation);
+        setSetup(true);
+        configure();
+        refreshListings();
+        checkCommandQueue(true);
     }
 
     public final void performCheck() {
@@ -115,101 +149,128 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     }
 
     public final CompletableFuture<String[]> checkCommandQueue(boolean useRemoteNextCheck) {
-        CompletableFuture<String[]> forceCheckOutput = new CompletableFuture<>();
-
-        if(!isSetup()) {
+        if (!isSetup()) {
             debug("Tebex is not set up. Skipping check.");
-            executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
-            return forceCheckOutput;
+            scheduleQueueCheck(useRemoteNextCheck, 60);
+            return CompletableFuture.completedFuture(new String[]{"Tebex is not set up."});
         }
 
         if (!commandCheckInProgress.compareAndSet(false, true)) {
-            debug("Command queue check already in progress. Skipping to avoid duplicate execution.");
-            if (useRemoteNextCheck) {
-                executeAsyncLater(this::performCheck, 60, TimeUnit.SECONDS);
-            }
-            return forceCheckOutput;
+            debug("Command queue check already in progress.");
+            scheduleQueueCheck(useRemoteNextCheck, 60);
+            return CompletableFuture.completedFuture(new String[]{"A command queue check is already in progress."});
         }
 
         debug("Checking for due players...");
+        long[] nextCheckSeconds = {60};
         getQueuedPlayers().clear();
 
-        getSDK().getDuePlayers().whenComplete((duePlayersResponse, ex) -> {
-            ArrayList<String> output = new ArrayList<>();
-            if (ex != null) {
-                if (ex.getMessage().contains("429")) { // handling for rate limits
-                    warning("Failed to get due players: Rate Limit", "We will try again after 5 minutes.", ex);
-                    output.add("Failed to get due players: Rate Limit. We will try again after 5 minutes.");
-                    executeAsyncLater(this::performCheck, 5, TimeUnit.MINUTES);
-                } else if (ex.getMessage().contains("403")) {
-                    warning("Failed to get due players: Forbidden", "Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.", ex);
-                    output.add("Failed to get due players: Forbidden. Please check your secret key and run `/tebex.forcecheck` to try again. We will wait 30 minutes before trying again.");
-                    executeAsyncLater(this::performCheck, 30, TimeUnit.MINUTES);
-                } else { // unexpected status code
-                    warning("Failed to get due players: " + ex.getMessage(), "We will try again at the next due player check.", ex);
-                    output.add("Failed to get due players: '" + ex.getMessage() + "'. We will try again at the next due player check.");
-                    executeAsyncLater(this::performCheck, 1, TimeUnit.MINUTES);
-                }
-                commandCheckInProgress.set(false);
-                forceCheckOutput.complete((String[]) output.toArray());
-                return;
-            }
+        SDK queueSdk = getSDK();
+        String queueKey = queueSdk.getSecretKey();
 
-            if (useRemoteNextCheck) {
-                int nextCheck = duePlayersResponse == null ? 60 : duePlayersResponse.getNextCheck();
-                executeAsyncLater(this::performCheck, nextCheck, TimeUnit.SECONDS);
-            }
+        return CompletableFuture.completedFuture(null).thenCompose(ignored -> {
+            retryCommandDeletes(queueKey);
+            return queueSdk.getDuePlayers();
+        }).thenCompose(duePlayersResponse -> {
+            if (!isCurrentQueueConnection(queueSdk, queueKey)) return CompletableFuture.completedFuture(new String[]{"The store connection changed during the check."});
 
-            List<QueuedPlayer> playerList = duePlayersResponse.getPlayers();
+            nextCheckSeconds[0] = duePlayersResponse.getNextCheck();
             List<CompletableFuture<Void>> onlineCommandFutures = new ArrayList<>();
-            if(! playerList.isEmpty()) {
-                String listMessage = "Found " + playerList.size() + " " + StringUtil.pluralise(playerList.size(), "player", "players") + " with pending commands.";
 
-                for (QueuedPlayer queuedPlayer : playerList) {
-                    try {
-                        onlineCommandFutures.add(handleOnlineCommands(queuedPlayer));
-                    } catch (Exception e) {
-                        error("Failed to handle online commands for player '" + queuedPlayer.getName() + "': " + e.getMessage(), e);
-                    }
+            for (QueuedPlayer queuedPlayer : duePlayersResponse.getPlayers()) {
+                try {
+                    onlineCommandFutures.add(handleOnlineCommands(queuedPlayer, queueSdk, queueKey));
+                } catch (Exception e) {
+                    error("Failed to handle online commands for player '" + queuedPlayer.getName() + "': " + e.getMessage(), e);
+                    CompletableFuture<Void> failedFetch = new CompletableFuture<>();
+                    failedFetch.completeExceptionally(e);
+                    onlineCommandFutures.add(failedFetch);
                 }
             }
 
-            // Hold the flag until all per-player command fetches settle. Resetting it when
-            // getDuePlayers returns lets a concurrent forcecheck re-fetch and re-dispatch the
-            // same commands before they are deleted.
-            CompletableFuture.allOf(onlineCommandFutures.toArray(new CompletableFuture[0]))
-                .whenComplete((v, allEx) -> {
-                    if (duePlayersResponse.isExecuteOffline()) {
-                        handleOfflineCommands();
-                    }
-                    commandCheckInProgress.set(false);
-                });
-        });
+            // Hold the guard until the online and offline fetches have both finished.
+            return CompletableFuture.allOf(onlineCommandFutures.toArray(new CompletableFuture<?>[0]))
+                    .handle((ignored, onlineFailure) -> onlineFailure)
+                    .thenCompose(onlineFailure -> {
+                        if (!isCurrentQueueConnection(queueSdk, queueKey)) return CompletableFuture.completedFuture(new String[]{"The store connection changed during the check."});
 
-        return forceCheckOutput;
+                        CompletableFuture<Void> offlineFetch = duePlayersResponse.isExecuteOffline() ? fetchOfflineCommands(queueSdk, queueKey) : CompletableFuture.completedFuture(null);
+                        return offlineFetch.handle((ignored, offlineFailure) -> {
+                            if (onlineFailure == null && offlineFailure == null) return new String[0];
+
+                            String message = "Some Tebex commands could not be fetched.";
+                            Throwable cause = onlineFailure != null ? onlineFailure : offlineFailure;
+                            warning(message + " " + cause.getMessage(), "Check the connection to Tebex and try again.", cause);
+                            return new String[]{message + " See console for details."};
+                        });
+                    });
+        }).exceptionally(ex -> {
+            Throwable cause = ex instanceof CompletionException && ex.getCause() != null ? ex.getCause() : ex;
+            String message = cause.getMessage();
+
+            // Match the SDK's API status message. A proxy error can also contain "403".
+            if ("Unexpected status code (429)".equals(message)) {
+                nextCheckSeconds[0] = 300;
+            } else if ("Unexpected status code (403)".equals(message)) {
+                nextCheckSeconds[0] = 1800;
+            }
+
+            String failure = "Command queue check failed: " + message;
+            warning(failure, useRemoteNextCheck ? "Retrying in " + nextCheckSeconds[0] + " seconds." : "See console for details.", ex);
+            return new String[]{failure};
+        }).whenComplete((result, failure) -> {
+            commandCheckInProgress.set(false);
+            scheduleQueueCheck(useRemoteNextCheck, nextCheckSeconds[0]);
+        });
+    }
+
+    private void scheduleQueueCheck(boolean regularCheck, long delaySeconds) {
+        if (!regularCheck || !queueCheckScheduled.compareAndSet(false, true)) return;
+
+        executeAsyncLater(() -> {
+            queueCheckScheduled.set(false);
+            performCheck();
+        }, delaySeconds, TimeUnit.SECONDS);
+    }
+
+    private boolean isCurrentQueueKey(String key) {
+        return isSetup() && key != null && key.equals(getSDK().getSecretKey());
+    }
+
+    private boolean isCurrentQueueConnection(SDK queueSdk, String queueKey) {
+        return queueSdk == getSDK() && isCurrentQueueKey(queueKey);
     }
 
     public final CompletableFuture<Void> handleOnlineCommands(QueuedPlayer player) {
-        if(! isSetup()) return CompletableFuture.completedFuture(null);
+        if (!isSetup()) return CompletableFuture.completedFuture(null);
+
+        SDK queueSdk = getSDK();
+        return handleOnlineCommands(player, queueSdk, queueSdk.getSecretKey())
+                .exceptionally(ex -> {
+                    warning("Failed to get online commands: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+                    return null;
+                });
+    }
+
+    private CompletableFuture<Void> handleOnlineCommands(QueuedPlayer player, SDK queueSdk, String queueKey) {
+        if (!isCurrentQueueConnection(queueSdk, queueKey)) return CompletableFuture.completedFuture(null);
 
         debug("Processing online commands for player '" + player.getName() + "'...");
         Object playerId = getPlayerId(player.getName(), UUIDUtil.mojangIdToJavaId(player.getUuid()));
-        if(!canProcessOnlineCommands(player, playerId)) {
+        if (!canProcessOnlineCommands(player, playerId)) {
             getQueuedPlayers().put(playerId, player.getId()); // will cause commands to be processed when player connects
             return CompletableFuture.completedFuture(null);
         }
 
-        return getSDK().getOnlineCommands(player).thenAccept(onlineCommands -> {
-            if(onlineCommands.isEmpty()) {
+        return queueSdk.getOnlineCommands(player).thenAccept(onlineCommands -> {
+            if (!isCurrentQueueConnection(queueSdk, queueKey)) return;
+            if (onlineCommands.isEmpty()) {
                 debug("No commands found for " + player.getName() + ".");
                 return;
             }
 
             debug("Found " + onlineCommands.size() + " online " + StringUtil.pluralise(onlineCommands.size(), "command") + ".");
-            processOnlineCommands(player, playerId, onlineCommands);
-        }).exceptionally(ex -> {
-            warning("Failed to get online commands: " + ex.getMessage(), "We will try again at the next due player check.", ex);
-            return null;
+            processOnlineCommands(player, playerId, onlineCommands, queueKey);
         });
     }
 
@@ -388,28 +449,36 @@ public abstract class BasePluginPlatform implements PluginPlatform {
      * @param commands The commands to process.
      */
     public final void processOnlineCommands(QueuedPlayer player, Object playerId, List<QueuedCommand> commands) {
-        if(! isSetup()) return;
+        processOnlineCommands(player, playerId, commands, getSDK().getSecretKey());
+    }
+
+    private void processOnlineCommands(QueuedPlayer player, Object playerId, List<QueuedCommand> commands, String queueKey) {
+        if (!isCurrentQueueKey(queueKey)) return;
+
+        // The existing body continues here, starting with String playerName.
+        if (!isSetup()) return;
 
         String playerName = player.getName();
         boolean hasInventorySpace = true;
         for (QueuedCommand command : commands) {
             String parsedCommand = command.getParsedCommand(this);
-            if(! isDispatchable(command, parsedCommand, playerName)) continue;
+            if (!isDispatchable(command, parsedCommand, playerName)) continue;
 
             int freeSlots = getFreeSlots(playerId);
-            if(freeSlots < command.getRequiredSlots()) {
+            if (freeSlots < command.getRequiredSlots()) {
                 info(String.format("Skipping command '%s' for player '%s' due to no inventory space. Free slots: %d. Slots required: %d", parsedCommand, playerName, freeSlots, command.getRequiredSlots()));
                 hasInventorySpace = false;
                 continue;
             }
 
-            final Runnable commandRunnable = () -> {
+            scheduleQueuedCommand(queueKey, command, markDispatchAttempted -> {
                 if (!canProcessOnlineCommands(player, playerId)) {
                     info(String.format("Skipping command '%s' for player '%s' because they are no longer verified online", parsedCommand, playerName));
                     return;
                 }
 
                 info(String.format("Dispatching command '%s' for player '%s'", parsedCommand, playerName));
+                markDispatchAttempted.run();
                 CommandResult commandResult = dispatchCommand(parsedCommand);
 
                 // report whether the command succeeded or failed
@@ -435,35 +504,38 @@ public abstract class BasePluginPlatform implements PluginPlatform {
                 }
 
                 // Mark online commands completed only after their scheduled runnable has verified the player and dispatched.
-                List<Integer> completedCommands = new ArrayList<>();
-                completedCommands.add(command.getId());
-                deleteCompletedCommands(completedCommands);
-            };
-            if (command.getDelay() > 0) {
-                executeBlockingLater(commandRunnable, command.getDelay(), TimeUnit.SECONDS);
-            } else {
-                executeBlocking(commandRunnable);
-            }
+            });
         }
 
-        if(! hasInventorySpace) return;
+        if (!hasInventorySpace) return;
         getQueuedPlayers().remove(playerId);
     }
 
     public final void handleOfflineCommands() {
-        if(! isSetup()) return;
+        if (!isSetup()) return;
 
-        getSDK().getOfflineCommands().thenAccept(offlineData -> {
-            if(offlineData.getCommands().isEmpty()) {
-                return;
-            }
+        SDK queueSdk = getSDK();
+        fetchOfflineCommands(queueSdk, queueSdk.getSecretKey())
+                .exceptionally(ex -> {
+                    warning("Failed to retrieve offline commands: " + ex.getMessage(), "We will try again at the next due player check.", ex);
+                    return null;
+                });
+    }
+
+    private CompletableFuture<Void> fetchOfflineCommands(SDK queueSdk, String queueKey) {
+        if (!isCurrentQueueConnection(queueSdk, queueKey)) return CompletableFuture.completedFuture(null);
+
+        return queueSdk.getOfflineCommands().thenAccept(offlineData -> {
+            if (!isCurrentQueueConnection(queueSdk, queueKey)) return;
+            if (offlineData.getCommands().isEmpty()) return;
 
             for (QueuedCommand command : offlineData.getCommands()) {
                 String parsedCommand = command.getParsedCommand(this);
-                if(! isDispatchable(command, parsedCommand, command.getPlayer().getName())) continue;
+                if (!isDispatchable(command, parsedCommand, command.getPlayer().getName())) continue;
 
-                final Runnable commandRunnable = () -> {
+                scheduleQueuedCommand(queueKey, command, markDispatchAttempted -> {
                     info(String.format("Dispatching offline command '%s' for player '%s'.", parsedCommand, command.getPlayer().getName()));
+                    markDispatchAttempted.run();
                     CommandResult offlineCommandResult = dispatchCommand(parsedCommand);
 
                     // report whether the offline command succeeded or failed
@@ -483,21 +555,85 @@ public abstract class BasePluginPlatform implements PluginPlatform {
                         }
                         warning(String.format("Command `%s` failed to execute: %s", parsedCommand, extraInfo), solution);
                     }
+                });
+            }
+        });
+    }
 
-                    List<Integer> completed = new ArrayList<>();
-                    completed.add(command.getId());
-                    deleteCompletedCommands(completed);
-                };
-                if (command.getDelay() > 0) {
-                    executeBlockingLater(commandRunnable, command.getDelay(), TimeUnit.SECONDS);
+    private void scheduleQueuedCommand(String key, QueuedCommand command, Consumer<Runnable> dispatch) {
+        if (!isCurrentQueueKey(key)) return;
+
+        Map<Integer, Long> states = commandStatesByKey.computeIfAbsent(key, ignored -> Maps.newConcurrentMap());
+        int id = command.getId();
+
+        // Claim the ID before scheduling so later fetches skip delayed commands.
+        if (states.putIfAbsent(id, COMMAND_SCHEDULED) != null) return;
+
+        Runnable task = () -> {
+            if (!isCurrentQueueKey(key)) {
+                states.remove(id, COMMAND_SCHEDULED);
+                return;
+            }
+
+            AtomicBoolean dispatchAttempted = new AtomicBoolean(false);
+            try {
+                dispatch.accept(() -> dispatchAttempted.set(true));
+            } finally {
+                if (dispatchAttempted.get()) {
+                    states.replace(id, COMMAND_SCHEDULED, COMMAND_NEEDS_DELETE);
+                    deleteQueuedCommand(key, states, id);
                 } else {
-                    executeBlocking(commandRunnable);
+                    states.remove(id, COMMAND_SCHEDULED);
                 }
             }
-        }).exceptionally(ex -> {
-            warning("Failed to retrieve offline commands - some commands may not have been processed. " + ex.getMessage(), "We will try again at the next due player check.", ex);
-            return null;
+        };
+
+        try {
+            if (command.getDelay() > 0) {
+                executeBlockingLater(task, command.getDelay(), TimeUnit.SECONDS);
+            } else {
+                executeBlocking(task);
+            }
+        } catch (RuntimeException e) {
+            states.remove(id, COMMAND_SCHEDULED);
+            throw e;
+        }
+    }
+
+    private void retryCommandDeletes(String key) {
+        if (!isCurrentQueueKey(key)) return;
+
+        Map<Integer, Long> states = commandStatesByKey.get(key);
+        if (states == null) return;
+
+        long now = System.currentTimeMillis();
+        states.forEach((id, state) -> {
+            if (state == COMMAND_NEEDS_DELETE) {
+                deleteQueuedCommand(key, states, id);
+            } else if (state >= 0 && state <= now) {
+                states.remove(id, state);
+            }
         });
+    }
+
+    private void deleteQueuedCommand(String key, Map<Integer, Long> states, int id) {
+        SDK currentSdk = getSDK();
+        if (!isSetup() || !key.equals(currentSdk.getSecretKey()) || !states.replace(id, COMMAND_NEEDS_DELETE, COMMAND_DELETING)) return;
+
+        try {
+            currentSdk.deleteCommands(Collections.singletonList(id)).whenComplete((deleted, failure) -> {
+                if (failure == null && Boolean.TRUE.equals(deleted)) {
+                    // Keep the ID briefly in case an overlapping fetch still lists it.
+                    states.replace(id, COMMAND_DELETING, System.currentTimeMillis() + DELETED_COMMAND_RETENTION_MILLIS);
+                } else {
+                    states.replace(id, COMMAND_DELETING, COMMAND_NEEDS_DELETE);
+                    error("Failed to delete command " + id + ". Will retry at the next queue check.", failure);
+                }
+            });
+        } catch (RuntimeException e) {
+            states.replace(id, COMMAND_DELETING, COMMAND_NEEDS_DELETE);
+            error("Failed to delete command " + id + ". Will retry at the next queue check.", e);
+        }
     }
 
     public final void deleteCompletedCommands(List<Integer> completedCommands) {
@@ -650,8 +786,9 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     /**
      * Halts the platform and stops any ongoing tasks.
      */
-    public final void halt() {
-        this.setup = false;
+    public final synchronized void halt() {
+        storeInitGeneration++;
+        setSetup(false);
     }
 
     public final PlaceholderManager getPlaceholderManager() {

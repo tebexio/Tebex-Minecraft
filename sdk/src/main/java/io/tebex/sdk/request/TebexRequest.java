@@ -2,6 +2,7 @@ package io.tebex.sdk.request;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.tebex.sdk.Tebex;
+import io.tebex.sdk.exception.InvalidSecretKeyException;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +85,17 @@ public class TebexRequest {
      * @return The TebexRequest instance for chaining.
      */
     public TebexRequest withSecretKey(String secretKey) {
+        validateSecretKey(secretKey);
         return withHeader("X-Tebex-Secret", secretKey);
+    }
+
+    public static void validateSecretKey(String secretKey) {
+        if (secretKey == null || secretKey.trim().isEmpty()) throw new InvalidSecretKeyException();
+
+        for (int i = 0; i < secretKey.length(); i++) {
+            char character = secretKey.charAt(i);
+            if (character <= ' ' || character >= '\u007f') throw new InvalidSecretKeyException(i + 1);
+        }
     }
 
     /**
@@ -120,40 +131,40 @@ public class TebexRequest {
         EXECUTOR.submit(() -> call.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Tebex.get().debug(call.request().toString());
+                Tebex.get().debug(String.format("Request failed: %s %s", request.method(), request.url()));
                 future.completeExceptionally(e);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                ResponseBody responseBody = response.body();
-                Tebex.get().debug(String.format("%1$d <- %2$s %3$s ", response.code(), request.method(), request.url()));
-
-                if (responseBody != null) {
-                    try {
-                        // in debug mode we consume the response body and display it in the logs, then rebuild a new response.
-                        // this is inefficient so only do this when debug mode is enabled
-                        if (Tebex.get().getPlatformConfig().isVerbose()) {
-                            String responseBodyString = responseBody.string();
-                            Tebex.get().debug(String.format(" | %1$s", responseBodyString));
-                            ResponseBody clonedBody = ResponseBody.create(responseBodyString,
-                                    responseBody.contentType());
-                            Response clonedResponse = response.newBuilder().body(clonedBody).build();
-                            future.complete(clonedResponse);
-                            clonedResponse.close(); //close duplicated response
-                        } else { // outside of debug mode we can still use the original response
-                            future.complete(response);
-                        }
-                    } catch (IOException e) {
-                        Tebex.get().debug(" error reading response body: " + e.getMessage());
-                        future.completeExceptionally(e);
-                    }
-                } else { // no response body, complete normally
+                ResponseBody body = response.body();
+                if (body == null) {
                     future.complete(response);
+                    return;
                 }
 
-                // close original response
-                response.close();
+                try (Response original = response) {
+                    // Log the method and URL only, since request headers can contain the server key.
+                    Tebex.get().debug(String.format("%d <- %s %s", original.code(), request.method(), request.url()));
+
+                    /*
+                     * A caller can attach a handler after this callback has closed the network response.
+                     * Buffer the body so those handlers can still read it.
+                     */
+                    byte[] bytes = body.bytes();
+                    if (Tebex.get().getPlatformConfig().isVerbose()) {
+                        // Read a separate copy so logging leaves the caller's body available.
+                        try (ResponseBody logBody = ResponseBody.create(bytes, body.contentType())) {
+                            Tebex.get().debug(" | " + logBody.string());
+                        }
+                    }
+
+                    future.complete(original.newBuilder()
+                            .body(ResponseBody.create(bytes, body.contentType()))
+                            .build());
+                } catch (IOException e) {
+                    future.completeExceptionally(e);
+                }
             }
         }));
 
