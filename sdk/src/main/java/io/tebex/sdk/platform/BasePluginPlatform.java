@@ -20,11 +20,9 @@ import org.geysermc.floodgate.util.LinkedPlayer;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
@@ -34,12 +32,14 @@ import static io.tebex.sdk.util.ResourceUtil.getBundledFile;
  */
 public abstract class BasePluginPlatform implements PluginPlatform {
     public final int MAX_COMMANDS_PER_BATCH = 3;
+    private final long INITIAL_STORE_RETRY_SECONDS = 15;
+    private final long MAX_STORE_RETRY_SECONDS = 300;
 
     protected SDK sdk;
     protected ServerPlatformConfig config;
     protected YamlDocument configYaml;
 
-    protected boolean setup;
+    protected volatile boolean setup;
     protected PlaceholderManager placeholderManager;
     protected Map<Object, Integer> queuedPlayers;
 
@@ -51,6 +51,7 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     private final AtomicBoolean commandCheckInProgress = new AtomicBoolean(false);
     private final AtomicBoolean floodgateWarningLogged = new AtomicBoolean(false);
     private final Map<String, UUID> resolvedFloodgateIds = Maps.newConcurrentMap();
+    private long storeInitGeneration;
 
     /**
      * Checks if the configured store is Geyser/Offline
@@ -68,8 +69,12 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         return storeType.toLowerCase(Locale.ROOT).contains("geyser");
     }
 
-    public final void initStore() {
-        sdk = new SDK(this, config.getSecretKey());
+    public final synchronized void initStore() {
+        long generation = ++storeInitGeneration;
+        String secretKey = config.getSecretKey();
+
+        setSetup(false);
+        sdk = new SDK(this, secretKey);
         placeholderManager = new PlaceholderManager();
         queuedPlayers = Maps.newConcurrentMap();
         resolvedFloodgateIds.clear();
@@ -77,37 +82,55 @@ public abstract class BasePluginPlatform implements PluginPlatform {
         serverEvents = Collections.synchronizedList(new ArrayList<>());
         placeholderManager.register(new UuidPlaceholder(placeholderManager));
 
-        if (getPlatformConfig().getSecretKey() != null && !getPlatformConfig().getSecretKey().isEmpty()) {
-            getSDK().getServerInformation().thenAccept(serverInformation -> {
-                ServerInformation.Server server = serverInformation.getServer();
-                ServerInformation.Store store = serverInformation.getStore();
-
-                info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
-                createPluginEvent(EnumEventLevel.INFO, "Server init");
-                setStoreInfo(serverInformation);
-                setSetup(true);
-                configure();
-                refreshListings();
-
-                // Start the initial check, which is rescheduled per each remote next check
-                checkCommandQueue(true);
-            }).exceptionally(ex -> {
-                Throwable cause = ex.getCause();
-                setSetup(false);
-
-                if (cause instanceof ServerNotFoundException) {
-                    warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
-                    this.halt();
-                } else {
-                    warning("Failed to retrieve server information. " + cause.getMessage(), "Please double check your server key or run the setup command again.", ex);
-                }
-
-                return null;
-            });
-        } else {
+        if (secretKey == null || secretKey.isEmpty()) {
             info("Welcome to Tebex! It seems like this is a new setup.");
             info("To get started, please use the 'tebex secret <key>' command in the console.");
+            return;
         }
+
+        connectStore(generation, secretKey, INITIAL_STORE_RETRY_SECONDS);
+    }
+
+    private synchronized void connectStore(long generation, String secretKey, long retrySeconds) {
+        if (generation != storeInitGeneration || !secretKey.equals(sdk.getSecretKey())) {
+            return;
+        }
+
+        sdk.getServerInformation().whenComplete((serverInformation, error) ->
+                completeStoreInit(generation, secretKey, retrySeconds, serverInformation, error));
+    }
+
+    private synchronized void completeStoreInit(long generation, String secretKey, long retrySeconds, ServerInformation serverInformation, Throwable error) {
+
+        // Ignore responses from a setup attempt superseded by a new one or by halt().
+        if (generation != storeInitGeneration || !secretKey.equals(sdk.getSecretKey())) return;
+
+        if (error != null) {
+            Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause() : error;
+            if (cause instanceof ServerNotFoundException) {
+                warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
+                halt();
+            } else if (cause instanceof IOException) {
+                warning("Failed to retrieve server information. " + cause.getMessage(), "Retrying in " + retrySeconds + " seconds.", error);
+
+                long nextDelay = Math.min(retrySeconds * 2, MAX_STORE_RETRY_SECONDS);
+                executeAsyncLater(() -> connectStore(generation, secretKey, nextDelay), retrySeconds, TimeUnit.SECONDS);
+            } else {
+                warning("Failed to retrieve server information. " + cause.getMessage(), "Run the setup command again to retry.", error);
+            }
+            return;
+        }
+
+        ServerInformation.Server server = serverInformation.getServer();
+        ServerInformation.Store store = serverInformation.getStore();
+
+        info(String.format("Connected to %s - %s server.", server.getName(), store.getGameType()));
+        createPluginEvent(EnumEventLevel.INFO, "Server init");
+        setStoreInfo(serverInformation);
+        setSetup(true);
+        configure();
+        refreshListings();
+        checkCommandQueue(true);
     }
 
     public final void performCheck() {
@@ -650,8 +673,9 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     /**
      * Halts the platform and stops any ongoing tasks.
      */
-    public final void halt() {
-        this.setup = false;
+    public final synchronized void halt() {
+        storeInitGeneration++;
+        setSetup(false);
     }
 
     public final PlaceholderManager getPlaceholderManager() {
