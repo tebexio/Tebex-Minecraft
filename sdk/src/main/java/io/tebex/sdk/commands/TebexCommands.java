@@ -194,18 +194,11 @@ public class TebexCommands {
         });
 
 
-        register("forcecheck", "", "Checks immediately for any purchases that need to be delivered.", (ctx) -> {
-            boolean previousDebugState = platform.getPlatformConfig().isVerbose();
-            // Temporarily enable debug logging while a forcecheck runs
-            platform.getPlatformConfig().setVerbose(true);
-
-            CompletableFuture<String[]> response = platform.checkCommandQueue(false);
-
-            // Restore previous debug state
-            platform.getPlatformConfig().setVerbose(previousDebugState);
-            response.complete(new String[]{Responder.formatSuccess(ctx, "Check completed. See console for details.")});
-            return response;
-        });
+        register("forcecheck", "", "Checks immediately for any purchases that need to be delivered.", (ctx) -> platform.checkCommandQueue(false).thenApply(messages -> {
+            if (messages.length == 0)
+                return new String[]{Responder.formatSuccess(ctx, "Queue check completed.")};
+            return new String[]{Responder.formatError(ctx, messages[0])};
+        }));
 
 
         register("goals", "", "Shows progress to community goals.", (ctx) -> {
