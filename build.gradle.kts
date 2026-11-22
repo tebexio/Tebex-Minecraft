@@ -95,10 +95,11 @@ subprojects {
         }
     }
 
-    collectBuilds.configure {
-        val shadowJarTask = tasks.named("shadowJar", ShadowJar::class.java)
-        dependsOn(shadowJarTask)
-        from(shadowJarTask.flatMap { it.archiveFile })
+    if (path != ":forge-1.20.1") {
+        collectBuilds.configure {
+            val shadowJarTask = tasks.named("shadowJar", ShadowJar::class.java)
+            from(shadowJarTask.flatMap { it.archiveFile })
+        }
     }
 
     repositories {

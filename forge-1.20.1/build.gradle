@@ -75,7 +75,10 @@ tasks.named('shadowJar', ShadowJar) {
 }
 
 obfuscation {
-    reobfuscate(tasks.named('shadowJar'), sourceSets.main)
+    def reobfShadowJar = reobfuscate(tasks.named('shadowJar'), sourceSets.main)
+    rootProject.tasks.named('collectBuilds', Sync) {
+        from(reobfShadowJar.flatMap { it.archiveFile })
+    }
 }
 
 tasks.named('jar') {
