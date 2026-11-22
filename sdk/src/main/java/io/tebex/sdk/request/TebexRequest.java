@@ -2,6 +2,7 @@ package io.tebex.sdk.request;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.tebex.sdk.Tebex;
+import io.tebex.sdk.exception.InvalidSecretKeyException;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +85,17 @@ public class TebexRequest {
      * @return The TebexRequest instance for chaining.
      */
     public TebexRequest withSecretKey(String secretKey) {
+        validateSecretKey(secretKey);
         return withHeader("X-Tebex-Secret", secretKey);
+    }
+
+    public static void validateSecretKey(String secretKey) {
+        if (secretKey == null || secretKey.trim().isEmpty()) throw new InvalidSecretKeyException();
+
+        for (int i = 0; i < secretKey.length(); i++) {
+            char character = secretKey.charAt(i);
+            if (character <= ' ' || character >= '\u007f') throw new InvalidSecretKeyException(i + 1);
+        }
     }
 
     /**

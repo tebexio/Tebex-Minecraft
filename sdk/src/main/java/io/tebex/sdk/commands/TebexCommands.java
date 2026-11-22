@@ -3,6 +3,7 @@ package io.tebex.sdk.commands;
 import io.tebex.sdk.obj.CommunityGoal;
 import io.tebex.sdk.platform.PluginPlatform;
 import io.tebex.sdk.platform.config.IPlatformConfig;
+import io.tebex.sdk.request.TebexRequest;
 import io.tebex.sdk.request.response.ServerInformation;
 import lombok.Getter;
 
@@ -268,35 +269,25 @@ public class TebexCommands {
         });
 
         register("secret", "<key>", "Connects to your store.", (ctx) -> {
-            CompletableFuture<String[]> response = new CompletableFuture<>();
+            String candidateKey = ctx.getArguments()[0];
+
+            try {
+                TebexRequest.validateSecretKey(candidateKey);
+            } catch (IllegalArgumentException e) {
+                return CompletableFuture.completedFuture(new String[]{Responder.formatError(ctx, e.getMessage())});
+            }
 
             platform.sendPlayerMessage(ctx.getSenderUsername(), Responder.formatFancy(ctx, "Checking your secret key..."));
-            String oldKey = platform.getPlatformConfig().getSecretKey();
+            return platform.getSDK().getServerInformation(candidateKey).handle((newInfo, error) -> {
+                if (error != null) return new String[]{Responder.formatError(ctx, "Could not verify the secret key. Check the key and your connection to Tebex.")};
 
-            // Set the new key and attempt to query server info. If it works, key is valid and we set in config.
-            String newKey = ctx.getArguments()[0];
+                IPlatformConfig config = platform.getPlatformConfig();
+                config.setSecretKey(candidateKey);
+                platform.saveConfig(config);
+                platform.initStore();
 
-            IPlatformConfig cfg = platform.getPlatformConfig();
-            platform.getSDK().setSecretKey(newKey);
-            cfg.setSecretKey(newKey);
-            platform.saveConfig(cfg);
-
-            platform.getSDK().getServerInformation().thenAccept((newInfo) -> {
-                if (newInfo != null) {
-                    platform.setServerInformation(newInfo);
-                    platform.refreshListings();
-                    platform.initStore();
-                    response.complete(new String[]{Responder.formatFancy(ctx, "Successfully connected to your store: {0} as {1}", newInfo.getStore().getName(), newInfo.getServer().getName())});
-                }
-            }).exceptionally((e) -> {
-                platform.getSDK().setSecretKey(oldKey);
-                cfg.setSecretKey(oldKey);
-                platform.saveConfig(cfg);
-                response.complete(new String[]{Responder.formatError(ctx, "Your secret key was invalid. Please try again.")});
-                return null;
+                return new String[]{Responder.formatFancy(ctx, "Successfully verified the key for {0} as {1}.", newInfo.getStore().getName(), newInfo.getServer().getName())};
             });
-
-            return response;
         });
 
         register("sendlink", "<packageId> <username>", "Sends a purchase link to a player.", (ctx) -> {

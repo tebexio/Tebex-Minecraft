@@ -3,6 +3,7 @@ package io.tebex.sdk.platform;
 import com.google.common.collect.Maps;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.sdk.SDK;
+import io.tebex.sdk.exception.InvalidSecretKeyException;
 import io.tebex.sdk.exception.ServerNotFoundException;
 import io.tebex.sdk.obj.*;
 import io.tebex.sdk.placeholder.PlaceholderManager;
@@ -118,6 +119,8 @@ public abstract class BasePluginPlatform implements PluginPlatform {
             if (cause instanceof ServerNotFoundException) {
                 warning("Failed to connect your server: " + cause.getMessage(), "Please double-check your server key or run the setup command again.");
                 halt();
+            } else if (cause instanceof InvalidSecretKeyException) {
+                warning(cause.getMessage(), "Check the key in your configuration or run the setup command again.");
             } else if (cause instanceof IOException) {
                 warning("Failed to retrieve server information. " + cause.getMessage(), "Retrying in " + retrySeconds + " seconds.", error);
 
@@ -239,7 +242,6 @@ public abstract class BasePluginPlatform implements PluginPlatform {
     }
 
     public final CompletableFuture<Void> handleOnlineCommands(QueuedPlayer player) {
-        if(! isSetup()) return CompletableFuture.completedFuture(null);
         if (!isSetup()) return CompletableFuture.completedFuture(null);
 
         SDK queueSdk = getSDK();

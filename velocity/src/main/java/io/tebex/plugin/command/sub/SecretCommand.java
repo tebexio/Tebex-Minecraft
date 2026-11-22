@@ -1,14 +1,10 @@
 package io.tebex.plugin.command.sub;
 
 import com.velocitypowered.api.command.CommandSource;
-import dev.dejvokep.boostedyaml.YamlDocument;
 import io.tebex.plugin.TebexVelocityPlugin;
 import io.tebex.plugin.command.SubCommand;
-import io.tebex.sdk.SDK;
-import io.tebex.sdk.exception.ServerNotFoundException;
-import io.tebex.sdk.platform.config.ServerPlatformConfig;
-
-import java.io.IOException;
+import io.tebex.sdk.platform.config.IPlatformConfig;
+import io.tebex.sdk.request.TebexRequest;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
 
@@ -24,40 +20,28 @@ public class SecretCommand extends SubCommand {
             return;
         }
 
-        String serverToken = args[0];
+        String candidateKey = args[0];
         TebexVelocityPlugin platform = getPlatform();
 
-        SDK sdk = platform.getSDK();
-        ServerPlatformConfig config = (ServerPlatformConfig) platform.getPlatformConfig();
-        YamlDocument configFile = config.getYamlDocument();
+        try {
+            TebexRequest.validateSecretKey(candidateKey);
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §c" + e.getMessage()));
+            return;
+        }
 
-        sdk.setSecretKey(serverToken);
-
-        platform.getSDK().getServerInformation().thenAccept(serverInformation -> {
-            config.setSecretKey(serverToken);
-            configFile.set("server.secret-key", serverToken);
-            platform.setStoreInfo(serverInformation);
-
-            try {
-                configFile.save();
-            } catch (IOException e) {
-                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Failed to save config: " + e.getMessage()));
+        platform.getSDK().getServerInformation(candidateKey).whenComplete((serverInformation, error) -> {
+            if (error != null) {
+                sender.sendMessage(legacySection().deserialize("§b[Tebex] §cCould not verify the secret key. Check the key and your connection to Tebex."));
+                return;
             }
 
-            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Connected to §b" + serverInformation.getServer().getName() + "§7."));
-            platform.configure();
-        }).exceptionally(ex -> {
-            Throwable cause = ex.getCause();
+            IPlatformConfig config = platform.getPlatformConfig();
+            config.setSecretKey(candidateKey);
+            platform.saveConfig(config);
+            platform.initStore();
 
-            if (cause instanceof ServerNotFoundException) {
-                sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Server not found. Please check your secret key."));
-                platform.halt();
-            } else {
-                sender.sendMessage(legacySection().deserialize("§b[Tebex] §cAn error occurred: " + cause.getMessage()));
-                cause.printStackTrace();
-            }
-
-            return null;
+            sender.sendMessage(legacySection().deserialize("§b[Tebex] §7Verified the key for §b" + serverInformation.getServer().getName() + "§7."));
         });
     }
 
